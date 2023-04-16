@@ -1,0 +1,32 @@
+todo
+
+1. add print_carry_in
+1. augment label to allow for ~ in front
+
+sub $t1, $t2, $t3 
+- 9, 10, 11
+cin:          1;             1;                                         1;
+ t2:          0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
+~t3:          0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
+     -    ------ -------------- ------------------------------------------
+ t1:          0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
+
+
+ 1. Consider adding memory operations.
+
+ (mips) .data
+ (mips-data)  A:  value
+ &A = 0x1001 0000
+ (mips-data) .text
+ (mips)
+
+
+ 1. Do something for pseudo instructins:
+
+    li $t1, 1
+      1.  addiu $t1, $zero, 1
+
+ 1. cli instructions:
+    - reset registers
+    - set registers
+    - load.s "filename"

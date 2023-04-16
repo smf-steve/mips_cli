@@ -1,0 +1,339 @@
+#! /bin/bash
+
+max_immediate=$(( 2 ** 16 - 1 ))
+max_pos_immediate=$(( 2 ** 15 - 1 ))
+max_word=$(( 2 ** 32 - 1 ))
+max_dword=$(( 2 ** 63 ))
+
+#registers
+declare -r zero='0' ;  NAME[0]="zero"
+declare -r at='1'	;  NAME[1]="at"
+declare -r v0='2'	;  NAME[2]="v0"
+declare -r v1='3'	;  NAME[3]="v1"
+declare -r a0='4'	;  NAME[4]="a0"
+declare -r a1='5'	;  NAME[5]="a1"
+declare -r a2='6'	;  NAME[6]="a2"
+declare -r a3='7'	;  NAME[7]="a3"
+declare -r t0='8'	;  NAME[8]="t0"
+declare -r t1='9'	;  NAME[9]="t1"
+declare -r t2='10'	;  NAME[10]="t2"
+declare -r t3='11'	;  NAME[11]="t3"
+declare -r t4='12'	;  NAME[12]="t4"
+declare -r t5='13'	;  NAME[13]="t5"
+declare -r t6='14'	;  NAME[14]="t6"
+declare -r t7='15'	;  NAME[15]="t7"
+declare -r s0='16'	;  NAME[16]="s0"
+declare -r s1='17'	;  NAME[17]="s1"
+declare -r s2='18'	;  NAME[18]="s2"
+declare -r s3='19'	;  NAME[19]="s3"
+declare -r s4='20'	;  NAME[20]="s4"
+declare -r s5='21'	;  NAME[21]="s5"
+declare -r s6='22'	;  NAME[22]="s6"
+declare -r s7='23'	;  NAME[23]="s7"
+declare -r t8='24'	;  NAME[24]="t8"
+declare -r t9='25'	;  NAME[25]="t9"
+declare -r k0='26'	;  NAME[26]="k0"
+declare -r k1='27'	;  NAME[27]="k1"
+declare -r gp='28'	;  NAME[28]="gp"
+declare -r sp='29'	;  NAME[29]="sp"
+declare -r fp='30'	;  NAME[30]="fp"
+declare -r ra='31'	;  NAME[31]="ra"
+declare -r _pc='32'	;  NAME[32]="pc"
+declare -r _hi='33'	;  NAME[33]="hi"
+declare -r _lo='34'	;  NAME[34]="lo"
+
+declare -a REGISTER
+
+function reset_registers () {
+  PS1="(mips) "
+  # REGISTER[0]="";  
+  REGISTER[1]="0"
+  REGISTER[2]="0"
+  REGISTER[3]="0"
+  REGISTER[4]="0"
+  REGISTER[5]="0"
+  REGISTER[6]="0"
+  REGISTER[7]="0"
+  REGISTER[8]="0"
+  REGISTER[9]="0"
+  REGISTER[10]="0"
+  REGISTER[11]="0"
+  REGISTER[12]="0"
+  REGISTER[13]="0"
+  REGISTER[14]="0"
+  REGISTER[15]="0"
+  REGISTER[16]="0"
+  REGISTER[17]="0"
+  REGISTER[18]="0"
+  REGISTER[19]="0"
+  REGISTER[20]="0"
+  REGISTER[21]="0"
+  REGISTER[22]="0"
+  REGISTER[23]="0"
+  REGISTER[24]="0"
+  REGISTER[25]="0"
+  REGISTER[26]="0"
+  REGISTER[27]="0"
+  REGISTER[28]="0"
+  REGISTER[29]="0"
+  REGISTER[30]="0"
+  REGISTER[31]="0"
+  REGISTER[32]="0"
+  REGISTER[33]="0"
+  REGISTER[34]="0"
+}
+
+function load() {
+  source "$1"
+}
+
+
+function name() {
+   echo ${NAME[$1]}
+}
+function rval() {
+   echo ${REGISTER[$1]}
+ }
+
+function assign() {
+  [[ $1 == 0 ]] ||  REGISTER[$1]="$2"
+}
+
+#PS1="(mips) "
+function mips_cli () {
+  (
+	PS1="(mips) "
+	reset_registers
+	bash --init-file mips_cli -i
+  )
+}
+
+
+##########################################################################
+## Following are functions to convert output to more readable formats
+
+## Convert a decimal number to hex with bytes separated
+#    - format "0x XX XX XX XX XX"
+function to_hex () {
+  _size=${1}
+  _decimal=${2}
+  _hex=$(printf "%0${_size}X" ${_decimal})
+
+  # Make it a byte at a time:
+  sed -e 's/\(..\)/ \1/g' -e 's/^ //' <<< $_hex
+}
+
+## Convert a hexadecimal number to binary with nibbles separated
+#    - format "bbbb bbbb bbbb bbbb"
+function to_binary () {
+  _hex=${1}
+  # Make it a nibble at a time
+  _exploded=$(sed -e 's/ //g' -e 's/\(.\)/ \1/g' <<< $_hex)
+  _value=""
+  for i in $_exploded ; do
+    case $i in 
+       0   ) _value="${_value} 0000" ;;
+       1   ) _value="${_value} 0001" ;;
+       2   ) _value="${_value} 0010" ;;
+       3   ) _value="${_value} 0011" ;;
+       4   ) _value="${_value} 0100" ;;
+       5   ) _value="${_value} 0101" ;;
+       6   ) _value="${_value} 0110" ;;
+       7   ) _value="${_value} 0111" ;;
+       8   ) _value="${_value} 1000" ;;
+       9   ) _value="${_value} 1001" ;;
+       a|A ) _value="${_value} 1010" ;;
+       b|B ) _value="${_value} 1011" ;;
+       c|C ) _value="${_value} 1100" ;;
+       d|D ) _value="${_value} 1101" ;;
+       e|E ) _value="${_value} 1110" ;;
+       f|F ) _value="${_value} 1111" ;;
+    esac
+  done
+  echo $_value
+}
+
+function print_register () {
+   register="$1"
+   _rval=$(rval $register)
+   _name=$(name $register)
+
+   _decimal=${_rval}
+   _hex=$(to_hex 8 $_rval )
+   _binary=$(to_binary "${_hex}")
+   
+   printf "%2s: %10d; 0x%s; 0b%s;\n" "${_name}" "${_decimal}" "${_hex}" "${_binary}"
+}
+
+function print_immediate () {
+	# It would be good if the text was broutin it
+	# output: 
+	# printf "%s: %10d; 0x%s; 0b%s;  \"text\" \n"
+   _text="$1"
+   _rval=$(sign_ext ${_text})
+   
+   _name=${_rval}
+   _decimal=${_rval}
+   _hex=$(to_hex 8 $_rval )
+   _binary=$(to_binary "${_hex}")
+   
+   printf "%2s  %10d; 0x%s; 0b%s; (%s)\n" "" \
+         "${_decimal}" "${_hex}" "${_binary}" "${_text}"
+}
+
+function print_op () {
+   _op="$1"
+      
+   printf "%2s  %-4s ------ -------------- ------------------------------------------\n" "" "${_op}"
+}
+
+function R_operation()  {
+  _op="$1"
+  _dst="$(sed -e 's/,$//' <<< $2)"
+  _src1="$3"
+
+  print_register "$_src1"
+  assign "$_dst" "$_src"
+  print_op "$_op"
+  print_register "$_dst"
+}
+
+function I_operation() {
+  # It would be good if I could bring in the text string for the third arg
+  _op="$1"
+  _dst="$(sed -e 's/,$//' <<< $2)"
+  _imm="$3"
+
+  print_immediate "$_imm"
+  assign "$_dst" "$_imm"
+  print_op "$_op"
+  print_register "$_dst"
+}
+
+
+
+function RR_operation()  {
+  _op="$1"
+  _dst="$(sed -e 's/,$//' <<< $2)"
+  _src1="$(sed -e 's/,$//' <<< $3)"
+  _src2="$4"
+
+  echo "$@"
+  print_register $_src1
+  print_register $_src2
+  _value=$(( $(rval $_src1) $_op $(rval $_src2) ))
+  assign $_dst $_value
+  print_op $_op
+  print_register $_dst
+}
+
+function sign_ext() {
+  # first convet to an it: see mips_subroutine to accept various inputs
+  #   - e.g. 0x034, 045, 0bxxx, n# 101010 100101
+  # second make sure it is only 16 bits
+  # 
+  _text="$1"
+  _value="invalid immediate value"
+
+  _value=$(toDecimal "$_text")
+
+  _prefix=${_value:0:1}
+  if [[ ${_prefix} == '~' || ${_prefix} == '-' ]] ; then 
+  	_value="${_value:1}"
+  else
+  	_prefix=
+  fi
+
+  (( _value > $max_immediate )) && { echo Immediate Value is Out of Range; return 1; }
+
+  if [[ ${_value} > ${max_pos_immediate} ]] ; then 
+   	# Note this is a 64-bit number
+    $((_value = -65536 | _value ))
+  fi
+  
+  echo $(( ${_prefix}${_value} ))
+
+ }
+
+function RI_operation() {
+  # It would be good if I could bring in the text string for the third arg
+  _op="$1"
+  _dst="$(sed -e 's/,$//' <<< $2)"
+  _src1="$(sed -e 's/,$//' <<< $3)"
+  _text="$4"
+  _imm=$(sign_ext "$4")
+
+  print_register $_src1
+  print_immediate "$_text"
+  _value=$(( $(rval $_src1) $_op ${_imm} ))
+  assign $_dst $_value
+  print_op $_op
+  print_register $_dst
+}
+
+
+function reverse() {
+  # mflo/mfhi $_reg
+  RR_operation move $2 $1
+}
+
+
+alias add="RR_operation +"
+alias sub="RR_operation -"
+alias addi="RI_operation +"
+alias subi="invalid"
+# addu
+
+alias sll="RI_operation <<"
+alias sra="RI_operation >>"
+alias sllv="RR_operation <<"
+alias srav="RR_operation >>"
+
+alias and="RR_operation \&"
+alias or="RR_operation \|"
+alias xor="RR_operation ^"
+#alias nor="RR_operation "
+
+alias andi="RI_operation \&"
+alias ori="RI_operation \|"
+alias xori="RI_operation ^"
+alias nori="invalid"
+
+# Psuedo intructions
+alias mul="not implemented MR_operation *"
+alias div="not implemented MR_operation /"
+alias rem="not implemented MR_operation %"
+
+
+alias mfhi="R_operation move hi"
+alias mflo="R_operation move lo"
+alias mthi="reverse move hi"
+alias mtlo="reverse move lo"
+
+# 
+#alias li="reverse  + '$zero'"    $ zero is the second param
+#alias move="reverse + '$zero'"   # addiu  -- if not u, than trap if > 32 bits
+   # 
+
+# add summary bits to the end of each I_operation
+# z:, v, s, n:
+#   if not u, if v -> 0/1 then trap
+# 
+# sub  -- add carry in of 1
+# 
+# alias nop=":"  pssedu 'sll $zero, $zero, $zero'
+# 
+# pusedo instrution:
+#   -- repling the opteration
+# 
+# mips_cpu
+# 
+
+
+#alias srlv="R_operation "
+   # max = 0111111111111111
+   # sra =
+
+
+reset_registers
+
