@@ -1,4 +1,4 @@
-todo
+todo   asdf
 
 1. add print_carry_in
 1. augment label to allow for ~ in front
@@ -18,7 +18,7 @@ cin:          1;             1;                                         1;
  (mips-data)  A:  value
  &A = 0x1001 0000
  (mips-data) .text
- (mips)
+ (mips) 
 
 
  1. Do something for pseudo instructins:
@@ -26,7 +26,47 @@ cin:          1;             1;                                         1;
     li $t1, 1
       1.  addiu $t1, $zero, 1
 
- 1. cli instructions:
-    - reset registers
-    - set registers
-    - load.s "filename"
+
+
+Does not work.
+
+
+    (mips) addi $t0 $t0 "2# 1010 1111 0000"
+t0:          1; 0x00 00 00 01; 0b0000 0000 0000 0000 0000 0000 0000 0001;
+             0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000; (2# 1010 1111 0000)
+    +    ------ -------------- ------------------------------------------
+t0:       2801; 0x00 00 0A F1; 0b0000 0000 0000 0000 0000 1010 1111 0001;
+(mips) c
+
+
+1. Bug
+(mips) assign $t5 FF00FF00
+(mips)  sub $t2 $t1 $t5
+- 10 9 13
+    cin:               1              1                                          1
+    t1:                0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
+-bash: printf: FF00FF00: invalid number
+
+# 
+#alias li="reverse  + '$zero'"    $ zero is the second param
+#alias move="reverse + '$zero'"   # addiu  -- if not u, than trap if > 32 bits
+   # 
+
+# add summary bits to the end of each I_operation
+# z:, v, s, n:
+#   if not u, if v -> 0/1 then trap
+# 
+# sub  -- add carry in of 1
+# 
+# alias nop=":"  pssedu 'sll $zero, $zero, $zero'
+# 
+# pusedo instrution:
+#   -- repling the opteration
+# 
+# mips_cpu
+# 
+
+
+#alias srlv="R_operation "
+   # max = 0111111111111111
+   # sra =

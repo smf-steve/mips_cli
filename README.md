@@ -48,8 +48,9 @@ This is a toy implementation of the MIPS ALU instructions in bash shell.
 ## CLI Commands:
    1. reset_registers: set all registers to 0
    1. set_registers: set all registers to a random value
-   1. execute.s "filename":  execute the code in "filename"
+   1. execute"filename":  execute the code in "filename"
    1. list_data: lists the contents of the .data segment
+   1. print_register 
 
 ## Immediate Values:
    1. ASCII:  (explain)

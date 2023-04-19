@@ -1,6 +1,6 @@
-function  toDecimal() {
+function  read_immediate() {
    # This function converts a number of various bases and notations
-   # to a normal form.  This normal form a string represenaton of a 
+   # to a normal form.  This normal form a string representation of a 
    # decimal number.
    #
    # More this string also include either unary minus (-) or 
@@ -11,26 +11,26 @@ function  toDecimal() {
    #      - note that the ASCII characters '0', '1', .. '9' are
    #        interpreted as a number
    #      - also note that such characters need not be quoted
-   #   1. a decimal number, hexidecimal, octal, and binary number
+   #   1. a decimal number, hexadecimal, octal, and binary number
    #      - note such numbers may have spaces in them for readability
-   #        but must be quoted approprately to ensure proper shell processing
+   #        but must be quoted appropriately to ensure proper shell processing
    #   1. a based number, e.g., 16#FACE.
    #      - note such number may have spaces in them for readability
    #      - also not such numbers may have a unary prefix after the base notaion.
    #
-   #  Examaples:
+   #  Examples:
    #
    #   ASCII input:  a, 'a', "a", '\n', \n, \20, 
    #   Non ASCII input:  1, '1', "1"    # such values are interpreted as a decimal number
    #
    #   Decimal numbers: -1234, ~1234, "- 1 123 456"
    #   Hex Octal, and Binary numbers '~ 0xFACE', "+ 0o 123 456", "- 0b0101 1001",  
-   #   Tradintoal Octal numbers:  02344, -02345, "~ 023 345"
+   #   Traditional Octal numbers:  02344, -02345, "~ 023 345"
    #   
    #   Based numbers:   2#10100100, 16#-FACE, "16# ~ DE FACE"
    #
    #   Note the quoting above in necessary to preserve the input spacing.
-   #     (A consequense of shell processing)
+   #     (A consequence of shell processing)
 
 
    #  Steps:
@@ -115,5 +115,7 @@ function  toDecimal() {
       _value=$(( _text ))
     fi 
  
+    (( _value > $max_immediate )) && { echo Immediate Value is Out of Range; return 1; }
+
     echo ${_prefix}${_value}
 }
