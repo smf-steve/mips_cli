@@ -1,4 +1,4 @@
-function  read_immediate() {
+function read_constant() {
    # This function converts a number of various bases and notations
    # to a normal form.  This normal form a string representation of a 
    # decimal number.
@@ -115,7 +115,41 @@ function  read_immediate() {
       _value=$(( _text ))
     fi 
  
-    (( _value > $max_immediate )) && { echo Immediate Value is Out of Range; return 1; }
-
     echo ${_prefix}${_value}
+}
+
+function read_word() {
+
+   _value=$(read_constant $1)
+   echo $_value
+
+   if (( _value > $max_word || _value < - $max_word )) ; then
+     _msg="Error: the word is in range: -2^31..2^31-1"
+     instruction_error "$_msg"
+   fi
+}
+
+function read_immediate () {
+
+   _value=$(read_constant "$1")
+   echo $_value
+
+   if (( _value > $max_immediate || _value < - $max_immediate )) ; then
+     _msg="Error: the immediate value not in range: -2^15..2^15-1"
+     instruction_error "$_msg"
+   fi
+}
+
+function read_shmat() {
+   # The value passed in must be a positive 5 bit value
+   # 0 .. 32
+
+   _value=$(read_constant $1)
+   echo $_value
+
+   if (( _value > 32 || _value < 0 )) ; then
+      _msg="Error: the shift amount not in range: 0..2^5-1"
+      instruction_error "$_msg"
+   fi
+
 }

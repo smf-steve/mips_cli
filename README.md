@@ -4,9 +4,21 @@ This is a toy implementation of the MIPS ALU instructions in bash shell.
 
 ## Purpose:
 
-1. To learn more about bash scripting via an implemenation project
+1. To learn more about bash scripting via an implementation project
 1. To build a prototype for a web-based MIPS simulation system
 1. To provide a learning tool to students
+
+## MIPS Language Deviations
+   1. Registers can allow be referenced with names, e.g., $zero versus $0
+   1. If a cmd that expects a registers is provided with a
+      non $value, the integer is assumed to be the same as $in
+      - for example:
+      
+   1. Constants can be provided via based numbers
+   1. Spaces must be provided between tokens, and proper shell quoting is required.
+   1. Characters may be entered either quoted or not.
+      - Characters in the range 0..9 are assumed to be integers
+   1. 
 
 
 ## Usage Example
