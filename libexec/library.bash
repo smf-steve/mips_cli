@@ -1,10 +1,5 @@
 #! /bin/bash
 
-max_immediate=$(( 2 ** 16 - 1 ))
-max_pos_immediate=$(( 2 ** 15 - 1 ))
-max_word=$(( 2 ** 32 - 1 ))
-max_dword=$(( 2 ** 63 ))
-
 
 ##########################################################################
 ## Following are functions to convert output to more readable formats

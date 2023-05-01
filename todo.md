@@ -7,6 +7,13 @@
     (mips) read_shmat "2#111111"
     -0
 
+1. Review conversion routines
+   - to binary  prefix, group, bits, value
+   - to hex     prefix, group, bits, value
+
+     to_binary "0b" 25, 16
+     to_hex    "--" 8 16 n
+
 1. need to move to the loop, eval ... approach
 
 1. (mips) move $t1, $t2
