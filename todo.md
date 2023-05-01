@@ -1,4 +1,17 @@
 # To Do List
+ 1. read_immediate
+    >= 0x80 00 00 00 -- should return a negative number 
+ 1. read_shmat "2#- 11111"
+    (mips) read_shmat "2#- 11111"
+    -0
+    (mips) read_shmat "2#111111"
+    -0
+
+1. need to move to the loop, eval ... approach
+
+1. (mips) move $t1, $t2
+move $t1, $t2 # is a synonym for:      cin:               0              0  
+
  1. Modify errors to call:  instruction_error "message"
  1. quandary:
     1. bash uses 64 bits, so

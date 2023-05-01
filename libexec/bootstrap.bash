@@ -22,9 +22,15 @@ instruction_error () {
 }
 
 
-for f in libexec/*.bash ; do
-   [[ $f != libexec/bootstrap.bash ]] && source $f
-done
+# Inclue the support files:
+source libexec/library.bash
+source libexec/read_constant.bash
+source libexec/machine.bash
+source libexec/execute.bash
+source libexec/encoding.bash
+source libexec/native_instructions.bash
+source libexec/pseudo_instructions.bash
+source libexec/synonym_instructions.bash
 
 echo "Entering the MIPS Command-Line-Interface"
 echo
