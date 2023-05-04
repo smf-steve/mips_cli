@@ -12,9 +12,9 @@ max_dword=$(( 2 ** 63 ))
 ## Convert a decimal number to hex with bytes separated
 #    - format "0x XX XX XX XX XX"
 function to_hex () {
-  _size=${1}
-  _decimal=${2}
-  _hex=$(printf "%0${_size}X" ${_decimal} )
+  local _size=${1}
+  local _decimal=${2}
+  local _hex=$(printf "%0${_size}X" ${_decimal} )
 
   # Make it a byte at a time:
   sed -e 's/\(..\)/ \1/g' -e 's/^ //' <<< $_hex
@@ -23,10 +23,11 @@ function to_hex () {
 ## Convert a hexadecimal number to binary with nibbles separated
 #    - format "bbbb bbbb bbbb bbbb"
 function to_binary () {
-  _hex=${1}
+  local _hex=${1}
   # Make it a nibble at a time
-  _exploded=$(sed -e 's/ //g' -e 's/\(.\)/ \1/g' <<< $_hex)
-  _value=""
+  local _exploded=$(sed -e 's/ //g' -e 's/\(.\)/ \1/g' <<< $_hex)
+  local _value=""
+
   for i in $_exploded ; do
     case $i in 
        0   ) _value="${_value} 0000" ;;
@@ -53,6 +54,8 @@ function to_binary () {
 function sign_contraction () {
     # In bash, a numbers are a 64-bit value.
     # Only the bottom 32 bits are necessary.
+    local _bit_31
+    local _upper_word
 
     echo $(( $1 & 0xFFFFFFFF ))
 
@@ -73,13 +76,15 @@ function sign_contraction () {
 }
 
 function sign_extension() {
-  # first convet to an int: see mips_subroutine to accept various inputs
-  #   - e.g. 0x034, 045, 0bxxx, n# 101010 100101
-  # second make sure it is only 16 bits
-  # 
-  _value="$1"
+  # The input value as a text value can be:
+  #   -n, ~n, or a 16bit number
+  # For the first two, leave the value alone
+  # For a 16bit number transform it into a 32-bit number
+  #   
+  local _value="$1"
+  local _prefix=${_value:0:1}
+  local _sign_bit
 
-  _prefix=${_value:0:1}
   if [[ ${_prefix} == '~' || ${_prefix} == '-' ]] ; then 
   	_value="${_value:1}"
   else
@@ -93,5 +98,5 @@ function sign_extension() {
     ((_value = - 0x80000000 | _value ))
   fi
   
-  echo $(( ${_prefix}${_value} ))
+  echo ${_prefix}${_value}
 }
