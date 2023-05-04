@@ -24,6 +24,11 @@ function .text () {
   PS1="(mips) "
 }
 
+
+
+# HISTFILE=./.mips_cli_history
+
+
 function execute () {
   _filename="$1"
 
@@ -46,10 +51,10 @@ function execute_srl () {
   _rd="$(sed -e 's/,$//' <<< $2)"
   _rt="$(sed -e 's/,$//' <<< $3)"
   _text="$4"
-  _shmat=$(read_shmat "$_text")
+  _shamt=$(read_shamt "$_text")
 
   LATCH_A=($_rt $(rval $_rt) )
-  LATCH_B=(imm $_shmat "$_text")
+  LATCH_B=(imm $_shamt "$_text")
 
   _value=$(( $(rval $_rt) & 0xFFFFFFFF ))  
      # Sign Contraction

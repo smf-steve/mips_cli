@@ -105,7 +105,7 @@ function print_R_encoding () {
     _rd_code=$(to_binary "$(to_hex 8 $4)")
 
       sed -e 's/ //g' -e 's/.*\(......\)$/\1/' <<< $(to_binary ${num})
-    _shmat=$(to_binary  5)
+    _shamt=$(to_binary  5)
 
 
 	printf "| op | rs | rt | rd | shamt | func |\n"

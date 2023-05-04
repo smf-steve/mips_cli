@@ -140,7 +140,7 @@ function read_immediate () {
    fi
 }
 
-function read_shmat() {
+function read_shamt() {
    # The value passed in must be a positive 5 bit value
    # 0 .. 32
 
