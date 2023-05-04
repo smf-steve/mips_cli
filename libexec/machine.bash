@@ -41,11 +41,11 @@ declare -r _lo='34' ; NAME[$_lo]="lo"    ; REGISTER[34]="0"
 declare -a LATCH_A=()   # whence registers, value
 declare -a LATCH_B=()   # whence register/imm, value, text
 
-declare -i cin             
-  alias unset_cin="cin=-1"     # unset to prevent printing
-  alias set_cin="cin=1"        # set to 1 for subraction
-  alias reset_cin="cin=0"      # set to 0 for addition
-  unset_cin
+declare -i cin 
+ alias unset_cin="cin=-1"     # unset to prevent printing
+ alias set_cin="cin=1"        # set to 1 for subraction
+ alias reset_cin="cin=0"      # set to 0 for addition
+ unset_cin
 
 declare -r _c_bit=0 ;  STATUS_BITS[$_c_bit]="0" 
 declare -r _v_bit=1 ;  STATUS_BITS[$_v_bit]="0" 
@@ -59,16 +59,25 @@ alias trap_on_Z=":"
 
 
 function name() {
-  _index=$(sed -e 's/,$//' <<< "$1" )
+  local _index=$(sed -e 's/,$//' <<< "$1" )
   echo ${NAME[$_index]}
 }
 function rval() {
-  _index=$(sed -e 's/,$//' <<< "$1" )
+  local _index=$(sed -e 's/,$//' <<< "$1" )
   echo ${REGISTER[$_index]}
 }
-   function assign() {
-  _index=$(sed -e 's/,$//' <<< "$1" )
-  [[ $1 == 0 ]] ||  REGISTER[$_index]="$2"
+
+function assign() {
+  local _index=$(sed -e 's/,$//' <<< "$1" )
+  local _value="$2"
+  local _high_order=$(( (_value >> 32) & 0xFFFFFFFF ))
+     # shift right, and then get rid of the high-order bits
+
+  # Here the number must be in the appropriate range.
+  if (( $_high_order != 0x00000000 && $_high_order != 0xFFFFFFFF   )) ; then
+      echo "Error: Assignment value requires more than 32 bits"
+  fi
+  [[ $1 == 0 ]] ||  REGISTER[$_index]="$_value"
 }
 
 function reset_registers () {
@@ -82,6 +91,8 @@ function reset_registers () {
 }
 
 function set_registers () {
+  local _value
+
   if [[ $# == 0 ]] ; then
      set_registers_random
      return
@@ -97,21 +108,23 @@ function set_registers () {
   assign $_hi "$_value"
   assign $_lo "$_value"
 }
-
+function random_value () {
+  echo $(( $RANDOM % 0xF + 1))
+}
 function set_registers_random () {
   assign $zero "0";  
   for ((i=1; i<32; i++)) ; do
-   assign $i "$(( $RANDOM % 0xFF << 24 ))"
+   assign $i "$(random_value)"
   done
   # assign $_pc "0"
-  assign $_hi "$(( $RANDOM % 0xFF << 24 ))"
-  assign $_lo "$(( $RANDOM % 0xFF << 24 ))"
+  assign $_hi "$(random_value)"
+  assign $_lo "$(random_value)"
 }
 
 function print_registers () {
 
   for ((i=0; i<32; i++)) ; do
-   print_register $i
+    print_register $i
   done
   echo
   print_register $_pc
@@ -122,8 +135,8 @@ function print_registers () {
 
 function print_ALU_state () {
   # Print values on the two input latches with the op and output register/s
-  _op="$1"
-  _dst1="$2"
+  local _op="$1"
+  local _dst1="$2"
   _dst2="$3"
 
   print_cin $cin
@@ -134,15 +147,33 @@ function print_ALU_state () {
 
   print_value $_dst1
   [[ $_dst2 != "" ]]  && print_value $_dst2
+  echo 
 }
 
 alias print_register="print_value"
-alias print_immediate="print_value"
+function print_immediate () {
+  local _text="$1"
+  local _value=$(read_immediate "$_text")
+  local _value=$(sign_extension $_value)
+  print_value imm $_value "$_text"
+}
+
+
+# the value in the register is a string, which is one of the following
+# -5
+# ~5
+# X where X=$(( 0xFF FF FF FB ))
+#
+# output: 
+#   simple: -5, or ~5 in the text area
+#   signed: $(signed_extention $(( value )) )
+#   unsigned:  $(signed_contraction $((value )) )
+
 function print_value () {
   # if the input is one value, then print it as a register
-  _register="$1"
-  _value="$2"
-  _text="$3"
+  local _register="$1"
+  local _value="$2"
+  local _text="$3"
 
   _prefix=${_register:0:1}
   if [[ $_prefix == '~' ]] ; then
@@ -154,23 +185,37 @@ function print_value () {
   case ${#} in
       1) # print the current contents of the register
          _name=${_prefix}$(name ${_register})
-         _rval=$(( ${_prefix}$(rval ${_register}) ))
+         _rval=$((${_prefix}$(rval ${_register}) ))
          ;;
       2) # print the old value of the register
          _name=${_prefix}$(name ${_register})
-         _rval=$(( ${_prefix}${_value} ))
+         _rval=$((${_prefix}${_value} ))
          ;;
       3) # print the value as an immediate
          _name="imm"    
          _rval=$(( ${_prefix}${_value} ))
          ;;
-   esac
+  esac
 
-   _decimal=$(sign_extension ${_rval})
+  if [[ -z "$_text" ]] ; then
+    _prefix=${_rval:0:1}
+  fi
+  if [[ $_prefix == '~' || $_prefix == '-' ]] ; then
+   _text=$omething
+   _register=${_register:1}
+
+  else
+   _prefix=""
+  fi
+
+
+   _dec=${_rval}
    _hex=$(to_hex 8 $(sign_contraction $_rval ))
-   _binary=$(to_binary "${_hex}")
+   _bin=$(to_binary "${_hex}")
 
-   printf "   %5s:     %11s; 0x%s; 0b%s;"   "${_name}" "${_decimal}" "${_hex}" "${_binary}"
+   printf "   %5s:  %d %u %11s; 0x%s; 0b%s;"  \
+         "${_name}" "${_dec}" "${_dec}" "${_dec}" "${_hex}" "${_bin}"
+
    if [[ "$_text" != "" ]] ; then
      printf " \"%s\"" "${_text}"
    fi
@@ -178,9 +223,12 @@ function print_value () {
 }
 
 
+#(mips) printf "%d, %u\n" -2 -2
+#-2, 18446744073709551614
+
 
 function print_op () {
-   _op="$1"
+   local _op="$1"
       
    printf "     %3s  %-4s ----------- -------------- ------------------------------------------\n" \
           "" "${_op}"      
@@ -191,7 +239,7 @@ function print_cin() {
    
    if [[ $cin != -1 ]] ; then 
 
-      printf "     %4s               %c              %c                                          %c\n" \
+      printf "     %4s                %c               %c                                          %c\n" \
              "cin:" "${cin}" "${cin}" "${cin}"
    fi
 }
