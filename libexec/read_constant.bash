@@ -43,10 +43,10 @@ function read_constant() {
    #       convert the number to decimal
    #    5. apply the prefix
 
-   _text="$(sed -e 's/ //g' -e 's/,//g' <<< $1)"
-
-   _prefix=""
-   _value="invalid immediate value"
+   local _text="$(sed -e 's/ //g' -e 's/,//g' <<< $1)"
+   local _prefix=""
+   local _value="invalid immediate value"
+   local _type 
 
    case $_text in
        *#* )
@@ -99,9 +99,9 @@ function read_constant() {
 
     ## Handle based numbers 
     if [[ "${_type}" == "based" ]] ; then 
-       _base=${_text%#*}
-       _digits=${_text#*#}
-       _first=${_digits:0:1}
+       local _base=${_text%#*}
+       local _digits=${_text#*#}
+       local _first=${_digits:0:1}
 
        if [[ ${_first} == "+" ]] ; then 
         _digits=${_digits:1}     # remove superflous +
@@ -120,7 +120,7 @@ function read_constant() {
 
 function read_word() {
 
-   _value=$(read_constant $1)
+   local _value=$(read_constant $1)
    echo $_value
 
    if (( _value > $max_word || _value < - $max_word )) ; then
@@ -131,7 +131,7 @@ function read_word() {
 
 function read_immediate () {
 
-   _value=$(read_constant "$1")
+   local _value=$(read_constant "$1")
    echo $_value
 
    if (( _value > $max_immediate || _value < - $max_immediate )) ; then
@@ -144,7 +144,7 @@ function read_shmat() {
    # The value passed in must be a positive 5 bit value
    # 0 .. 32
 
-   _value=$(read_constant $1)
+   local _value=$(read_constant $1)
    echo $_value
 
    if (( _value > 32 || _value < 0 )) ; then
