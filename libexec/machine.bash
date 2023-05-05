@@ -1,3 +1,21 @@
+#! /bin/bash
+
+# CONSTANTS
+min_shamt=0
+max_shamt=$(( 2 ** 5 ))
+
+max_immediate_unsigned=$(( 2 ** 16 ))
+min_immediate=$(( - 2 ** 15  ))
+max_immediate=$( - min_immediate - 1 )
+
+max_word_unsigned=$(( 2 * 32 ))
+min_word=$(( - 2 ** 31  ))
+max_word=$(( - min_word - 1 ))
+
+max_dword_unsigned=$(( 2 * 64 ))
+min_dword=$(( - 2 ** 63 ))
+max_dword=$(( - max_dword -1  ))
+
 
 # REGISTERS
                       declare -a NAME ; declare -a REGISTER

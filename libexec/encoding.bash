@@ -103,14 +103,15 @@ function print_R_encoding () {
     _rs_code=$(to_binary "$(to_hex 8 $2)")
     _rt_code=$(to_binary "$(to_hex 8 $3)")
     _rd_code=$(to_binary "$(to_hex 8 $4)")
+    _shamt=$(tobinary $5)
 
-      sed -e 's/ //g' -e 's/.*\(......\)$/\1/' <<< $(to_binary ${num})
+    sed -e 's/ //g' -e 's/.*\(......\)$/\1/' <<< $(to_binary ${num})
     _shamt=$(to_binary  5)
 
 
 	printf "| op | rs | rt | rd | shamt | func |\n"
-    printf "| %s | %s | %s | %s | %s    | %s |\n", \
-           $_special, $rs_code, rt_code, $_rd_code, $_func
+    printf "| %s | %s | %s | %s | %s    | %s |\n" \
+           $_op_code $rs_code rt_code $_rd_code $_shamt $_func_code
 
 }
 

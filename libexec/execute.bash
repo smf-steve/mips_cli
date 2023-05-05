@@ -56,6 +56,7 @@ function execute_RRR() {
   _rd="$(sed -e 's/,$//' <<< $2)"
   _rs="$(sed -e 's/,$//' <<< $3)"
   _rt="$4"
+  _shamt="0"
 
   _rt_prefix=""
   _carry_in=0
@@ -79,6 +80,7 @@ function execute_RRR() {
   _value=$(sign_contraction $_value)
   assign $_rd $_value
 
+  print_R_encoding $_op $_rs $_rt $rd $_shamt
   print_ALU_state "$_op" $_rd
 }
 
