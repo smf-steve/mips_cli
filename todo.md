@@ -1,4 +1,73 @@
 # To Do List
+  1. Why in subl 'mult' is not blue  -- even though it is a native 
+
+  1. separate machine.bash and registers.bash
+     - machine is about MIPS
+     - registers are the access to the registers, or is it just a rename
+
+  1. implement the encodings for
+     I, J, R
+
+  1. Implement the Shifts toghether
+     - execute_Shift
+
+  1. reimplement the shifts, note srlv, this should be the pattern
+  ```
+sllv $t5, $t2, $t4
+      t2:              10; 0x00 00 00 0A; 0b0000 0000 0000 0000 0000 0000 0000 1010;
+      t4:              24; 0x00 00 00 18; 0b0000 0000 0000 0000 0000 0000 0001 1000;
+          <<   ----------- -------------- ------------------------------------------
+      t5:       167772160; 0x0A 00 00 00; 0b0000 1010 0000 0000 0000 0000 0000 0000;
+
+srlv $t1, $t3, $t4
+      t3:              11; 0x00 00 00 0B; 0b0000 0000 0000 0000 0000 0000 0000 1011;
+     imm:              24; 0x00 00 00 18; 0b0000 0000 0000 0000 0000 0000 0001 1000; "$t3 & 0x1F"
+          >>>  ----------- -------------- ------------------------------------------
+      t1:               0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
+
+srav $t5, $t2, $t4
+      t2:              10; 0x00 00 00 0A; 0b0000 0000 0000 0000 0000 0000 0000 1010;
+      t4:              24; 0x00 00 00 18; 0b0000 0000 0000 0000 0000 0000 0001 1000;
+          >>   ----------- -------------- ------------------------------------------
+      t5:               0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
+
+```
+
+ 1. Possible, clear the environment as part of mps_cli invocation
+
+
+ 1. Parseing of each command is trivially done
+    - the third argument could be a immediate or a register -- there is no telling.
+
+ 1. need to make the output better for
+     - sub $t4, $t5, $t6
+     - the output is correct, but the dst values don't easily match up (?)
+       - the comment for the rt register should be "~ register"
+
+ 1. should the abstract names for the registers be printed: rt, rt, rs
+
+```
+(mips) sub $t4, $t5, $t6
+     c:                   1              1                                          1
+     rs: t5;               0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
+     rt: t6;              -1; 0xFF FF FF FF; 0b1111 1111 1111 1111 1111 1111 1111 1111;
+   + ------ --------------- -------------- ------------------------------------------
+     rd: t4;               0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
+```
+ 1. If we get ride of the base markers we can save 4 spaces -- don't like
+ 1. If we get reide of the nibble spaceing, we can save 4 spaces -- don't like
+ 1. rename cin, to "c"
+
+```
+(mips) sub $t4, $t5, $t6
+    cin:                1              1                                          1
+    rs: t5;               0; 00 00 00 00; 00000000 00000000 00000000 00000000;
+    rt: t6;              -1; FF FF FF FF; 11111111 11111111 11111111 11111111;
+  + ------- --------------- -------------- ------------------------------------------
+    rd: t4;               0; 00 00 00 00; 00000000 00000000 00000000 00000000;
+```
+
+
  1. read_immediate
     >= 0x80 00 00 00 -- should return a negative number 
  1. read_shmat "2#- 11111"
@@ -44,16 +113,13 @@ move $t1, $t2 # is a synonym for:      cin:               0              0
     - for xxxi statements, test that it is 16bits
     - for sxx  statements, test that it is 5bits (unsiged)
 
- 1. rename internal varables to match the name of the 
-    instruction format, e.g., rd, rs, rt, etc
-
  1. Add test for sxxv to ensure the value in the register is 5bits.
 
  1. consider only providing the immediate text format if
     - the orignal input is a non decimal number
     - moreover, don't include the comment....
     - use the comment as a comment.
-    
+
     ```bash
     "nop" is a synonym for: ssl $zero, $zero, 0     # "0"
       zero:                0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
@@ -69,8 +135,6 @@ move $t1, $t2 # is a synonym for:      cin:               0              0
 
  1. Validate that non_u statements present a signed number for output
 
- 1. Implement the mult/div functions
- 1. Test the vari
 
  1. Have flags that inform the execution to..
     1. execute every instruction

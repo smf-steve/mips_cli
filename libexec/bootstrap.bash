@@ -38,3 +38,35 @@ assign $_pc 0x04000000
 
 PS1="(mips) "
 text_segment=".text"
+
+# At this point, the shell will process things interactive.
+#  - one issue is that we are not keeping track of our history
+#  - hence we can't assign values to the branch/jump label
+    #  * perhaps the history shell function can help us out
+#
+# Another problem is that labels can be implicitly created.
+#   hence on there first use, they is a command not found error
+#     (mips) foo: add $t1, $t2, $t4
+#     bash: foo:: command not found
+#     (mips) echo !!
+#     echo foo: add $t1, $t2, $t4
+#     foo: add 9, 10, 12
+
+# Solutions:
+#  1. predeclare the notion of label name
+#     label l:
+#  1. do a two pass scan of the input file -- will not work for interactive
+#  1. capture the error message and use the history command to extract what was typed
+#     1. assert the value of the label, anbd then execute the command
+#  1. use a input loop to parse the command line, and then call eval
+#       echo -n "$PS1"
+#       while read -a _line; do
+#         if [[ _line[0] ~= "*:" ]] ; then
+#            # first token is a label
+#         echo $_line
+#         shift _line
+#         eval $_line
+#         sleep 2
+#         echo -n "$PS1"
+#       done
+

@@ -88,3 +88,9 @@ This is a toy implementation of the MIPS ALU instructions in bash shell.
    1. No branching or labels
    1. No memory operations
 
+
+## Issues:  
+   1. commands that more than one syntactic form
+      1. div :  div $t1, $t2  (native)
+      1. div :  div $t1, $t2, $t3 (pseudo)
+      * i.e. pseudo instructions that introduce ambigutiy are not provided.
