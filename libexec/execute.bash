@@ -110,11 +110,32 @@ function execute_nor() {
   print_ALU_state "~|" $_rd
 }
 
+# SignExtend
+##function SignExtend
+##function ZeroExtend
+##
+##
+### Syntax
+##alias ArithLog
+##alias ArithLogI
+##alias DivMult
+##alias Shift
+##alias ShiftV
+##alias LoadI
+##alias LoadStore
+##alias MoveX
+##alias Branch
+##alias BranchZ
+##alias Jump
+##alias JumpR
+
+alias ArithLog=execute_RRR
 function execute_RRR() {
-  _op="$1"
-  _rd="$(sed -e 's/,$//' <<< $2)"
-  _rs="$(sed -e 's/,$//' <<< $3)"
-  _rt="$4"
+  _name="$1"
+  _op="$2"
+  _rd="$(sed -e 's/,$//' <<< $3)"
+  _rs="$(sed -e 's/,$//' <<< $4)"
+  _rt="$5"
 
   _rt_prefix=""
   _carry_in=0
@@ -139,6 +160,7 @@ function execute_RRR() {
   _value=$(sign_contraction $_value)
   assign $_rd $_value
 
+  print_R_encoding $_name $_rs $_rt $_rd 0 $_op
   print_ALU_state "$_op" $_rd
   unset_cin
 }
