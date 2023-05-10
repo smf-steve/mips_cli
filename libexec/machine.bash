@@ -6,7 +6,7 @@ max_shamt=$(( 2 ** 5 ))
 
 max_immediate_unsigned=$(( 2 ** 16 ))
 min_immediate=$(( - 2 ** 15  ))
-max_immediate=$( - min_immediate - 1 )
+max_immediate=$(( - min_immediate - 1 ))
 
 max_word_unsigned=$(( 2 * 32 ))
 min_word=$(( - 2 ** 31  ))
@@ -156,6 +156,8 @@ function print_ALU_state () {
   local _op="$1"
   local _dst1="$2"
   _dst2="$3"
+
+  [[ $emit_execution_summary == "TRUE" ] || return
 
   print_cin $cin
   print_value "${LATCH_A[@]}"
