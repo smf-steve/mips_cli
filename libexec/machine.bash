@@ -239,7 +239,7 @@ function print_cin() {
    
    if [[ $cin != -1 ]] ; then 
 
-      printf "     %4s                %c               %c                                          %c\n" \
+      printf "     %4s                %c               %c                                         %c;\n" \
              "cin:" "${cin}" "${cin}" "${cin}"
    fi
 }
