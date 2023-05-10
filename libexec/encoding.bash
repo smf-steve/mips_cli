@@ -3,6 +3,16 @@
 
 ################################################
 # Op Encodings
+# Special  00
+# Special2 1C
+function lookup_opcode () {
+    num=$(eval echo \$op_code_$1)  2>&1 >/dev/null
+    if [[ $? == 0 ]] ; then 
+      echo $num
+    else
+      error "Undefined \"op\""
+    fi
+}
 
 # 000 Row
 declare -r        op_code_REG='000000'  # 0x00
@@ -44,7 +54,6 @@ declare -r        op_code_xor='001110'
 # declare -r       op_code_xx='011110'
 # declare -r       op_code_xx='011111'
 
-
 # 100 Row
 declare -r        op_code_lb='100000'  # 0x20
 declare -r        op_code_lh='100001'  # 0x21
@@ -68,10 +77,17 @@ declare -r        op_code_sw='101011'  # 0x2B
 # declare -r      op_code_xx='101111'
 
 
-
-
 ################################################
 # Func Encodings
+function lookup_func () {
+    local num="" 
+    num=$(eval echo \$func_code_$1)  2>&1 >/dev/null
+    if [[ $? == 0 ]] ; then
+      echo $num
+    else
+      error "Undefined \"func\""
+    fi 
+}
 
 # 000 Row
 declare -r     func_code_sll='000000'  # 0x00
@@ -136,77 +152,23 @@ declare -r    func_code_sltu='101011'  # 0x2B
 # declare -r    func_code_xx='101110'
 # declare -r    func_code_xx='101111'
 
+function encode_register () {
+   _reg=$1
+   _code=$(to_binary $(to_hex 2 $_reg))
+   _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< $_code )
+   echo $_code
+}
+alias encode_shamt=encode_register
 
-
-function lookup_func () {
-    local num="" 
-    num=$(eval func_code_$1)  2>&1 >/dev/null
-    if [[ $? == 0 ]] ; then
-      echo $num
-    else
-      error "Undefined \"func\""
-    fi 
+function encode_immediate () {
+   _value=$1
+   _value=$(( $1 & 0xFFFFFFFF ))
+   _code=$(to_binary "$(to_hex 8 $_value)")
+   _code=$(sed -e 's/ //g' <<< $_code )
+   echo $_code
 }
 
-
-
-
-# Special  00
-# Special2 1C
-function lookup_code () {
-    num=""
-    #lias op_code_add 2> /dev/null
-    if [[ $? == 0 ]] ; then 
-      num=$(eval op_code_$1)
-      sed 's/ //g' <<< $(to_binary ${num}) 
-    fi
-}
-
-
-function lookup_reg_code () {
-	# Convert the number to binary, and then remove the spaces
-	sed  's/...\(.\) /\1/g' <<< $(to_binary $(to_hex 2 $1))
-}
-
-function bin_encoding () {
-    _hex_value="$1"
-    _num_bits="$2"
-
-    _bin_value=$(to_binary $_hex_value} )
-    
-}
-
-function print_R_encoding () {
-    _name="$1"
-    _op_code="${special}"
-
-    _rs_code=$(to_binary "$(to_hex 8 $2)")
-    _rt_code=$(to_binary "$(to_hex 8 $3)")
-    _rd_code=$(to_binary "$(to_hex 8 $4)")
-      sed -e 's/ //g' -e 's/.*\(......\)$/\1/' <<< $(to_binary ${num})
-    _shamt=$(to_binary  5)
-    _func_code="$(lookup_func $1)" 
-
-
-	printf "| op | rs | rt | rd | shamt | func |\n"
-    printf "| %s | %s | %s | %s | %s    | %s |\n", \
-           $_special, $rs_code, rt_code, $_rd_code, $_func
-
-}
-
-function print_I_encoding () {
-    _op=$(lookup_code $1) 
-    _rs_code=$(register_code $2)
-    _rt_code=$(register_code $3)
-    _imm=$(func_code_offset $4)
-
-    printf "| op | rs | rt |    imm  |"
-    printf "| %s | %s | %s | %s | %s |\n", \
-            $_op, $rs_code, rt_code, $_imm
-
-}
-
-function func_code_address () {
+function encode_address () {
      label=$1
      label="echo $(( 0x04000000))"
 
@@ -215,12 +177,49 @@ function func_code_address () {
      echo $code
 }
 
-function print_J_encoding () {
-    _op=$(lookup_code $1) 
-    _addr=$(func_code_address $2)
+emit_encodings=TRUE
+function print_R_encoding () {
+    [[ ${emit_encodings} == "TRUE" ]] || return
 
-    printf "| op |       addr     |\n"
-    printf "| %s | %s | \n" "$_op" "$_addr"
-  
+    _name="$1"
+    _op_code="${op_code_REG}"
+
+    _rs_code="$(encode_register $2)"
+    _rt_code="$(encode_register $3)"
+    _rd_code="$(encode_register $4)"
+
+    _shamt=$(encode_shamt $5)
+    _func_code="$(lookup_func $1)" 
+
+    printf "\t\t|%6s|%5s|%5s|%5s|%5s|%6s|\n" "op" "rs" "rt" "rd" "shamt" "func"
+    printf "\t\t|%s|%s|%s|%s|%s|%s|\n" \
+           $_op_code $_rs_code $_rt_code $_rd_code $_shamt $_func_code
+    printf "\n"
+}
+
+function print_I_encoding () {
+    [[ ${emit_encodings} == "TRUE" ]] || return
+
+    _op=$(lookup_code $1) 
+    _rs_code=$(encode_register $2)
+    _rt_code=$(encode_register $3)
+    _imm=$(encode_immediate $4)
+
+    printf "\t|%6s|%5s|%5s|%16s|\n" \
+            "op" "rs" "rt" "imm"
+    printf "\t|%s|%s|%s|%s|%s|\n", \
+            $_op $_rs_code $_rt_code $_imm
+    printf "\n"
+}
+
+function print_J_encoding () {
+    [[ ${emit_encodings} == "TRUE" ]] || return
+
+    _op=$(lookup_code $1) 
+    _addr=$(encode_address $2)
+
+    printf "\t|%6s|%16s|\n" "op" "addr"
+    printf "\t|%s|%s|\n" "$_op" "$_addr"
+    printf "\n"
 }
 

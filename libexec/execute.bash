@@ -63,6 +63,7 @@ function execute_srl () {
   _value=$(( $_value >> $_shmat  ))
   assign $_rd $_value
 
+  print_R_encoding $_op $_rs $_rt $rd $_shamt
   print_ALU_state "$_op" $_rd
 }
 
@@ -128,7 +129,7 @@ function execute_nor() {
 ##alias BranchZ
 ##alias Jump
 ##alias JumpR
-
+execute=TRUE
 alias ArithLog=execute_RRR
 function execute_RRR() {
   _name="$1"
@@ -136,6 +137,10 @@ function execute_RRR() {
   _rd="$(sed -e 's/,$//' <<< $3)"
   _rs="$(sed -e 's/,$//' <<< $4)"
   _rt="$5"
+  _shamt="0"
+
+  print_R_encoding $_name $_rs $_rt $_rd $_shamt
+  [[ ${execute} == "TRUE" ]] || return
 
   _rt_prefix=""
   _carry_in=0
@@ -160,7 +165,6 @@ function execute_RRR() {
   _value=$(sign_contraction $_value)
   assign $_rd $_value
 
-  print_R_encoding $_name $_rs $_rt $_rd 0 $_op
   print_ALU_state "$_op" $_rd
   unset_cin
 }
