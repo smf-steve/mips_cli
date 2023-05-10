@@ -32,6 +32,12 @@ source libexec/native_instructions.bash
 source libexec/pseudo_instructions.bash
 source libexec/synonym_instructions.bash
 
+function error () {
+
+  echo "$1"
+
+}
+
 echo "Entering the MIPS Command-Line-Interface"
 echo
 assign $_pc 0x04000000
