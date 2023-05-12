@@ -274,6 +274,15 @@ function execute_MoveTo ()  {
   local _dst="$(sed -e 's/,$//' <<< $3)"
   local _src="$4"
 
+  case $_name in
+     mt*)  print_R_encoding $_name $_src "0" "0" "0"
+           ;;
+     mf*)  print_R_encoding $_name "0" "0" $_dst "0"
+           ;;
+  esac
+
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
   LATCH_A=($_src $(rval $_src) )
   LATCH_B=()
   assign "$_dst" "$(rval $_src)"
@@ -288,21 +297,25 @@ function execute_MoveFrom() {
 function execute_MD () {
   local _name="$1"
   local _op="$2"
-  local _src1="$(sed -e 's/,$//' <<< $3)"
-  local _src2="$4"
+  local _rs _src1="$(sed -e 's/,$//' <<< $3)"
+  local _rt _src2="$4"
 
-  local _src1_value=$(rval $_src1)
-  local _src2_value=$(rval $_src2)
+  print_R_encoding $_name $_rs $_rt "0" "0"
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
+
+  local _rs_value=$(rval $_rs)
+  local _rt_value=$(rval $_rt)
 
   case $_name in
      *u) # Use 32-bits as unsigned
-         _src1_value=$(( _src1_value & 0xFFFFFFFF ))
-         _src2_value=$(( _src2_value & 0xFFFFFFFF ))
+         _rs_value=$(( _rs_value & 0xFFFFFFFF ))
+         _rt_value=$(( _rt_value & 0xFFFFFFFF ))
          ;;
   esac
 
-  LATCH_A=( $_src1 $_src1_value )
-  LATCH_B=( $_src2 $_src2_value )
+  LATCH_A=( $_rs $_rt_value )
+  LATCH_B=( $_rt $_rt_value )
 
   ## execute
   if [[ $_op == "*" ]] ; then 
