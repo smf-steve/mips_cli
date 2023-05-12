@@ -120,31 +120,44 @@ function read_literal() {
 
 function read_word() {
 
-   local _value=$(read_literal $1)
-   echo $_value
+   local _value=$(read_literal "$1")
+
+   if (( _value > 0 &&  _value <= max_word_unsigned && _value & 0x80000000 )) ; then
+     # Its a unsigned number with the sign bit on
+     _msg="Waring: the immediate value is being treated as a negative number."
+     _value=$(( _value | 0xFFFFFFFFFFFF0000 ))
+   fi
 
    if (( _value > $max_word || _value < - $max_word )) ; then
      _msg="Error: the word is in range: -2^31..2^31-1"
      instruction_error "$_msg"
    fi
+   echo $_value
 }
 
 function read_immediate () {
 
    local _value=$(read_literal "$1")
-   echo $_value
 
-   if (( _value > $max_immediate || _value < - $max_immediate )) ; then
+   # Check to see if the sign bits is set
+   if (( _value > 0 &&  _value <= max_immediate_unsigned && _value & 0x8000 )) ; then
+     # Its a unsigned number with the sign bit on
+     _msg="Waring: the immediate value is being treated as a negative number."
+     _value=$(( _value | 0xFFFFFFFFFFFF0000 ))
+   fi
+   if (( _value > max_immediate || _value < - max_immediate )) ; then
      _msg="Error: the immediate value not in range: -2^15..2^15-1"
      instruction_error "$_msg"
+     _value=0
    fi
+   echo $_value
 }
 
 function read_shamt() {
    # The value passed in must be a positive 5 bit value
    # 0 .. 32
 
-   local _value=$(read_literal $1)
+   local _value=$(read_literal "$1")
 
    if (( _value > 32 || _value < 0 )) ; then
       _msg="Error: the shift amount not in range: 0..2^5-1"
