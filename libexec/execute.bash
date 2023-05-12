@@ -111,89 +111,168 @@ function execute_nor() {
   print_ALU_state "~|" $_rd
 }
 
-# SignExtend
-##function SignExtend
-##function ZeroExtend
-##
-##
+
 ### Syntax
 ##alias ArithLog
 ##alias ArithLogI
-##alias DivMult
 ##alias Shift
 ##alias ShiftV
+
+##alias MoveX
+##alias DivMult
+
 ##alias LoadI
 ##alias LoadStore
-##alias MoveX
 ##alias Branch
 ##alias BranchZ
 ##alias Jump
 ##alias JumpR
-execute=TRUE
-alias ArithLog=execute_RRR
+execute_instructions=TRUE
+emit_execution_summary=TRUE
+
+alias execute_ArithLog=execute_RRR
 function execute_RRR() {
-  _name="$1"
-  _op="$2"
-  _rd="$(sed -e 's/,$//' <<< $3)"
-  _rs="$(sed -e 's/,$//' <<< $4)"
-  _rt="$5"
-  _shamt="0"
+  local _name="$1"
+  local _op="$2"
+  local _rd="$(sed -e 's/,$//' <<< $3)"
+  local _rs="$(sed -e 's/,$//' <<< $4)"
+  local _rt="$(sed -e 's/,$//' <<< $5)"
+  local _shamt="0"
+  local _rt_prefix=""
+  local _carry_in=0
+  local _value
 
   print_R_encoding $_name $_rs $_rt $_rd $_shamt
-  [[ ${execute} == "TRUE" ]] || return
+  [[ ${execute_instructions} == "TRUE" ]] || return
 
-  _rt_prefix=""
-  _carry_in=0
-
-  unset_cin
   case $_op in
       +) reset_cin
-            ;;
+         ;;
+
       -) set_cin
            _op="+"
            _rt_prefix="~"
            _carry_in=1
-            ;;
-     *) 
-            ;;
+         ;;
+
+      *) unset_cin
+         ;;
   esac
 
-  LATCH_A=($_rs $(rval $_rs) )
-  LATCH_B=($_rt ${_rt_prefix}$(rval $_rt) )
+  _rs_value=$(rval $_rs)
+  _rt_value=${_rt_prefix}$(rval $_rt)
+  LATCH_A=($_rs $_rs_value )
+  LATCH_B=($_rt $_rt_value )
 
-  _value=$(( ( $(rval $_rs) $_op ${_rt_prefix}$(rval $_rt) ) + $_carry_in ))
-  _value=$(sign_contraction $_value)
-  assign $_rd $_value
+  _value=$(( ( _rs_value $_op _rt_value ) + _carry_in ))
+  assign $_rd $_value $_rs_value $_rt_value
 
   print_ALU_state "$_op" $_rd
   unset_cin
 }
 
+alias execute_ArithLogI=execute_RRI
 function execute_RRI () {
-  _op="$1"
-  _rt="$(sed -e 's/,$//' <<< $2)"
-  _rs="$(sed -e 's/,$//' <<< $3)"
-  _text="$4"
-  _imm=$(read_immediate "$_text")
-  _value=$(sign_extension "$_imm")
+  local _name="$1"
+  local _op="$2"
+  local _rt="$(sed -e 's/,$//' <<< $3)"
+  local _rs="$(sed -e 's/,$//' <<< $4)"
+  local _text="$5"
+  local _imm=$(read_immediate "$_text")
+  local _literal=$(sign_extension "$_imm")
+  local _value
 
+  print_I_encoding $_name $_rs $_rt $_imm
+  [[ ${execute_instructions} == "TRUE" ]] || return
 
-  LATCH_A=( $_rs $(rval $_rs) )
-  LATCH_B=( imm ${_value} "$_text" )
+  if [[ $_op == "+" ]] ; then 
+    reset_cin
+  fi
 
-  _value=$(( $(rval $_rs) $_op ${_value} ))
-  _value=$(sign_contraction  $_value)
-  assign $_rt $_value    
+  local _rs_value=$(rval $_rs)
+  LATCH_A=( $_rs $_rs_value )
+  LATCH_B=( imm ${_literal} "$_text" )
+
+  _value=$(( _rs_value $_op _literal ))
+  assign $_rt $_value $_rs_value $_literal
 
   print_ALU_state "$_op" $_rt
-
+  unset_cin
 }
 
-function execute_RR ()  {
+function execute_Shift () {
+  # Effectively the syntax of a ArithLogI
+  # but with a R format
+  local _name="$1"
+  local _op="$2"
+  local _func_op="$(sed -e 's/>>>/>>/' <<< $_op)"
+  local _rd="$(sed -e 's/,$//' <<< $3)"
+  local _rt="$(sed -e 's/,$//' <<< $4)"
+  local _text="$5"
+  local _shamt=$(read_shamt "$_text")
+  local _value
+
+  print_R_encoding $_name "0" $_rt $_rd $_shamt
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
+  local _rt_value=$(rval $_rt)
+  LATCH_A=( $_rt $_rt_value )
+  LATCH_B=( imm ${_shamt} "$_text" )
+
+  if [[ $_op != ">>" ]] ; then
+    # We are doing srl, we need to clear
+    # the top most bits
+    _rt_value=$(( _rt_value & 0xFFFFFFFF ))
+  fi
+  _value=$(( _rt_value $_func_op _shamt ))
+  if (( _value > max_word )) ; then
+    # we need to drop off the shifted bits
+    _value=$(( _value & 0xFFFFFFFF ))
+  fi
+  assign $_rd $_value $_rt_value $_shamt 
+
+  print_ALU_state "$_op" $_rd
+}
+
+function execute_ShiftV () {
+  local _name="$1"
+  local _op="$2"
+  local _func_op="$(sed -e 's/>>>/>>/' <<< $_op)"
+  local _rd="$(sed -e 's/,$//' <<< $3)"
+  local _rt="$(sed -e 's/,$//' <<< $4)"
+  local _rs="$(sed -e 's/,$//' <<< $5)"
+
+  print_R_encoding $_name "$_rs" $_rt $_rd "0"
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
+  local _rt_value=$(rval $_rt)
+  local _rs_value=$(rval $_rs)
+  LATCH_A=( $_rt $_rt_value )
+  LATCH_B=( $_rs $_rs_value )
+
+  if [[ $_op != ">>" ]] ; then
+    # We are doing srlv, we need to clear
+    # the top most bits
+    _rt_value=$(( _rt_value & 0xFFFFFFFF ))
+  fi
+  _value=$(( _rt_value $_func_op _rs_value ))
+  if (( _value > max_word )) ; then
+    # we need to drop off the shifted bits
+    _value=$(( _value & 0xFFFFFFFF ))
+  fi
+
+  assign $_rd $_value $_rt_value $_rs_value 
+
+  print_ALU_state "$_op" $_rd
+}
+
+
+function execute_MoveTo ()  {
 	# Example: mthi move _hi
-  _op="$1"
-  _dst="$(sed -e 's/,$//' <<< $2)"
-  _src="$3"
+  local _name="$1"
+  local _op="$2"
+  local _dst="$(sed -e 's/,$//' <<< $3)"
+  local _src="$4"
 
   LATCH_A=($_src $(rval $_src) )
   LATCH_B=()
@@ -202,17 +281,28 @@ function execute_RR ()  {
   print_ALU_state "$_op" $_dst
 }
 
-function reverse_op() {
-  execute_RR $1 $3 $2
+function execute_MoveFrom() {
+  execute_MoveTo $1 $2 $4 $3
 }
 
 function execute_MD () {
-  _op="$1"
-  _src1="$(sed -e 's/,$//' <<< $2)"
-  _src2="$3"
+  local _name="$1"
+  local _op="$2"
+  local _src1="$(sed -e 's/,$//' <<< $3)"
+  local _src2="$4"
 
-  LATCH_A=( $_src1 $(rval $_src1) )
-  LATCH_B=( $_src2 $(rval $_src2) )
+  local _src1_value=$(rval $_src1)
+  local _src2_value=$(rval $_src2)
+
+  case $_name in
+     *u) # Use 32-bits as unsigned
+         _src1_value=$(( _src1_value & 0xFFFFFFFF ))
+         _src2_value=$(( _src2_value & 0xFFFFFFFF ))
+         ;;
+  esac
+
+  LATCH_A=( $_src1 $_src1_value )
+  LATCH_B=( $_src2 $_src2_value )
 
   ## execute
   if [[ $_op == "*" ]] ; then 
