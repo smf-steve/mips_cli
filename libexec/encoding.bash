@@ -54,42 +54,67 @@ function print_R_encoding () {
     [[ ${emit_encodings} == "TRUE" ]] || return
 
     local _name="$1"
-    local _op_code="${op_code_REG}"
-    local _rs_code="$(encode_register $2)"
-    local _rt_code="$(encode_register $3)"
-    local _rd_code="$(encode_register $4)"
-    local _shamt=$(encode_shamt $5)
-    local _func_code="$(lookup_func $1)" 
+    local _rs="$2"
+    local _rt="$3"
+    local _rd="$4"
+    local _shamt="$5"
+    local _rs_name="$(name $_rs)"
+    local _rt_name="$(name $_rt)"
+    local _rd_name="$(name $_rd)"
 
-    printf "\t|%6s|%5s|%5s|%5s|%5s|%6s|\n" "op" "rs" "rt" "rd" "shamt" "func"
+    local _op_code="${op_code_REG}"
+    local _rs_code="$(encode_register $_rs)"
+    local _rt_code="$(encode_register $_rt)"
+    local _rd_code="$(encode_register $_rd)"
+    local _shamt_code=$(encode_shamt $_shamt)
+    local _func_code="$(lookup_func $_name)" 
+
+    printf "\t|%-6s|%-5s|%-5s|%-5s|%-5s|%-6s|\n" " op" " rs" " rt" " rd" " sh" " func"
+    printf "\t|------|-----|-----|-----|-----|------|\n"
+    printf "\t|%-6s|%-5s|%-5s|%-5s|%5s|%-6s|\n" \
+           " REG" " \$$_rs_name" " \$$_rt_name" " \$$_rd_name" "$_shamt" " ${_name:0:5}"
+
     printf "\t|%s|%s|%s|%s|%s|%s|\n" \
-           $_op_code $_rs_code $_rt_code $_rd_code $_shamt $_func_code
+           $_op_code $_rs_code $_rt_code $_rd_code $_shamt_code $_func_code
     printf "\n"
 }
 
 function print_I_encoding () {
     [[ ${emit_encodings} == "TRUE" ]] || return
 
-    local _op=$(lookup_opcode $1) 
-    local _rs_code=$(encode_register $2)
-    local _rt_code=$(encode_register $3)
-    local _imm=$(encode_immediate $4)
+    local _op="$1" 
+    local _rs="$2" 
+    local _rt="$3"
+    local _imm="$4"
+    local _rs_name="$(name $_rs)" 
+    local _rt_name="$(name $_rt)"
+    local _op_code=$(lookup_opcode "$_op") 
+    local _rs_code=$(encode_register "$_rs")
+    local _rt_code=$(encode_register "$_rt")
+    local _imm_code=$(encode_immediate "$4")
 
-    printf "\t|%6s|%5s|%5s|%16s|\n" \
-            "op" "rs" "rt" "imm"
+    printf "\t|%-6s|%-5s|%-5s|%-16s|\n" \
+            " op" " rs" " rt" " imm"
+    printf "\t|------|-----|-----|----------------|\n"
+    printf "\t|%-6s|%-5s|%-5s|%16s|\n" \
+            " ${_op:0:5}" " \$$_rs_name" " \$$_rt_name" $_imm
     printf "\t|%s|%s|%s|%s|\n" \
-            $_op $_rs_code $_rt_code $_imm
+            $_op_code $_rs_code $_rt_code $_imm_code
     printf "\n"
 }
 
 function print_J_encoding () {
     [[ ${emit_encodings} == "TRUE" ]] || return
 
-    _op=$(lookup_opcode $1) 
-    _addr=$(encode_address $2)
+    local _op="$1"
+    local _addr="$2"
+    local _op_code=$(lookup_opcode $_op) 
+    local _addr_code=$(encode_address 0x00FFFFFF )
 
-    printf "\t|%6s|%16s|\n" "op" "addr"
-    printf "\t|%s|%s|\n" "$_op" "$_addr"
+    printf "\t|%-6s|%-16s|\n" " op" " addr"
+    printf "\t|------|----------------|\n"
+    printf "\t|%-6s|%16s|\n" " ${_op:0:5}" "$_addr"
+    printf "\t|%s|%s|\n" "$_op_code" "$_addr_code"
     printf "\n"
 }
 
