@@ -8,7 +8,7 @@ function sub_execute () {
 
 function subi() {
     echo "Pseudo instruction for:"
-    sub_execute addi \$at, \$zero, \$$(name $3)
+    sub_execute addi \$at, \$zero, $3
     sub_execute sub \$$(name $1), \$$(name $2), \$at          
     pseudo_off
 }

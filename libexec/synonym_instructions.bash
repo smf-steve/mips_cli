@@ -19,7 +19,7 @@ function li () {
     [[ $_src != $_text ]] && _text="\"$_src\""
     
     echo "Synonym for: addi \$$_dst, \$zero, $_text"
-    addiu "$_dst", $zero, "$_src"
+    eval addiu "\$$_dst", $zero, "$_src"
 }
 
 function move () {
