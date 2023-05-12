@@ -14,7 +14,7 @@ alias   ori="execute_ArithLogI ori  \|"
 alias   xor="execute_ArithLog  xor  ^"
 alias  xori="execute_ArithLogI xori ^"
 
-alias   nor="execute_nor nor"
+alias   nor="execute_ArithLog nor  \~\|"
 alias  nori="echo Instruction does not exist"    
 
 # SHIFTs

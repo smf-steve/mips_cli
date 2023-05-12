@@ -41,75 +41,7 @@ function execute () {
 }
 
 ################################################################################
-# The argument list is as follows:
-# execute_XXX   cmd op dst src1 src2
-# execute_XXI   cmd op dst src1 imm
 
-
-function execute_srl () {
-  _op="$1"  # >>>
-  _rd="$(sed -e 's/,$//' <<< $2)"
-  _rt="$(sed -e 's/,$//' <<< $3)"
-  _text="$4"
-  _shamt=$(read_shamt "$_text")
-
-  LATCH_A=($_rt $(rval $_rt) )
-  LATCH_B=(imm $_shamt "$_text")
-
-  _value=$(( $(rval $_rt) & 0xFFFFFFFF ))  
-     # Sign Contraction
-     # Presume that the _value was normalized to be 32 bits
-     # Set the upper 33-64 buts to zero, to uliminate the sign
-  _value=$(( $_value >> $_shmat  ))
-  assign $_rd $_value
-
-  print_R_encoding $_op $_rs $_rt $rd $_shamt
-  print_ALU_state "$_op" $_rd
-}
-
-function execute_srlv () {
-  _op="$1"  # >>>
-  _rd="$(sed -e 's/,$//' <<< $2)"
-  _rt="$(sed -e 's/,$//' <<< $3)"
-  _rs="$4"
-  _shmat=$(( $(rval $_rs) & 0x1F))  # Only the low order 5 bits.
-
-  if [[ $(( $(rval $_rs) & (~ 0x1F) )) != 0 ]] ; then
-    echo "Warning: register value contains extraneous bits"
-  fi
-  LATCH_A=($_rt $(rval $_rt) )
-  LATCH_B=(imm $_shmat  "\$$(name $_rt) & 0x1F")
-
-  _value=$(( $(rval $_rt) & 0xFFFFFFFF ))  
-     # Sign Contraction
-     # Presume that the _value was normalized to be 32 bits
-     # Set the upper 33-64 buts to zero, to eliminate the sign
-     # This presumes that we have 64 bit machine
-  _value=$(( $_value >> $_shmat  ))
-  assign $_rd $_value
-
-  print_ALU_state "$_op" $_rd
-}
-
-
-
-function execute_nor() {
-  _op="nor"  # nor
-    _op1="|"   # |
-    _op2="~"   # ~
-  _rd="$(sed -e 's/,$//' <<< $2)"
-  _rs="$(sed -e 's/,$//' <<< $3)"
-  _rt="$4"
-
-  LATCH_A=($_rs $(rval $_rs) )
-  LATCH_B=($_rt $(rval $_rt) )
-
-  _value=$(( $_op2 ( $(rval $_rs) $_op1 $(rval $_rt) ) ))
-  _value=$(sign_contraction $_value)
-  assign $_rd $_value
-
-  print_ALU_state "~|" $_rd
-}
 
 
 ### Syntax
@@ -164,7 +96,13 @@ function execute_RRR() {
   LATCH_A=($_rs $_rs_value )
   LATCH_B=($_rt $_rt_value )
 
-  _value=$(( ( _rs_value $_op _rt_value ) + _carry_in ))
+  case "$_op" in
+    "~|")  _value=$(( ~ ( $(rval $_rs) | $(rval $_rt) ) ))
+           ;;
+       *)  _value=$(( ( _rs_value $_op _rt_value ) + _carry_in ))
+           ;;
+  esac
+
   assign $_rd $_value $_rs_value $_rt_value
 
   print_ALU_state "$_op" $_rd

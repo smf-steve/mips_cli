@@ -3,7 +3,7 @@
 # REGISTERS
                       declare -a NAME ; declare -a REGISTER
 
-declare -r zero='0' ; NAME[$zero]="zero" ; REGISTER[$zero]="0"
+declare -r zero='0' ; NAME[$zero]="0"    ; REGISTER[$zero]="0"
 declare -r at='1'   ; NAME[$at]="at"     ; REGISTER[1]="0"
 declare -r v0='2'   ; NAME[$v0]="v0"     ; REGISTER[2]="0"
 declare -r v1='3'   ; NAME[$v1]="v1"     ; REGISTER[3]="0"
