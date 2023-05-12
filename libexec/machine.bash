@@ -77,31 +77,7 @@ function reset_status_bits() {
   STATUS_BITS[$_s_bit]=0
   STATUS_BITS[$_z_bit]=0
 }
-function print_status_bits() {
-  printf "\tC: %c;\tV: %c;\tS: %c;\tZ: %c\n\n" \
-      ${STATUS_BITS[$_c_bit]} \
-      ${STATUS_BITS[$_v_bit]} \
-      ${STATUS_BITS[$_s_bit]} \
-      ${STATUS_BITS[$_z_bit]}
-
-}
-alias trap_on_C=":"
-alias trap_on_V=":"
-alias trap_on_S=":"
-alias trap_on_Z=":"
-
-
-function name() {
-  local _index=$(sed -e 's/,$//' <<< "$1" )
-  echo ${NAME[$_index]}
-}
-function rval() {
-  local _index=$(sed -e 's/,$//' <<< "$1" )
-  echo ${REGISTER[$_index]}
-}
-
-
-function set_status_bits () {
+function assign_status_bits () {
   local _value="$1"
   local _rs_value="$2"
   local _rt_value="$3"
@@ -115,8 +91,37 @@ function set_status_bits () {
   STATUS_BITS[$_c_bit]=$(( _value > max_word_unsigned ? 1 : 0))
   STATUS_BITS[$_s_bit]=$(( _value < 0 ))
   STATUS_BITS[$_z_bit]=$(( _value == 0 ))
+}
+
+function print_status_bits() {
+  printf "\tC: %c;\tV: %c;\tS: %c;\tZ: %c\n\n" \
+      ${STATUS_BITS[$_c_bit]} \
+      ${STATUS_BITS[$_v_bit]} \
+      ${STATUS_BITS[$_s_bit]} \
+      ${STATUS_BITS[$_z_bit]}
 
 }
+
+
+
+
+alias trap_on_C=":"
+alias trap_on_V=":"
+alias trap_on_S=":"
+alias trap_on_Z=":"
+
+
+## Register library functions below
+function name() {
+  local _index=$(sed -e 's/,$//' <<< "$1" )
+  echo ${NAME[$_index]}
+}
+function rval() {
+  local _index=$(sed -e 's/,$//' <<< "$1" )
+  echo ${REGISTER[$_index]}
+}
+
+
 
 function assign() {
   # The value computed is 
@@ -135,7 +140,7 @@ function assign() {
     _value=$(( _value | 0xFFFFFFFF00000000 ))
   fi
 
-  set_status_bits $_value $_rs_value $_rt_value
+  assign_status_bits $_value $_rs_value $_rt_value
   REGISTER[$_index]="$_value"
 }
 
@@ -149,11 +154,11 @@ function reset_registers () {
   assign $_lo "0" 
 }
 
-function set_registers () {
+function assign_registers () {
   local _value
 
   if [[ $# == 0 ]] ; then
-     set_registers_random
+     assign_registers_random
      return
   fi
 
@@ -170,7 +175,7 @@ function set_registers () {
 function random_value () {
   echo $(( $RANDOM % 0xF + 1))
 }
-function set_registers_random () {
+function assign_registers_random () {
   assign $zero "0";  
   for ((i=1; i<32; i++)) ; do
    assign $i "$(random_value)"
