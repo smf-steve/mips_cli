@@ -46,6 +46,7 @@ function to_binary () {
   echo $_value
 }
 
+# below is defunct!
 function sign_contraction () {
     # In bash, a numbers are a 64-bit value.
     # Only the bottom 32 bits are necessary.
@@ -74,7 +75,7 @@ function sign_extension() {
   # The input value as a text value can be:
   #   -n, ~n, or a 16bit number
   # For the first two, leave the value alone
-  # For a 16bit number transform it into a 32-bit number
+  # For a 16-bit number transform it into a 32-bit number
   #   
   local _value="$1"
   local _prefix=${_value:0:1}
