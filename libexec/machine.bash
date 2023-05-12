@@ -4,17 +4,18 @@
 min_shamt=0
 max_shamt=$(( 2 ** 5 ))
 
-max_immediate_unsigned=$(( 2 ** 16 ))
+max_immediate_unsigned=$(( 2 ** 16 - 1))
 min_immediate=$(( - 2 ** 15  ))
 max_immediate=$(( - min_immediate - 1 ))
 
-max_word_unsigned=$(( 2 * 32 ))
+max_word_unsigned=$(( 2 ** 32 - 1))
 min_word=$(( - 2 ** 31  ))
 max_word=$(( - min_word - 1 ))
 
-max_dword_unsigned=$(( 2 * 64 ))
+max_dword_unsigned=$(( 2 ** 64 - 1))
 min_dword=$(( - 2 ** 63 ))
 max_dword=$(( - max_dword -1  ))
+
 
 
 # REGISTERS
@@ -70,6 +71,20 @@ declare -r _v_bit=1 ;  STATUS_BITS[$_v_bit]="0"
 declare -r _s_bit=2 ;  STATUS_BITS[$_s_bit]="0" 
 declare -r _z_bit=3 ;  STATUS_BITS[$_z_bit]="0" 
 
+function reset_status_bits() {
+  STATUS_BITS[$_c_bit]=0
+  STATUS_BITS[$_v_bit]=0
+  STATUS_BITS[$_s_bit]=0
+  STATUS_BITS[$_z_bit]=0
+}
+function print_status_bits() {
+  printf "\tC: %c;\tV: %c;\tS: %c;\tZ: %c\n\n" \
+      ${STATUS_BITS[$_c_bit]} \
+      ${STATUS_BITS[$_v_bit]} \
+      ${STATUS_BITS[$_s_bit]} \
+      ${STATUS_BITS[$_z_bit]}
+
+}
 alias trap_on_C=":"
 alias trap_on_V=":"
 alias trap_on_S=":"
@@ -85,17 +100,43 @@ function rval() {
   echo ${REGISTER[$_index]}
 }
 
-function assign() {
-  local _index=$(sed -e 's/,$//' <<< "$1" )
-  local _value="$2"
-  local _high_order=$(( (_value >> 32) & 0xFFFFFFFF ))
-     # shift right, and then get rid of the high-order bits
 
-  # Here the number must be in the appropriate range.
-  if (( $_high_order != 0x00000000 && $_high_order != 0xFFFFFFFF   )) ; then
-      echo "Error: Assignment value requires more than 32 bits"
+function set_status_bits () {
+  local _value="$1"
+  local _rs_value="$2"
+  local _rt_value="$3"
+
+  local _both_pos=$(( _rs_value >= 0 && _rt_value >= 0 ))
+  local _both_neg=$(( _rs_value <  0 && _rt_value  < 0 ))
+  local flipped_to_neg=$(( _value < 0 && _both_pos ))
+  local flipped_to_pos=$(( _value > 0 && _both_neg ))
+
+  STATUS_BITS[$_v_bit]=$(( flipped_to_neg | flipped_to_pos ))
+  STATUS_BITS[$_c_bit]=$(( _value > max_word_unsigned ? 1 : 0))
+  STATUS_BITS[$_s_bit]=$(( _value < 0 ))
+  STATUS_BITS[$_z_bit]=$(( _value == 0 ))
+
+}
+
+function assign() {
+  # The value computed is 
+
+  # Place a number that can be represented as a 
+  #   32-bit value into a register.
+  # Recall that the shell has 64 bits.
+
+  local _index="$1"
+  local _value="$2"
+  local _src1="$3"
+  local _src2="$4"
+
+  if (( _value > max_word )) ; then
+    # we need to extend the sign for a 64-bit value
+    _value=$(( _value | 0xFFFFFFFF00000000 ))
   fi
-  [[ $1 == 0 ]] ||  REGISTER[$_index]="$_value"
+
+  set_status_bits $_value $_rs_value $_rt_value
+  REGISTER[$_index]="$_value"
 }
 
 function reset_registers () {
@@ -139,6 +180,7 @@ function set_registers_random () {
   assign $_lo "$(random_value)"
 }
 
+alias print_register="print_value"
 function print_registers () {
 
   for ((i=0; i<32; i++)) ; do
@@ -157,7 +199,7 @@ function print_ALU_state () {
   local _dst1="$2"
   _dst2="$3"
 
-  [[ $emit_execution_summary == "TRUE" ] || return
+  [[ $emit_execution_summary == "TRUE" ]] || return
 
   print_cin $cin
   print_value "${LATCH_A[@]}"
@@ -168,9 +210,9 @@ function print_ALU_state () {
   print_value $_dst1
   [[ $_dst2 != "" ]]  && print_value $_dst2
   echo 
+  print_status_bits
 }
 
-alias print_register="print_value"
 function print_immediate () {
   local _text="$1"
   local _value=$(read_immediate "$_text")
@@ -194,6 +236,9 @@ function print_value () {
   local _register="$1"
   local _value="$2"
   local _text="$3"
+  local _name
+  local _rval
+  local _prefix
 
   _prefix=${_register:0:1}
   if [[ $_prefix == '~' ]] ; then
@@ -221,7 +266,7 @@ function print_value () {
     _prefix=${_rval:0:1}
   fi
   if [[ $_prefix == '~' || $_prefix == '-' ]] ; then
-   _text=$omething
+   _text=
    _register=${_register:1}
 
   else
@@ -229,38 +274,34 @@ function print_value () {
   fi
 
 
-   _dec=${_rval}
-   _hex=$(to_hex 8 $(sign_contraction $_rval ))
-   _bin=$(to_binary "${_hex}")
+  local _dec=${_rval}
+  local _unsigned=$(( _rval & 0xFFFFFFFF ))
+  local _hex=$(to_hex 8 $_unsigned )
+  local _bin=$(to_binary "${_hex}")
 
-   printf "   %5s:  %d %u %11s; 0x%s; 0b%s;"  \
-         "${_name}" "${_dec}" "${_dec}" "${_dec}" "${_hex}" "${_bin}"
+  printf "   %5s:  %11d %11d; 0x%s; 0b%s;"  \
+        "${_name}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
 
-   if [[ "$_text" != "" ]] ; then
-     printf " \"%s\"" "${_text}"
-   fi
-   printf "\n"
+  if [[ "$_text" != "" ]] ; then
+    printf " \"%s\"" "${_text}"
+  fi
+  printf "\n"
 }
 
-
-#(mips) printf "%d, %u\n" -2 -2
-#-2, 18446744073709551614
 
 
 function print_op () {
    local _op="$1"
       
-   printf "     %3s  %-4s ----------- -------------- ------------------------------------------\n" \
-          "" "${_op}"      
+   printf "       %4s ----------  ----------- -------------- ------------------------------------------\n" \
+          "${_op}"      
 }
 
 
 function print_cin() {
-   
-   if [[ $cin != -1 ]] ; then 
+   [[ $cin == -1 ]]  && return
 
-      printf "     %4s                %c               %c                                         %c;\n" \
-             "cin:" "${cin}" "${cin}" "${cin}"
-   fi
+   printf "     %4s         %4s        %4s;             %c;                                         %c;\n" \
+             "cin:" "${cin}" "${cin}" "${cin}" "${cin}"
 }
 
