@@ -25,7 +25,7 @@ instruction_error () {
 # Inclue the support files:
 source libexec/library.bash
 source libexec/read_literal.bash
-source libexec/machine.bash
+source libexec/machine/machine.bash
 source libexec/execute.bash
 source libexec/encoding.bash
 source libexec/native_instructions.bash
@@ -37,13 +37,18 @@ function error () {
   echo "$1"
 
 }
-
+if (( $COLUMNS < 95 )) ; then
+  echo "The screen is not wide enough, please resize to be at least 95 characters wide."
+  echo
+fi
 echo "Entering the MIPS Command-Line-Interface"
 echo
 assign $_pc 0x04000000
 
 PS1="(mips) "
 text_segment=".text"
+
+
 
 # At this point, the shell will process things interactive.
 #  - one issue is that we are not keeping track of our history
