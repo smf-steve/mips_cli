@@ -24,7 +24,7 @@ function reset_status_bits() {
   STATUS_BITS[$_s_bit]=0
   STATUS_BITS[$_z_bit]=0
 }
-function assign_status_bits () {
+function assign_status_bits() {
   local _value="$1"
   local _rs_value="$2"
   local _rt_value="$3"
@@ -88,7 +88,7 @@ function assign() {
   REGISTER[$_index]="$_value"
 }
 
-function reset_registers () {
+function reset_registers() {
   assign $zero "0"  
   for ((i=1; i<32; i++)) ; do
    assign $i "0"
@@ -98,7 +98,7 @@ function reset_registers () {
   assign $_lo "0" 
 }
 
-function assign_registers () {
+function assign_registers() {
   local _value
 
   if [[ $# == 0 ]] ; then
@@ -116,7 +116,7 @@ function assign_registers () {
   assign $_hi "$_value"
   assign $_lo "$_value"
 }
-function random_value () {
+function random_value() {
   echo $(( $RANDOM % 0xF + 1))
 }
 function assign_registers_random () {
@@ -130,7 +130,7 @@ function assign_registers_random () {
 }
 
 alias print_register="print_value"
-function print_registers () {
+function print_registers() {
 
   for ((i=0; i<32; i++)) ; do
     print_register $i
@@ -142,7 +142,7 @@ function print_registers () {
 
 }
 
-function print_ALU_state () {
+function print_ALU_state() {
   # Print values on the two input latches with the op and output register/s
   local _op="$1"
   local _dst1="$2"
@@ -162,7 +162,7 @@ function print_ALU_state () {
   print_status_bits
 }
 
-function print_immediate () {
+function print_immediate() {
   local _text="$1"
   local _value=$(read_immediate "$_text")
   local _value=$(sign_extension $_value)
@@ -180,7 +180,7 @@ function print_immediate () {
 #   signed: $(signed_extention $(( value )) )
 #   unsigned:  $(signed_contraction $((value )) )
 
-function print_value () {
+function print_value() {
   # if the input is one value, then print it as a register
   local _register="$1"
   local _value="$2"
@@ -238,7 +238,7 @@ function print_value () {
 }
 
 
-function print_op () {
+function print_op() {
    local _op="$1"
       
    printf "       %4s ----------  ----------- -------------- ------------------------------------------\n" \
