@@ -37,10 +37,7 @@ function error () {
   echo "$1"
 
 }
-if (( $COLUMNS < 95 )) ; then
-  echo "The screen is not wide enough, please resize to be at least 95 characters wide."
-  echo
-fi
+
 echo "Entering the MIPS Command-Line-Interface"
 echo
 assign $_pc 0x04000000
