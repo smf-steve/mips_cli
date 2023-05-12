@@ -16,8 +16,8 @@ declare -r      op_code_addiu='001001'  # 0x09
 declare -r       op_code_slti='001010'  # 0x0A
 declare -r      op_code_sltiu='001011'  # 0x0B
 declare -r       op_code_andi='001100'  # 0x0C
-declare -r        op_code_ori='001101'
-declare -r        op_code_xor='001110'
+declare -r        op_code_ori='001101'  # 0x0D
+declare -r       op_code_xori='001110'  # 0x0E
 # declare -r       op_code_xx='001111'
 
 # 010 Row
