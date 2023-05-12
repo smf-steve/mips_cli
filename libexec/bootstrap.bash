@@ -24,7 +24,7 @@ instruction_error () {
 
 # Inclue the support files:
 source libexec/library.bash
-source libexec/read_constant.bash
+source libexec/read_literal.bash
 source libexec/machine.bash
 source libexec/execute.bash
 source libexec/encoding.bash

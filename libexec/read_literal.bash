@@ -1,4 +1,4 @@
-function read_constant() {
+function read_literal() {
    # This function converts a number of various bases and notations
    # to a normal form.  This normal form a string representation of a 
    # decimal number.
@@ -120,7 +120,7 @@ function read_constant() {
 
 function read_word() {
 
-   local _value=$(read_constant $1)
+   local _value=$(read_literal $1)
    echo $_value
 
    if (( _value > $max_word || _value < - $max_word )) ; then
@@ -131,7 +131,7 @@ function read_word() {
 
 function read_immediate () {
 
-   local _value=$(read_constant "$1")
+   local _value=$(read_literal "$1")
    echo $_value
 
    if (( _value > $max_immediate || _value < - $max_immediate )) ; then
@@ -144,7 +144,7 @@ function read_shamt() {
    # The value passed in must be a positive 5 bit value
    # 0 .. 32
 
-   local _value=$(read_constant $1)
+   local _value=$(read_literal $1)
 
    if (( _value > 32 || _value < 0 )) ; then
       _msg="Error: the shift amount not in range: 0..2^5-1"
