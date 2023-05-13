@@ -17,6 +17,14 @@ alias  xori="execute_ArithLogI xori ^"
 alias   nor="execute_ArithLog nor  \~\|"
 alias  nori="echo Instruction does not exist"    
 
+# Set Instructions
+alias      stl='execute_ArithLog  stl "<"'
+alias     sltu='execute_ArithLog  stlu "<"'
+alias     slti='execute_ArithLogI slti "<"'
+alias    sltiu='execute_ArithLogI sltiu "<"'
+
+
+
 # SHIFTs
 alias   sll="execute_Shift  sll '<<'"
 alias   sra="execute_Shift  sra '>>'"
@@ -30,7 +38,7 @@ alias  mult="execute_MD mult \*"
 alias  multu="execute_MD multu \*"
 
 alias   div="execute_MD div /"
-alias   divu="echo To be implemented, overflow?" 
+alias   divu="execute_MD div /"
 
 alias  mthi="execute_MoveTo   mthi "=" _hi"       # mfhi $t0
 alias  mtlo="execute_MoveTo   mtlo "=" _lo"       # mflo $t0
@@ -64,12 +72,6 @@ alias     bgtz='echo To be implemented'
 
 
 ## 
-
-alias      stl='echo To be implemented'
-alias     sltu='echo To be implemented'
-alias     slti='echo To be implemented'
-alias    sltiu='echo To be implemented'
-
 
 alias     movz='echo To be implemented'
 alias     movn='echo To be implemented'

@@ -97,6 +97,13 @@ function execute_RRR() {
   LATCH_A=($_rs $_rs_value )
   LATCH_B=(${_rt_prefix}$_rt ${_rt_prefix}$_rt_value ) 
 
+  case $_name in
+     slt*u) # Use 32-bits as unsigned
+         _rs_value=$(( _rs_value & 0xFFFFFFFF ))
+         _rt_value=$(( _rt_value & 0xFFFFFFFF ))
+         ;;
+  esac
+
   case "$_op" in
     "~|")  _value=$(( ~ ( _rs_value | _rt_value ) ))
            ;;
