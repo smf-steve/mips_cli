@@ -70,12 +70,13 @@ function execute_RRR() {
   local _rs="$(sed -e 's/,$//' <<< $4)"
   local _rt="$(sed -e 's/,$//' <<< $5)"
   local _shamt="0"
-  local _rt_prefix=""
-  local _carry_in=0
-  local _value
 
   print_R_encoding $_name $_rs $_rt $_rd $_shamt
   [[ ${execute_instructions} == "TRUE" ]] || return
+
+  local _carry_in=0
+  local _rt_prefix=""
+  local _value
 
   case $_op in
       +) reset_cin
@@ -83,8 +84,8 @@ function execute_RRR() {
 
       -) set_cin
            _op="+"
-           _rt_prefix="~"
            _carry_in=1
+           _rt_prefix="~"
          ;;
 
       *) unset_cin
@@ -94,10 +95,10 @@ function execute_RRR() {
   _rs_value=$(rval $_rs)
   _rt_value=${_rt_prefix}$(rval $_rt)
   LATCH_A=($_rs $_rs_value )
-  LATCH_B=($_rt $_rt_value )
+  LATCH_B=(${_rt_prefix}$_rt ${_rt_prefix}$_rt_value ) 
 
   case "$_op" in
-    "~|")  _value=$(( ~ ( $(rval $_rs) | $(rval $_rt) ) ))
+    "~|")  _value=$(( ~ ( _rs_value | _rt_value ) ))
            ;;
        *)  _value=$(( ( _rs_value $_op _rt_value ) + _carry_in ))
            ;;
