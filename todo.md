@@ -1,51 +1,34 @@
 # To Do List
 
 
+## Structure
+
+  1. separate machine.bash and registers.bash
+     - machine is about MIPS
+     - registers are the access to the registers, or is it just a rename
+
+
 ## Bugs
-   1. sllv $t5, $t2, $t4
-   1. no encoding for MULTDIV
+1. implement
+   - Validate the Add/u addi/u and Sub/u functionality
 
-   1. validate the semantics of the shifts
-      - treat the number as unsigned, and max value is 0x1F
-      - or treat the number as $t4 & 0x1F
-      - should the output pattern be
-        ```
-        sllv $t5, $t2, $t4
-              t2:              10; 0x00 00 00 0A; 0b0000 0000 0000 0000 0000 0000 0000 1010;
-              t4:              24; 0x00 00 00 18; 0b0000 0000 0000 0000 0000 0000 0001 1000;  "$t4 & 0x1F"
-                  <<   ----------- -------------- ------------------------------------------
-              t5:       167772160; 0x0A 00 00 00; 0b0000 1010 0000 0000 0000 0000 0000 0000;
-        ```
+1. need more spacing for 
+   - >>>
 
+   1. Restructure Test Cases
+     1. test cases for multiple/div
+     1. test and set
+ 
+   1. High encodings for adding does not work correctlry
+       - carry bit, overflow bit
+         - assign $t1 0x7FFFFFFF # overflow
+         -  addi $t1, $t1, 1
+         - assign $t1 0x80000000 # overflow
+         -  addi $t1, $t1, -1
+       - double check the subu, addu
 
-   1. Validate
-      * addi $t2, $t2, 0xFFFF
-        - but it detects it as a large positive number
-        - where as  -32769 is okay.
-        - need to make read_immedat
-        - take the number and sign extention to
-        - a 64bit number, and then test the value
-
-
- 1. Read Constant --> literals:  Test and validate
-    1. read_immediate
-       >= 0x80 00 00 00 -- should return a negative number 
-    1. read_shmat "2#- 11111"
-       (mips) read_shmat "2#- 11111"
-       -0
-       (mips) read_shmat "2#111111"
-       -0
-
-
-    1. immediate values should be only 32-bit number
-       - for xxxi statements, test that it is 16bits
-       - for sxx  statements, test that it is 5bits (unsiged)
-
-
-1. validate the use of ~ for sub operations
-     - sub $t4, $t5, $t6
-     - the output is correct, but the dst values don't easily match up (?)
-       - the comment for the rt register should be "~ register"
+   
+   1. encode_address is not implemented
 
 
  1. Implement Pseudo Instructions
@@ -54,8 +37,16 @@
       - only provide a comment if the immediate value is a non decimal number
 
 
+1. Error Handling
+   - Modify errors to call:  instruction_error "message"
+
+1. validate output
 
 ## Improvements
+1. Consider using digital gates for output symbols
+   - & --> U+2227  ? 
+   - nor --> U+22BD  (V with a bar)  or down arrow 
+   - U+2213      MINUS-OR-PLUS SIGN      ∓
 
 1. Consider the error output
     1. bash: slr: command not found
@@ -83,12 +74,6 @@
 1. Consider how to handle traps (on overflow)
 
 
-1. Error Handling
-   - Add in error checking for immediate.
-   - exit on illegal values.
-   - Modify errors to call:  instruction_error "message"
-
-
 1. Usage
    ```
    mips_cli  
@@ -109,12 +94,16 @@
  (mips-data) .text
  (mips) 
 
+lb
 
-## Structure
+     MAR:    -16777216  4278190080; 0xFF 00 00 00; 0b1111 1111 0000 0000 0000 0000 0000 0000;
+     MBR:                      252; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 1111 1100;
+          lb ----------  ----------- -------------- ------------------------------------------
+      t1:         xxxx        xxx ; 0xFF FF FF FC; 0b1111 1111 1111 1111 1111 1111 1111 1100;
 
-  1. separate machine.bash and registers.bash
-     - machine is about MIPS
-     - registers are the access to the registers, or is it just a rename
+
+
+1. proper call anywhere where files are staged in ~/class/comp122/bin
 
 
 
