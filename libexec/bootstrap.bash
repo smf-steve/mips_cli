@@ -16,9 +16,16 @@
 
 trap "" SIGUSR1  # when an error occurs, go to the next line
 instruction_error () {
-  echo "$1" 
+  echo "$1" 1>&2 
+  echo
   assign $_pc "$(( $(rval $_pc) - 4 ))"
   kill -n SIGUSR1 $$
+}
+
+instruction_warning () {
+  echo "$1" 1>&2 
+  echo
+  assign $_pc "$(( $(rval $_pc) - 4 ))"
 }
 
 
