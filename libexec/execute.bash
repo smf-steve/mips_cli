@@ -186,6 +186,12 @@ function execute_ShiftV () {
 
   local _rt_value=$(rval $_rt)
   local _rs_value=$(rval $_rs)
+
+  if (( $_rs_value >= 32 || $_rs_value < 0 )) ; then
+    _msg="Notice: the value of \$$(name $_rs) is not in the range 0..31"
+    instruction_warning "$_msg"
+  fi
+
   LATCH_A=( $_rt $_rt_value )
   LATCH_B=( $_rs $_rs_value )
 
@@ -195,7 +201,7 @@ function execute_ShiftV () {
     _rt_value=$(( _rt_value & 0xFFFFFFFF ))
   fi
   _value=$(( _rt_value $_func_op _rs_value ))
-  if (( _value > max_word )) ; then
+  if (( _value > max_word  || _value < - max_word )) ; then
     # we need to drop off the shifted bits
     _value=$(( _value & 0xFFFFFFFF ))
   fi
