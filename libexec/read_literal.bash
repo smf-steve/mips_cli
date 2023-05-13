@@ -159,8 +159,8 @@ function read_shamt() {
 
    local _value=$(read_literal "$1")
 
-   if (( _value > 32 || _value < 0 )) ; then
-      _msg="Error: the shift amount not in range: 0..2^5-1"
+   if (( _value >= 32 || _value < 0 )) ; then
+      _msg="Error: the shift amount not in range: 0..31"
       instruction_error "$_msg"
       _value=0
    fi
