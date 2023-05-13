@@ -84,7 +84,7 @@ function assign() {
     _value=$(( _value | 0xFFFFFFFF00000000 ))
   fi
 
-  assign_status_bits $_value $_rs_value $_rt_value
+  assign_status_bits $_value $_src1 $_src2
   REGISTER[$_index]="$_value"
 }
 
@@ -146,7 +146,7 @@ function print_ALU_state() {
   # Print values on the two input latches with the op and output register/s
   local _op="$1"
   local _dst1="$2"
-  _dst2="$3"
+  local _dst2="$3"
 
   [[ $emit_execution_summary == "TRUE" ]] || return
 
@@ -165,7 +165,7 @@ function print_ALU_state() {
 function print_immediate() {
   local _text="$1"
   local _value=$(read_immediate "$_text")
-  local _value=$(sign_extension $_value)
+
   print_value imm $_value "$_text"
 }
 
