@@ -17,13 +17,11 @@ alias  xori="execute_ArithLogI xori ^"
 alias   nor="execute_ArithLog nor  \~\|"
 alias  nori="echo Instruction does not exist"    
 
-# Set Instructions
-alias      stl='execute_ArithLog  stl "<"'
-alias     sltu='execute_ArithLog  stlu "<"'
+# SET Instructions
+alias      slt='execute_ArithLog  slt "<"'
+alias     sltu='execute_ArithLog  sltu "<"'
 alias     slti='execute_ArithLogI slti "<"'
 alias    sltiu='execute_ArithLogI sltiu "<"'
-
-
 
 # SHIFTs
 alias   sll="execute_Shift  sll '<<'"
