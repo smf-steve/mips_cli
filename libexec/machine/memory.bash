@@ -7,6 +7,10 @@ heap_start=$((data_top + 1))
 stack_top=0x7FFFFFFF
 
 declare -a MEM
+declare -a DATA_LABELS
+declare -a TEXT_LABELS
+
+Need a way to keep track of labels used but not assign
 
 function allocate_data_memory() {
    local _size="$1"
