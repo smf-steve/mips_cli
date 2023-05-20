@@ -38,3 +38,8 @@ declare -r ra='31'  ; NAME[$ra]="ra"     ; REGISTER[31]="0"
 declare -r _pc='32' ; NAME[$_pc]="pc"    ; REGISTER[32]="0"
 declare -r _hi='33' ; NAME[$_hi]="hi"    ; REGISTER[33]="0"
 declare -r _lo='34' ; NAME[$_lo]="lo"    ; REGISTER[34]="0"
+
+
+declare -r _mar='50' ; NAME[$_mar]="MAR"    ; REGISTER[34]="0"
+declare -r _mbr='51' ; NAME[$_mbr]="MBR"    ; REGISTER[34]="0"
+
