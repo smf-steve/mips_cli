@@ -6,9 +6,9 @@ data_limit=0x0FFFFFFF
 heap_start=$((data_top + 1))
 stack_top=0x7FFFFFFF
 
-declare -i MEM
+declare -a MEM
 
-alias allocate_data_memory() {
+function allocate_data_memory() {
    local _size="$1"
    (( data_next = data_next + _size ))
 }
@@ -25,59 +25,76 @@ function assign_data_label() {
    fi 
 }
 
+function use_text_label() {
+  local _label=$1
+
+  # This is called when a text label is 
+  # used within a branch or j instruction
+  # If the 
+  declare -i text_label_${_label} 
+
+}
 function assign_text_label() {
    local _label="$1"
 
-   alias text_label_${label}  2>&1 > /dev/null
-   if [[ $? == 0 ]] ; then 
-      alias text_label_${_label}=${REGISTER[$pc]}
+   declare -i text_label_${_label} 
+   if (( text_label_${_label}  == "" )) ; then 
+   	 declare -ri text_label_${_label}=${REGISTER[$pc]}
    else
-   	  instruction_error "$_label has already been used as a label!"
+   	  instruction_error "$_label has already been used as a label."
    fi 
 }
 
+function list_labels() {
+	 declare -pi | grep data_label
+	 declare -pi | grep test_label
+}
 function check_alignment() {
-	local MAR=$1
-	local SIZE=$2
+	local _address=$1
+	local _size=$2
 
-	if (( $MAR % $SIZE != 0 )) ; then
-       instruction_error "segmentation fault"
+	if (( _address % _size != 0 )) ; then
+       instruction_error "alignment error"
     fi
 }
 
-function read() {
-	local MAR="$1"
-	local SIZE="$2"
+# appears I have the endianness wrong
+# provide an option to change endianness
+# Jaa is Little Endian
+# MARS is a Java implementation
+
+function read_memory() {
+	local _size="$1"
     local _value=
-    local _index=${MAR}
+    local _index=$(rval $_mar)
 
-    check_alignment $MAR $SIZE
+    check_alignment $(rval $_mar) $_size
 
-    for (( i=0 ; i < $SIZE ; i++ )) ; do
+    for (( i=0 ; i < $_size ; i++ )) ; do
       # Big Endian: first byte is msB
+
       _byte=${MEM[$_index]} 
       (( _value= ( _value << 8 | _byte ) ))
       (( _index++ ))
     done
-    echo $_value
+    assign $_mbr $_value
 }
 
-function write() {
-	local MAR="$1"
-	local SIZE="$2"
-	local MBR="$3"
-	local _value=$MBR
-	local _index=$(( MAR + SIZE - 1))
+function write_memory() {
+	local _size="$1"
 
-    check_alignment $MAR $SIZE
+	local _mar_value=$(rval $_mar)
+	local _value=$(rval $_mbr)
 
-    for (( i=0 ; i < $SIZE ; i++ )) ; do
+    check_alignment $_mar_value $_size
+
+	local _index=$(( _mar_value + _size - 1))
+    for (( i=0 ; i < $_size ; i++ )) ; do
       # Big Endian: first byte is msB
-      # so start with last byte
+      # so start with lsB first
       (( _byte =  _value  & 0xFF ))
       MEM[${_index}]=$_byte
       (( _value =  _value >> 8 ))
       (( _index-- ))
     done
-
 }
