@@ -86,6 +86,18 @@ function sign_contraction () {
     # exit
 }
 
+function sign_extension_byte() {
+  local _value="$1"
+  local _sign_bit
+
+   _sign_bit=$(( ${_value} & 0x80 ))
+  if [[ ${_sign_bit} != 0 ]] ; then 
+    # The sign bit is on... so extend it
+    ((_value = ( - 0x80 ) | _value ))
+  fi
+  echo $_value
+}
+
 function sign_extension() {
   # The input value as a text value can be:
   #   -n, ~n, or a 16bit number
@@ -103,10 +115,10 @@ function sign_extension() {
   fi
 
   # 0x80000000 == 2 ** 15
-  _sign_bit=$(( ${_value} & 0x80000000 ))
-  if [[ ${sign_bit} == 1 ]] ; then 
+  _sign_bit=$(( ${_value} & 0x8000 ))
+  if [[ ${_sign_bit} != 0 ]] ; then 
    	# The sign bit is on... so extend it
-    ((_value = - 0x80000000 | _value ))
+    ((_value = ( - 0x8000 ) | _value ))
   fi
   
   echo ${_prefix}${_value}
