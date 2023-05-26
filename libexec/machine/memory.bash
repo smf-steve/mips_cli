@@ -17,23 +17,23 @@ function assign_data_label() {
    local _label="$1"
    local _size="$2"
 
-   alias data_label_${label}  2>&1 > /dev/null
-   if [[ $? == 0 ]] ; then 
+   alias data_label_${_label}  >/dev/null 2>&1 
+   if [[ $? == 1 ]] ; then 
       alias data_label_${_label}=$data_next
-      allocate_data_memory $_size
+      allocate_data_memory $_size                  # Maybe not move this forward yet
    else
-   	instruction_error "$_label has already been used as a label!"
+   	instruction_error "$_label has already been used as a label."
    fi 
 }
 
 function assign_text_label() {
    local _label="$1"
 
-   alias text_label_${label}  2>&1 > /dev/null
-   if [[ $? == 0 ]] ; then 
+   alias text_label_${_label}  >/dev/null 2>&1 
+   if [[ $? == 1 ]] ; then 
       alias text_label_${_label}=${REGISTER[$pc]}
    else
-   	  instruction_error "$_label has already been used as a label!"
+   	instruction_error "$_label has already been used as a label."
    fi 
 }
 

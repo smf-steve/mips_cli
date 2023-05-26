@@ -38,3 +38,91 @@ declare -r ra='31'  ; NAME[$ra]="ra"     ; REGISTER[31]="0"
 declare -r _pc='32' ; NAME[$_pc]="pc"    ; REGISTER[32]="0"
 declare -r _hi='33' ; NAME[$_hi]="hi"    ; REGISTER[33]="0"
 declare -r _lo='34' ; NAME[$_lo]="lo"    ; REGISTER[34]="0"
+
+
+
+function name() {
+  local _index=$(sed -e 's/,$//' <<< "$1" )
+  echo ${NAME[$_index]}
+}
+function rval() {
+  local _index=$(sed -e 's/,$//' <<< "$1" )
+  echo ${REGISTER[$_index]}
+}
+
+
+
+function assign() {
+  # The value computed is 
+
+  # Place a number that can be represented as a 
+  #   32-bit value into a register.
+  # Recall that the shell has 64 bits.
+
+  local _index="$1"
+  local _value="$2"
+  local _src1="$3"
+  local _src2="$4"
+
+  if (( _value > max_word )) ; then
+    # we need to extend the sign for a 64-bit value
+    _value=$(( _value | 0xFFFFFFFF00000000 ))
+  fi
+
+  assign_status_bits $_value $_src1 $_src2
+  REGISTER[$_index]="$_value"
+}
+
+function reset_registers() {
+  assign $zero "0"  
+  for ((i=1; i<32; i++)) ; do
+   assign $i "0"
+  done
+  # assign $_pc "0"
+  assign $_hi "0"
+  assign $_lo "0" 
+}
+
+function assign_registers() {
+  local _value
+
+  if [[ $# == 0 ]] ; then
+     assign_registers_random
+     return
+  fi
+
+  _value=$(read_word "$1")
+
+  assign $zero "0";  
+  for ((i=1; i<32; i++)) ; do
+    assign $i "$_value"
+  done
+  # assign $_pc "0"
+  assign $_hi "$_value"
+  assign $_lo "$_value"
+}
+function random_value() {
+  echo $(( $RANDOM % 0xFFFF + 1))
+}
+function assign_registers_random () {
+  assign $zero "0";  
+  for ((i=1; i<32; i++)) ; do
+   assign $i "$(random_value)"
+  done
+  # assign $_pc "0"
+  assign $_hi "$(random_value)"
+  assign $_lo "$(random_value)"
+}
+
+alias print_register="print_value"
+function print_registers() {
+
+  for ((i=0; i<32; i++)) ; do
+    print_register $i
+  done
+  echo
+  print_register $_pc
+  print_register $_hi
+  print_register $_lo
+
+}

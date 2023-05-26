@@ -116,7 +116,7 @@ declare -r     func_code_nor='100111'  # 0x27
 # 101 Row
 # declare -r    func_code_xx='101000'
 # declare -r    func_code_xx='101001'
-declare -r     func_code_stl='101010'  # 0x2A
+declare -r     func_code_slt='101010'  # 0x2A
 declare -r    func_code_sltu='101011'  # 0x2B
 # declare -r    func_code_xx='101010'
 # declare -r    func_code_xx='101011'
