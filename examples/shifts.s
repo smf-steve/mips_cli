@@ -4,7 +4,7 @@ srl $t2, $t1, 1     #0x7FFFFFF
 sra $t2, $t1, 1     #0xFFFFFFF, -1
 
 sll $t2, $t1, 1     # no Carry
-sla $t2, $t1, 1     # no Carry
+sla $t2, $t1, 1     # Error
 
 sll $t4, $t5, 4 
 srl $t5, $t6, 4

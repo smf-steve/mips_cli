@@ -14,6 +14,10 @@ div  $t1, $t2
 assign $t1 0xFFFFFFFF
 assign $t2 0xFFFFFFFF
 
-mult $t1, $t2
+mult $t1, $t2   ## Max -1:  -1 * -1 = 1  :==  00000001
 div  $t1, $t2
+
+multu $t1, $t2  ## Max 0xffffffff:  0xffffffff * 0xffffffff = 0xfffffffe, 00000001
+divu  $t1, $t2
+
 
