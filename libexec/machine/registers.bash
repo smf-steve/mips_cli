@@ -35,10 +35,14 @@ declare -r gp='28'  ; NAME[$gp]="gp"     ; REGISTER[28]="0"
 declare -r sp='29'  ; NAME[$sp]="sp"     ; REGISTER[29]="0"
 declare -r fp='30'  ; NAME[$fp]="fp"     ; REGISTER[30]="0"
 declare -r ra='31'  ; NAME[$ra]="ra"     ; REGISTER[31]="0"
-declare -r _pc='32' ; NAME[$_pc]="pc"    ; REGISTER[32]="0"
-declare -r _hi='33' ; NAME[$_hi]="hi"    ; REGISTER[33]="0"
-declare -r _lo='34' ; NAME[$_lo]="lo"    ; REGISTER[34]="0"
 
+
+declare -r  _pc='50' ; NAME[$_pc]="pc"    ; REGISTER[50]="0"
+declare -r  _hi='51' ; NAME[$_hi]="hi"    ; REGISTER[51]="0"
+declare -r  _lo='52' ; NAME[$_lo]="lo"    ; REGISTER[52]="0"
+
+declare -r _mar='53' ; NAME[$_mar]="MAR"  ; REGISTER[53]="0"
+declare -r _mbr='54' ; NAME[$_mbr]="MBR"  ; REGISTER[54]="0"
 
 
 function name() {
@@ -126,3 +130,4 @@ function print_registers() {
   print_register $_lo
 
 }
+

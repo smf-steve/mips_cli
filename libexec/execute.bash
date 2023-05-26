@@ -92,8 +92,8 @@ function execute_RRR() {
          ;;
   esac
 
-  _rs_value=$(rval $_rs)
-  _rt_value=${_rt_prefix}$(rval $_rt)
+  local _rs_value=$(rval $_rs)
+  local _rt_value=${_rt_prefix}$(rval $_rt)
   LATCH_A=($_rs $_rs_value )
   LATCH_B=(${_rt_prefix}$_rt ${_rt_prefix}$_rt_value ) 
 
@@ -281,3 +281,116 @@ function execute_MD () {
   print_ALU_state "$_op" $_hi $_lo
 }
 
+
+# Syntax: name rt imm(rs)
+#    Note that this function can't follow the appropriate syntax
+#    As such we need to have a parser call this routine
+#    Here we presume the input will followin the following
+#    LoadStore name -- rt rs imm
+function LoadStore () {
+  # Usage:  name -- rt imm (rs)
+  local _name="$1"
+  local _op="$2"
+  local _rt="$(sed -e 's/,$//' <<< $3)"
+  local _rs="$(sed -e 's/,$//' <<< $4)"
+  local _text="$5"
+  local _imm=$(read_immediate "$_text")
+  local _literal=$(sign_extension "$_imm")
+  local _value
+
+   ## Print the Encoding
+   { 
+     print_I_encoding $_name $_rs $_rt $_imm
+
+     emit_p=${emit_encodings}
+     emit_encodings=FALSE
+     execute_RRI "addi" "+" $_mar $_rs $_imm $_text
+     emit_encodings=$emit_p
+   }
+
+   # Determine size of the operation
+   case $_name in 
+      *b*) _size=1
+           ;;
+      *h*) _size=2
+           ;;
+      *)   _size=4
+           ;;
+   esac
+
+   # Perform the Memory operation
+   _rt_value=$(rval $_rt)
+   case "$_name" in
+      l*)
+          read_memory $_size
+          _rt_value=$(rval $_mbr)
+
+          case "$_name" in 
+            *u) ;;
+            *)  (( _size == 2 ))  &&  _rt_value=$(sign_extension "$_rt_value")
+                (( _size == 1 ))  &&  _rt_value=$(sign_extension_byte "$_rt_value")
+                ;;
+          esac     
+
+          assign $_rt $_rt_value   # status bits are being assigned?
+          ;;
+      s*)
+          assign $_mbr $_rt_value
+          write_memory $_size
+          ;;
+   esac
+   print_WB_stage "$_name" $_rt $_size
+
+}
+
+function print_WB_stage() {
+  # Print values on the two input latches with the op and output register/s
+  local _name="$1"
+  local _register="$2"
+  local _size="$3"
+
+
+  [[ $emit_execution_summary == "TRUE" ]] || return
+  case "$_name" in
+    l*)
+       print_mem_value "$(name $_mbr)" $(rval $_mbr) $_size
+       print_op "$_name"
+       print_mem_value "$(name $_register)" $(rval $_register)
+       ;;
+    s*)
+       print_mem_value "$(name $_register)" $(rval $_register)
+       print_op "$_name"
+       print_mem_value "$(name $_mbr)" $(rval $_mbr) $_size
+       ;;
+  esac
+  echo 
+}
+
+
+function print_mem_value () {
+  local _name="$1"
+  local _rval="$2"
+  local _size="$3"   # The number of raw bits trnansfered
+
+  [[ $_size == "" ]] && _size=4
+
+  local _dec=${_rval}
+  local _unsigned=$(( _rval & 0xFFFFFFFF ))
+  local _hex=$(to_hex $(( _size * 2 )) $_unsigned )
+
+  local _bin=$(to_binary "${_hex}")
+
+  printf "   %5s:  %11d %11d; 0x%11s; 0b%39s;"  \
+        "${_name}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
+  printf "\n"
+}
+
+#     load/read:  lb
+#       LATCH_IN        xxxx xxxx xxxx s???      MBR
+#                 $name -------- ------   ------     
+#       Latch_out       ssss ssss ssss s???      rt
+#
+#     store/write: sb
+#       LATCH_IN        ???? ???? ???? ????     rt
+#                 $name -------- ------   ------     
+#       Latch_out                      ????     MBR

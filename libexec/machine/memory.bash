@@ -6,8 +6,15 @@ data_limit=0x0FFFFFFF
 heap_start=$((data_top + 1))
 stack_top=0x7FFFFFFF
 
-declare -i MEM
+declare -a MEM
+declare -a DATA_LABELS
+declare -a TEXT_LABELS
 
+<<<<<<< HEAD
+=======
+Need a way to keep track of labels used but not assign
+
+>>>>>>> e32e766d003c11fac26737d05a620437d673127f
 function allocate_data_memory() {
    local _size="$1"
    (( data_next = data_next + _size ))
@@ -26,59 +33,76 @@ function assign_data_label() {
    fi 
 }
 
+function use_text_label() {
+  local _label=$1
+
+  # This is called when a text label is 
+  # used within a branch or j instruction
+  # If the 
+  declare -i text_label_${_label} 
+
+}
 function assign_text_label() {
    local _label="$1"
 
-   alias text_label_${_label}  >/dev/null 2>&1 
-   if [[ $? == 1 ]] ; then 
-      alias text_label_${_label}=${REGISTER[$pc]}
+   declare -i text_label_${_label} 
+   if (( text_label_${_label}  == "" )) ; then 
+   	 declare -ri text_label_${_label}=${REGISTER[$pc]}
    else
-   	instruction_error "$_label has already been used as a label."
+   	  instruction_error "$_label has already been used as a label."
    fi 
 }
 
+function list_labels() {
+	 declare -pi | grep data_label
+	 declare -pi | grep test_label
+}
 function check_alignment() {
-	local MAR=$1
-	local SIZE=$2
+	local _address=$1
+	local _size=$2
 
-	if (( $MAR % $SIZE != 0 )) ; then
-       instruction_error "segmentation fault"
+	if (( _address % _size != 0 )) ; then
+       instruction_error "alignment error"
     fi
 }
 
+
 function memory_read() {
-	local MAR="$1"
-	local SIZE="$2"
-   local _value=
-   local _index=${MAR}
+  local _size="$1"
 
-    check_alignment $MAR $SIZE
+  local _value=
+  local _index=${_mar}
 
-    for (( i=0 ; i < $SIZE ; i++ )) ; do
-      # Big Endian: first byte is msB
-      _byte=${MEM[$_index]} 
-      (( _value= ( _value << 8 | _byte ) ))
-      (( _index++ ))
-    done
-    echo $_value
+  check_alignment $(rval $_mar) $_size
+
+  for (( i=0 ; i < $_size ; i++ )) ; do
+    # Big Endian: first byte is msB
+
+     local _byte=${MEM[$_index]} 
+     (( _value= ( _value << 8 | _byte ) ))
+     (( _index++ ))
+  done
+  assign $_mbr $_value
 }
 
 function memory_write() {
-	local MAR="$1"
-	local SIZE="$2"
-	local MBR="$3"
-	local _value=$MBR
-	local _index=$(( MAR + SIZE - 1))
+  local _size="$1"
 
-    check_alignment $MAR $SIZE
+  local _mar_value=$(rval $_mar)
+  local _value=$(rval $_mbr)
 
-    for (( i=0 ; i < $SIZE ; i++ )) ; do
-      # Big Endian: first byte is msB
-      # so start with last byte
-      (( _byte =  _value  & 0xFF ))
-      MEM[${_index}]=$_byte
-      (( _value =  _value >> 8 ))
-      (( _index-- ))
-    done
+  local _index=$(( _mar_value + _size - 1))
+  check_alignment $_mar_value $_size
 
+  local _index=$(( _mar_value + _size - 1))
+  for (( i=0 ; i < $_size ; i++ )) ; do
+    # Big Endian: first byte is msB
+    # so start with lsB first
+    local _byte
+    
+    (( _byte =  _value  & 0xFF ))
+    MEM[${_index}]=$_byte
+    (( _value =  _value >> 8 ))
+    (( _index-- ))
+  done
 }
