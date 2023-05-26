@@ -1,11 +1,126 @@
 # To Do List
 
+# Testing: May 26
+  1. set.s
+  1. logical.s
+  1. shifts.s
+  1. mult-div.s
+ 
+  1. arithmetic.s
+     - need more test exampls
+
+     - sub  when you do a ~t6, the comment should be the original signed Dec Number
+     - modify the unsigned to signal a trap on overflow  
+       - v-trap (on):  V=1  --> trap
+       - V-trap (off): V=1  --> off
+       - no trap:
+  1. load_stores.s
+     - deferred
+
+
+
+## Documenations
+   1. Presume that a syntax checker is placed in front of mini-mips
+
+   1. mini-mips:  a language based upon the MIPS ISA, with the following restrictions
+      - Presume code is correct -- i.e., lack checking
+      - Utilizes the Bash shell for processing
+        - hence syntax is based upon what is legit in Bash
+      - Syntax of Load/Stores are
+        * NOT  {l,s}{size} rt, rs(rd)
+        * BUT  {l,s}{size} rt, rd, rs
+      - Immediates have richer syntax, but must be quoted
+      - Floating Point is not supported
+
+      - Data Segment:
+        - must appear first (i.e., data segments labels MUST be defined before use)
+
+      - The ALU depicts the status flags of: C, V, S, & Z
+        - even though the MIPS arch only provides the Z bit for branching
+
+      - Implements only one form of Endianess: Big
+      
+      - Memory Interface utilizes a MAR & MBR
+        - maybe implement a memory module to illustrate allignment 
+
+   1. mini-mips: purpose
+      - Generates appropriate encoding for mips insturctions
+      - Depicts the operation of the ALU and Write Back
+      - Proves a minuture simulator
+      - Serves as a prototype for a more robust simulator
+
+
+
+## Implement Labels:
+   1. Develop a pre-executes process that
+      - reads the file
+      - generates a list of labels
+      - emits any errors w.r.t. missing labels
+   1. Develop a process to 
+      - declare and define labels upon initial introduction
+      - declare labels upon first usage
+      - defines labels after first usage
+      * The execution engine needs to be shut off until the
+        label is defined.
+
+   1. Memory Labels:
+      - Assert that the data section must be provided first!
+        -- i.e., 'la' must not yield an error
+
+## Memory and Alignment
+   - Should we have a memory module that shows how
+     - values are placed into the MAR / MBR
+
+## Validate
+   - Refine, Test, and Validate examples
+     - Branch Instructions: Need Labels
+     - Jump Instructions: Need Labels
+     - Load and Stores: Need Labels
+
+
+## Traps Error Handling
+
+1. Error Handling
+   - Modify errors to call:  instruction_error "message"
+   - Consider the error output
+     1. bash: slr: command not found
+     1. --> mips: slr: statement undefined
+
+1. Implement Traps
+
+## Extended Instructions
+   1. Implement Pseudo Instructions
+   1. Implement Synonym Instructions
+      - e.g., "nop" is a synonym for: sll $zero, $zero, 0     # "0"
+      - only provide a comment if the immediate value is a non decimal number
+   1. Review how this are done to see if we can simply to be small include file or other.
+
+      ```this
+      function rem () {
+         echo "Pseudo instruction for:"
+         sub_execute div \$$(name $2), \$$(name $3)
+         sub_execute mfhi \$$(name $1)
+         pseudo_off
+      }
+      ```
+
+      ```to
+      function rem () {
+         div $rs, $rt
+         mfhi $rd
+      }
+
+      echo "Pseudo instruction for:"
+      local rs=$2
+      local rt=$3
+      local rd=$1
+      rem
+      pseudo_off
+}
+      ```
+
 
 ## Structure
-
-  1. separate machine.bash and registers.bash
-     - machine is about MIPS
-     - registers are the access to the registers, or is it just a rename
 
 
 ## Bugs
@@ -15,10 +130,6 @@
 1. need more spacing for 
    - >>>
 
-   1. Restructure Test Cases
-     1. test cases for multiple/div
-     1. test and set
- 
    1. High encodings for adding does not work correctlry
        - carry bit, overflow bit
          - assign $t1 0x7FFFFFFF # overflow
@@ -31,28 +142,20 @@
    1. encode_address is not implemented
 
 
- 1. Implement Pseudo Instructions
- 1. Implement Synonym Instructions
-    - e.g., "nop" is a synonym for: sll $zero, $zero, 0     # "0"
-      - only provide a comment if the immediate value is a non decimal number
 
-
-1. Error Handling
-   - Modify errors to call:  instruction_error "message"
 
 1. validate output
 
 ## Improvements
+1. Consider completting the carry in ... operations..
+   (It's for educational purposes..)
+
+
 1. Consider using digital gates for output symbols
    - & --> U+2227  ? 
    - nor --> U+22BD  (V with a bar)  or down arrow 
    - U+2213      MINUS-OR-PLUS SIGN      ∓
 
-1. Consider the error output
-    1. bash: slr: command not found
-    1. --> mips: slr: statement undefined
-
-1. Incorporate a syntax checker at the beginning
 
 1. Move to a move to the loop, eval ... approach
    1. Needed to handle labels
