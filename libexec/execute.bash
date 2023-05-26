@@ -249,8 +249,8 @@ function execute_MoveFrom() {
 function execute_MD () {
   local _name="$1"
   local _op="$2"
-  local _rs _src1="$(sed -e 's/,$//' <<< $3)"
-  local _rt _src2="$4"
+  local _rs="$(sed -e 's/,$//' <<< $3)"
+  local _rt="$4"
 
   print_R_encoding $_name $_rs $_rt "0" "0"
   [[ ${execute_instructions} == "TRUE" ]] || return
@@ -266,7 +266,7 @@ function execute_MD () {
          ;;
   esac
 
-  LATCH_A=( $_rs $_rt_value )
+  LATCH_A=( $_rs $_rs_value )
   LATCH_B=( $_rt $_rt_value )
 
   ## execute
