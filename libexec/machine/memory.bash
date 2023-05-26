@@ -8,7 +8,7 @@ stack_top=0x7FFFFFFF
 
 declare -i MEM
 
-alias allocate_data_memory() {
+function allocate_data_memory() {
    local _size="$1"
    (( data_next = data_next + _size ))
 }
@@ -20,8 +20,9 @@ function assign_data_label() {
    alias data_label_${label}  2>&1 > /dev/null
    if [[ $? == 0 ]] ; then 
       alias data_label_${_label}=$data_next
+      allocate_data_memory $_size
    else
-   	  instruction_error "$_label has already been used as a label!"
+   	instruction_error "$_label has already been used as a label!"
    fi 
 }
 
@@ -45,11 +46,11 @@ function check_alignment() {
     fi
 }
 
-function read() {
+function memory_read() {
 	local MAR="$1"
 	local SIZE="$2"
-    local _value=
-    local _index=${MAR}
+   local _value=
+   local _index=${MAR}
 
     check_alignment $MAR $SIZE
 
@@ -62,7 +63,7 @@ function read() {
     echo $_value
 }
 
-function write() {
+function memory_write() {
 	local MAR="$1"
 	local SIZE="$2"
 	local MBR="$3"
