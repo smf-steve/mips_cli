@@ -10,11 +10,6 @@ declare -a MEM
 declare -a DATA_LABELS
 declare -a TEXT_LABELS
 
-<<<<<<< HEAD
-=======
-Need a way to keep track of labels used but not assign
-
->>>>>>> e32e766d003c11fac26737d05a620437d673127f
 function allocate_data_memory() {
    local _size="$1"
    (( data_next = data_next + _size ))
@@ -22,41 +17,47 @@ function allocate_data_memory() {
 
 function assign_data_label() {
    local _label="$1"
-   local _size="$2"
+   local _value
 
-   alias data_label_${_label}  >/dev/null 2>&1 
-   if [[ $? == 1 ]] ; then 
-      alias data_label_${_label}=$data_next
-      allocate_data_memory $_size                  # Maybe not move this forward yet
+   _value=$(eval echo \$data_label_${_label})
+   if [[ -z "${_value}" || "${_value}" == "undefined" ]] ; then   
+      eval data_label_${_label}=$data_next
    else
-   	instruction_error "$_label has already been used as a label."
+   	instruction_error "\"$_label\" has already been used as a label."
    fi 
 }
 
 function use_text_label() {
   local _label=$1
+  local _value
 
-  # This is called when a text label is 
-  # used within a branch or j instruction
-  # If the 
-  declare -i text_label_${_label} 
-
+  _value=$(eval echo \$text_label_${_label})
+  if [[ -z "${_value}" ]] ; then
+    eval text_label_${_label}="undefined"
+  fi
 }
+
 function assign_text_label() {
    local _label="$1"
+   local _value
 
-   declare -i text_label_${_label} 
-   if (( text_label_${_label}  == "" )) ; then 
-   	 declare -ri text_label_${_label}=${REGISTER[$pc]}
+   _value=$(eval echo \$text_label_${_label})
+   if [[ -z "${_value}" || "$_value" == "undefined" ]] ; then
+     # This is the first time in which the label is being defined.
+     eval text_label_${_label}=${REGISTER[$pc]}
    else
-   	  instruction_error "$_label has already been used as a label."
+   	instruction_error "\"$_label\" has already been used as a label."
    fi 
 }
 
 function list_labels() {
-	 declare -pi | grep data_label
-	 declare -pi | grep test_label
+	 declare -p | grep ^data_label_
+	 declare -p | grep ^text_label_
 }
+
+
+
+
 function check_alignment() {
 	local _address=$1
 	local _size=$2
@@ -99,7 +100,7 @@ function memory_write() {
     # Big Endian: first byte is msB
     # so start with lsB first
     local _byte
-    
+
     (( _byte =  _value  & 0xFF ))
     MEM[${_index}]=$_byte
     (( _value =  _value >> 8 ))

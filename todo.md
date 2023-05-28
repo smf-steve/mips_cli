@@ -19,6 +19,23 @@
 
 
 
+# Bugs
+   - modify assign_data_label A -->  assign_label data A
+
+   - loadStore
+     - validate the use of imm and literal
+       * it appears I should be using the literal value, but am using the immediate
+         - an immediate is only 16 bits, where a literal is 32 bits
+         - the issue will be with sign extenion, i.e., if the offset is by a negative amount
+   - structure
+     1. look for code that uses dst  and transfor to rd format
+     1. validate the use of the A latch versus B latch
+        - should they match the architecture or be abastract
+        - if they match the architecture, should the A and B side be denoted in the ALU output?
+
+   - assign: appears to be strange
+     - because it then calls assign status bits: so it passes in 4 things
+
 ## Documenations
    1. Presume that a syntax checker is placed in front of mini-mips
 
@@ -26,9 +43,13 @@
       - Presume code is correct -- i.e., lack checking
       - Utilizes the Bash shell for processing
         - hence syntax is based upon what is legit in Bash
+
       - Syntax of Load/Stores are
         * NOT  {l,s}{size} rt, rs(rd)
         * BUT  {l,s}{size} rt, rd, rs
+      - Syntax of Macros:  macro ( a b c d e )
+      - Syntax; commas are optional, but if present must be part of the token
+
       - Immediates have richer syntax, but must be quoted
       - Floating Point is not supported
 
@@ -42,6 +63,11 @@
       
       - Memory Interface utilizes a MAR & MBR
         - maybe implement a memory module to illustrate allignment 
+
+   1. with the following  extensions
+      - immediates can be use 2# notation
+      - labels are within two name space, i.e., the label A can be used both for data and for text
+        - can't have self modifing code
 
    1. mini-mips: purpose
       - Generates appropriate encoding for mips insturctions

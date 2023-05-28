@@ -43,16 +43,21 @@ alias     mtlo="execute_MoveTo   mtlo "=" _lo"       # mflo $t0
 alias     mfhi="execute_MoveFrom mfhi "=" _hi"       # mthi $t0
 alias     mflo="execute_MoveFrom mflo "=" _lo"       # mtlo $t0
 
+
+## LoadImmediate
+alias      lui='execute_LoadI lui --'
+alias      lhi='execute_LoadI lhi --'       # Part of Hennessy&Pattrson
+alias      llo='execute_LoadI llo --'
+
 ## LoadStore
-#
-alias       lb='LoadStore lb --'
-alias       lh='LoadStore lh --'
-alias       lw='LoadStore lw --'
-alias      lbu='LoadStore lbu --'
-alias      lhu='LoadStore lhu --'
-alias       sb='LoadStore sb --'
-alias       sh='LoadStore sh --'
-alias       sw='LoadStore sw --'
+alias       lb='execute_LoadStore lb --'
+alias       lh='execute_LoadStore lh --'
+alias       lw='execute_LoadStore lw --'
+alias      lbu='execute_LoadStore lbu --'
+alias      lhu='execute_LoadStore lhu --'
+alias       sb='execute_LoadStore sb --'
+alias       sh='execute_LoadStore sh --'
+alias       sw='execute_LoadStore sw --'
 
 ## Jump and JumpR
 alias        j='echo To be implemented'

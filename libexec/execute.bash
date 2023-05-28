@@ -29,6 +29,16 @@ function .text () {
 # HISTFILE=./.mips_cli_history
 
 
+# Presume we have a front't that changes things.
+# Syntax:
+#   line:          [ label:] [instruction  #comment]   
+#   instruction:   op one two three four
+#   instruction:   op one two (three)              <-- force
+#   instruction:   op ( one two three four .... )  <-- force  macro
+#      note commas are optional but must be part of the token
+#      allow the current engine deal with the immediates and comments
+
+
 function execute () {
   _filename="$1"
 
@@ -282,12 +292,46 @@ function execute_MD () {
 }
 
 
+# Syntax: name rt imm
+function execute_LoadI () {
+  # Usage: name -- rt, im
+
+  local _name="$1"
+  local _op="$2"
+  local _rt="$(sed -e 's/,$//' <<< $3)"
+  local _text="$4"
+  local _imm=$(read_immediate "$_text")
+  local _literal=$(sign_extension "$_imm")
+  local _value
+
+  ## Print the Encoding
+  print_I_encoding $_name $zero $_rt $_imm $_text
+
+  # Determine value 
+  case $_name in 
+    lui|lhi)
+         _value=$(( $_imm << 16 ))
+         ;;
+    llo) _value=$(( $_imm ))
+         ;;
+  esac
+
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
+  LATCH_A=()
+  LATCH_B=( imm ${_literal} "$_text" )
+  assign "$_rt" "$_value"
+
+  print_ALU_state "$_op" $_rt
+}
+
+
 # Syntax: name rt imm(rs)
 #    Note that this function can't follow the appropriate syntax
 #    As such we need to have a parser call this routine
 #    Here we presume the input will followin the following
 #    LoadStore name -- rt rs imm
-function LoadStore () {
+function execute_LoadStore () {
   # Usage:  name -- rt imm (rs)
   local _name="$1"
   local _op="$2"
@@ -343,6 +387,10 @@ function LoadStore () {
 
 }
 
+
+
+
+## Move to memory...
 function print_WB_stage() {
   # Print values on the two input latches with the op and output register/s
   local _name="$1"
@@ -394,3 +442,4 @@ function print_mem_value () {
 #       LATCH_IN        ???? ???? ???? ????     rt
 #                 $name -------- ------   ------     
 #       Latch_out                      ????     MBR
+

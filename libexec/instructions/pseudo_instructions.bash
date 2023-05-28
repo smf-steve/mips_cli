@@ -7,21 +7,22 @@ function sub_execute () {
 }
 
 function upper() {
-    _label=$1
-    eval _value=${label_data_}${_label}
-    echo $((  (_value >> 16 ) & 0xFFFFFFFF ))
+    _value=$1
+    printf "0x%04x\n" $((  (_value >> 16 ) & 0xFFFF ))
 }
 function lower() {
-    _label=$1
-
-    eval _value=${label_data_}${_label}
-    echo $((  _value & 0xFFFFFFFF ))
+    _value=$1
+    printf "0x%04x\n" $((  _value & 0xFFFF ))
 }
 function la() {
-    echo "Address of A is: $((eval _value=${label_data_}${2}))"
+    _address=$(eval echo \$data_label_${2})
+    _lower=$(lower $_address)
+    _upper=$(upper $_address)
+
+    printf "Address of %s is: 0x%x\n" ${2} $_address
     echo "Pseudo instruction for:"
-    sub_execute lui \$at, upper($2)
-    sub_execute ori \$$(name $1), \$at, lower($2)
+    sub_execute lui \$at, $_upper
+    sub_execute ori \$$(name $1), \$at, $_lower
     pseudo_off
 }
 

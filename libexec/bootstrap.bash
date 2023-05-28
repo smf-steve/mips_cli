@@ -35,9 +35,9 @@ source libexec/read_literal.bash
 source libexec/machine/machine.bash
 source libexec/execute.bash
 source libexec/encoding.bash
-source libexec/native_instructions.bash
-source libexec/pseudo_instructions.bash
-source libexec/synonym_instructions.bash
+source libexec/instructions/native_instructions.bash
+source libexec/instructions/pseudo_instructions.bash
+source libexec/instructions/synonym_instructions.bash
 
 function error () {
 

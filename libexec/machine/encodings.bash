@@ -6,7 +6,7 @@ declare -r        op_code_REG='000000'  # 0x00
 declare -r          op_code_j='000010'  # 0x02
 declare -r        op_code_jal='000011'  # 0x03
 declare -r        op_code_beq='000100'  # 0x04
-# declare -r      op_code_bne='000101'  
+declare -r        op_code_bne='000101'  # 0x05
 declare -r       op_code_blez='000110'  # 0x06
 declare -r       op_code_bgtz='000111'  # 0x07
 
@@ -18,7 +18,7 @@ declare -r      op_code_sltiu='001011'  # 0x0B
 declare -r       op_code_andi='001100'  # 0x0C
 declare -r        op_code_ori='001101'  # 0x0D
 declare -r       op_code_xori='001110'  # 0x0E
-# declare -r       op_code_xx='001111'
+declare -r        op_code_lui='001111'  # 0x0F
 
 # 010 Row
 # declare -r       op_code_xx='010000'  # 0x10
