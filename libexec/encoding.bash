@@ -42,12 +42,37 @@ function encode_immediate () {
    sed -e 's/ //g' <<< $_code 
 }
 
-function encode_address () {
-     local _label=$1
-     #local label="echo $(( 0x04000000))"
-     local _address=$(( $label >> 2 ))
-     echo $(to_binary "$(to_hex 8 $_address)")
+function encode_offset () {
+   local _label="$1"
+   local _address=$(lookup_text_label $_label)
+   local _offset=$((  _address - $(rval $_pc) ))
+
+   if (( _offset > max_immediate || min_immediate > _offset  )) ; then 
+     instruction_error "Branch out of reach."
+   fi
+   echo $_offset
 }
+
+function decode_offset () {
+  local _imm="$1"
+
+  echo $(( _imm + $(rval $_pc)  ))
+}
+
+function encode_address () {
+  # PC = PC&0xF0000000 | (addr0<< 2)
+  local _label=$1
+  local _address=$(lookup_text_label $_label)
+
+  echo $((_address >> 2)) 
+}
+
+function decode_address () {
+  local _addr="$1"
+
+  echo $(( _addr << 2 ))
+}
+
 
 emit_encodings=TRUE
 function print_R_encoding () {
@@ -109,7 +134,7 @@ function print_J_encoding () {
     local _op="$1"
     local _addr="$2"
     local _op_code=$(lookup_opcode $_op) 
-    local _addr_code=$(encode_address 0x00FFFFFF )
+    local _addr_code=$(encode_address $_addr )
 
     printf "\t|%-6s|%-16s|\n" " op" " addr"
     printf "\t|------|----------------|\n"
