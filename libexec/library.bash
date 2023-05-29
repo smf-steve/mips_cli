@@ -16,6 +16,8 @@ max_dword_unsigned=$(( 2 ** 64 - 1))
 min_dword=$(( - 2 ** 63 ))
 max_dword=$(( - max_dword -1  ))
 
+
+
 ##########################################################################
 ## Following are functions to convert output to more readable formats
 

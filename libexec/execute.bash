@@ -46,7 +46,7 @@ function execute () {
   while read _line; do
     echo $_line
     eval $_line
-    sleep 2
+    sleep 1
   done < $_filename
 }
 
@@ -363,10 +363,9 @@ function execute_LoadStore () {
    esac
 
    # Perform the Memory operation
-   _rt_value=$(rval $_rt)
    case "$_name" in
       l*)
-          read_memory $_size
+          data_memory_read $_size
           _rt_value=$(rval $_mbr)
 
           case "$_name" in 
@@ -379,8 +378,9 @@ function execute_LoadStore () {
           assign $_rt $_rt_value   # status bits are being assigned?
           ;;
       s*)
+          _rt_value=$(rval $_rt)
           assign $_mbr $_rt_value
-          write_memory $_size
+          data_memory_write $_size
           ;;
    esac
    print_WB_stage "$_name" $_rt $_size

@@ -17,7 +17,22 @@
   1. load_stores.s
      - deferred
 
+# Notes:
+  1. separate Instruction Memory from Data Memory
+     - instruction memory holds a string that contains a command + at most one label
+  1. should line numbers also be kept tracked of?
 
+# NAMEing
+  - Develop Glossary of variable names and definitions for encodings
+    - offset:  and immediate that is an address
+    - immediate
+    - encoded_address: 
+  - Develop a programming naming convention
+    - All Global Variables associated with the machine are ALL UPPERCASE
+      - MEMORY
+    - all global constanstant associated with the machine, are
+      - e.g., text_start, data_start
+    - all with an initial _  means?
 
 # Bugs
    - modify assign_data_label A -->  assign_label data A
@@ -32,9 +47,28 @@
      1. validate the use of the A latch versus B latch
         - should they match the architecture or be abastract
         - if they match the architecture, should the A and B side be denoted in the ALU output?
+        * make the A latch always present...
 
+        ```
+        (mips) addi $t1, $t2, 4
+        | op   | rs  | rt  | imm            |
+        |------|-----|-----|----------------|
+        | addi | $t2 | $t1 |               4|
+        |001000|01010|01001|0000000000000100|
+
+      (cin)                0           0;             0;                                         0;
+      (A)   t2:            0           0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
+      (B)  imm:            4           4; 0x00 00 00 04; 0b0000 0000 0000 0000 0000 0000 0000 0100; "4"
+                 + ----------  ----------- -------------- ------------------------------------------
+             t1:            4           4; 0x00 00 00 04; 0b0000 0000 0000 0000 0000 0000 0000 0100;
+
+        ```
    - assign: appears to be strange
      - because it then calls assign status bits: so it passes in 4 things
+     - review how/when the status bits are updated...
+     - maybe its only the V and C that need to be defined in particular situations.
+       - ie..,  assign_SZ_bits ; assign_CV_bits
+
 
 ## Documenations
    1. Presume that a syntax checker is placed in front of mini-mips
@@ -68,6 +102,9 @@
       - immediates can be use 2# notation
       - labels are within two name space, i.e., the label A can be used both for data and for text
         - can't have self modifing code
+      - At most one lable can be depicted per line.
+        - Labels: blank lines with labels, are ignored, but labels are stored anyways.
+
 
    1. mini-mips: purpose
       - Generates appropriate encoding for mips insturctions
