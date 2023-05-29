@@ -50,7 +50,11 @@ function encode_offset () {
    if (( _offset > max_immediate || min_immediate > _offset  )) ; then 
      instruction_error "Branch out of reach."
    fi
-   echo $_offset
+  
+   local _code=$(to_binary "$(to_hex 2 $(( _offset >> 2 )) )" )
+   local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< $_code )
+
+   echo $_code
 }
 
 function decode_offset () {
@@ -64,7 +68,14 @@ function encode_address () {
   local _label=$1
   local _address=$(lookup_text_label $_label)
 
-  echo $((_address >> 2)) 
+  if [[ -z "$_address" ]] ; then 
+    echo "_deferred_"
+  else
+    local _code=$(to_binary "$(to_hex 7 $(( _address  >> 2 )) )" )
+    local _code=$(sed -e 's/ //g'  <<< $_code )
+    #ensure the code is no more than 26 bits
+    echo ${_code:2}
+  fi
 }
 
 function decode_address () {
@@ -132,14 +143,19 @@ function print_J_encoding () {
     [[ ${emit_encodings} == "TRUE" ]] || return
 
     local _op="$1"
-    local _addr="$2"
+    local _label="$2"
     local _op_code=$(lookup_opcode $_op) 
-    local _addr_code=$(encode_address $_addr )
+    local _addr_code=$(encode_address $_label)
 
-    printf "\t|%-6s|%-16s|\n" " op" " addr"
-    printf "\t|------|----------------|\n"
-    printf "\t|%-6s|%16s|\n" " ${_op:0:5}" "$_addr"
-    printf "\t|%s|%s|\n" "$_op_code" "$_addr_code"
+    printf "\t|%-6s|%-26s|\n" " op" " addr"
+    printf "\t|------|--------------------------|\n"
+    printf "\t| %-5s| %-25s|\n" " ${_op:0:5}" "${_label:0:24}"
+
+    if [[ $_addr_code == "_deferred_" ]] ; then 
+        _addr_code="_deferred_         "   # To center it
+    fi
+
+    printf "\t|%s|%26s|\n" "$_op_code" "$_addr_code"
     printf "\n"
 }
 
