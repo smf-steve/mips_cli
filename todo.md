@@ -17,10 +17,51 @@
   1. load_stores.s
      - deferred
 
+# Notes:
+  1. create a notion of  <filename>.env or <filename>.labels
+     - data_label_A=0x0000x00
+     - text_label_A=
+     * potentiall, you also dump core and registers
+       - declare -p MEM
+       - declare -p REGISTERS
+  1. Maybe after print the encoding: you can dumpt it out to a file
+     - but defer can't be allowed:
+     - so you would dump out the values at the end of the file.
+
+  1. Modify labels to be tuple  A=( 0x0a000a0,  file, 5)
+     - address, and line number
+
+
+  1. Create an execution step for blank_line
+     - line++, pc=pc
+     - when goto Label, goto to the first blank line
+     - i.e., label gets the line number of the first
+       --
+         ```
+         X:  
+         Y:  add
+         ```
+
+       read label line
+       while ${label:${#label}} == :   && line is null
+          local labels=( $label)
+          read label line 
+          line_num++
+       done
+       number_labels=${#labels}
+       for (( i=0 ; i < ${number_labels} , i++ )) labels  ;
+          assign_text_label $labels[ $number_labels - i] PC "file"  line_num
+       done
+
+
+
+
+
+  1. create a list of functions exposed to the user
   1. Revise the approach to convering to hex, binary... 
      - leave the formating for the print routines.
-     
-# Notes:
+
+
   1. separate Instruction Memory from Data Memory
      - instruction memory holds a string that contains a command + at most one label
   1. should line numbers also be kept tracked of?
