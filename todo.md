@@ -95,7 +95,7 @@
        - it is version 2
        - with an implicit |
    1. double check all echo and printf that the args are quoted
-   
+
 # NAMEing
   - Develop Glossary of variable names and definitions for encodings
     - offset:  and immediate that is an address
@@ -355,15 +355,9 @@
       ```
 
 
-## Structure
-
-
 ## Bugs
 1. implement
    - Validate the Add/u addi/u and Sub/u functionality
-
-1. need more spacing for 
-   - >>>
 
    1. High encodings for adding does not work correctlry
        - carry bit, overflow bit
@@ -372,14 +366,6 @@
          - assign $t1 0x80000000 # overflow
          -  addi $t1, $t1, -1
        - double check the subu, addu
-
-   
-   1. encode_address is not implemented
-
-
-
-
-1. validate output
 
 ## Improvements
 1. Consider completting the carry in ... operations..
@@ -471,13 +457,21 @@ lb
 
 ```
 
- 1. Implementation: use of 64-bits for calculation: bash assumption
-    1. We perform all operations as 64-bit quantities
-       - values stored in the correct range: -2^31 .. 2^31-1
-       - sll: performs a sign contraction before the operation to ensure an unsigned number
-         -- execpt shift operations.
 
+Here the value of the register t3 should be presented in the comment
+(mips) sub $t1, $t2, $t3
 
----
+   | op   | rs  | rt  | rd  | sh  | func |
+   |------|-----|-----|-----|-----|------|
+   | REG  | $t2 | $t3 | $t1 |    0| sub  |
+   |000000|01010|01011|01001|00000|100010|
+
+     cin:            1           1;             1;                                         1;
+      t2:            6           6; 0x00 00 00 06; 0b0000 0000 0000 0000 0000 0000 0000 0110;
+     ~t3:           -9  4294967287; 0xFF FF FF F7; 0b1111 1111 1111 1111 1111 1111 1111 0111;  t3: 8
+          + ----------  ----------- -------------- ------------------------------------------
+      t1:           -2  4294967294; 0xFF FF FF FE; 0b1111 1111 1111 1111 1111 1111 1111 1110;
+
+   C: 0; V: 0; S: 1; Z: 0
 
 
