@@ -64,14 +64,16 @@ alias        j='execute_Jump  j   --'
 alias      jal='execute_Jump  jal  --'
 alias       jr='execute_JumpR jr   --'
 alias     jalr='execute_JumpR jalr --'
+
+## Jump 
 alias  syscall='echo To be implemented'
 
 
 ## Branch and BranchZ
-alias      beq='echo To be implemented'
-alias      bne='echo To be implemented'
-alias     blez='echo To be implemented'
-alias     bgtz='echo To be implemented'
+alias      beq='execute_Branch beq --'
+alias      bne='execute_Branch bne --'
+alias     blez='execute_BranchZ blez --'
+alias     bgtz='execute_BranchZ bgtz --'
 
 
 ## 
