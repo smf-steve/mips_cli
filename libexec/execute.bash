@@ -38,6 +38,46 @@ function .text () {
 #      note commas are optional but must be part of the token
 #      allow the current engine deal with the immediates and comments
 
+declare -i line_num=0
+
+function step_execute () {
+  labels=()
+  local label
+  local instruction 
+
+  read label instruction 
+
+  # If the line is just a label then 
+  while [[ "${label:((${#label}-1))}" == ":" && -z "$instruction" ]] ; do
+    labels+=( ${label} )
+    (( line_num++ ))
+
+    read label instruction 
+  done
+  
+  number_labels=${#labels[@]}
+  for (( i=0 ; i < ${number_labels} ; i++ )) ; do
+     # This loop processes just the labels on blank lines
+     local this_label=${labels[$i]}
+     local name=${this_label:0:((${#this_label}-1))} # strip the ":" at the end
+     assign_text_label ${name} 
+  done
+
+  if [[ "${label:((${#label}-1))}" != ":" ]] ; then
+    instruction="$label $instruction"
+  else 
+    local name=${label:0:((${#label}-1))}  # strip the ":" at the end
+    assign_text_label ${name} 
+  fi
+
+  (( line_num++ ))
+  (( REGISTER[$_pc]++ ))         # Maybe this is really npc
+  eval $instruction
+
+}
+
+
+
 
 function execute () {
   _filename="$1"

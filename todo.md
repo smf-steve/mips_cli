@@ -18,7 +18,10 @@
      - deferred
 
 # Notes:
-
+  1. Ensure sure assign is tied to the use of the ALU
+     - maybe change the name to be "alu_assign"
+     - the assign is just update the register
+     
   1. Restruction
      ```
      ## encode_R_instruction $_name $_rs "0" "0" "0"
