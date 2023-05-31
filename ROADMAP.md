@@ -2,7 +2,7 @@
 
 This file contains the general road map for develop and the current Milestones that have been achieved
 
-## MVP 0.1:  released May 31, 2023
+## MVP 0.1:  released May 31, 2023  (tag: MVP_0.1)
    - initial implementation with frame work to support subsequent MVPs
    - encoding of all Arithmetic, Logic, and Shift instructions supported
    - execution of all native  Arithmetic, Logic, and Shift instructions supported
