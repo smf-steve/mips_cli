@@ -1,32 +1,5 @@
 #! /bin/bash
 
-
-################################################
-# Op Encodings
-# Special  00
-# Special2 1C
-function lookup_opcode () {
-    local num="" 
-    num=$(eval echo \$op_code_$1)  2>&1 >/dev/null
-    if [[ $? == 0 ]] ; then 
-      echo $num
-    else
-      error "Undefined \"op\""
-    fi
-}
-
-################################################
-# Func Encodings
-function lookup_func () {
-    local num="" 
-    num=$(eval echo \$func_code_$1)  2>&1 >/dev/null
-    if [[ $? == 0 ]] ; then
-      echo $num
-    else
-      error "Undefined \"func\""
-    fi 
-}
-
 function encode_register () {
    local _reg=$1
    local _code=$(to_binary $(to_hex 2 $_reg))
@@ -45,16 +18,21 @@ function encode_immediate () {
 function encode_offset () {
    local _label="$1"
    local _address=$(lookup_text_label $_label)
-   local _offset=$((  _address - $(rval $_pc) ))
 
-   if (( _offset > max_immediate || min_immediate > _offset  )) ; then 
-     instruction_error "Branch out of reach."
-   fi
+   if [[ -z "$_address" ]] ; then 
+     echo "_deferred_"
+   else
+     local _offset=$((  _address - $(rval $_pc) ))
+
+     if (( _offset > max_immediate || min_immediate > _offset  )) ; then 
+       instruction_error "Branch out of reach."
+     fi
   
-   local _code=$(to_binary "$(to_hex 2 $(( _offset >> 2 )) )" )
-   local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< $_code )
+     local _code=$(to_binary "$(to_hex 2 $(( _offset >> 2 )) )" )
+     local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< $_code )
 
-   echo $_code
+     echo $_code
+  fi
 }
 
 function decode_offset () {
@@ -87,8 +65,6 @@ function decode_address () {
 
 emit_encodings=TRUE
 function print_R_encoding () {
-    [[ ${emit_encodings} == "TRUE" ]] || return
-
     local _name="$1"
     local _rs="$2"
     local _rt="$3"
@@ -105,7 +81,8 @@ function print_R_encoding () {
     local _shamt_code=$(encode_shamt $_shamt)
     local _func_code="$(lookup_func $_name)" 
 
-    text_encodings+="$_op_code $_rs_code $_rt_code $_rd_code $_shamt_code $_func_code"
+    REGISTER[$_ir]="${_op_code}${_rs_code}${_rt_code}${_rd_code}${_shamt_code}${_func_code}"
+    [[ ${emit_encodings} == "TRUE" ]] || return
 
     printf "\t|%-6s|%-5s|%-5s|%-5s|%-5s|%-6s|\n" " op" " rs" " rt" " rd" " sh" " func"
     printf "\t|------|-----|-----|-----|-----|------|\n"
@@ -118,49 +95,67 @@ function print_R_encoding () {
 }
 
 function print_I_encoding () {
-    [[ ${emit_encodings} == "TRUE" ]] || return
-
     local _op="$1" 
     local _rs="$2" 
     local _rt="$3"
     local _imm="$4"
+    local _label="$5"
+
     local _rs_name="$(name $_rs)" 
     local _rt_name="$(name $_rt)"
     local _op_code=$(lookup_opcode "$_op") 
     local _rs_code=$(encode_register "$_rs")
     local _rt_code=$(encode_register "$_rt")
-    local _imm_code=$(encode_immediate "$4")
 
-    text_encodings+="$_op_code $_rs_code $_rt_code $_imm_code"
+    local _imm_code
+    if [[ -n "$_label" ]] ; then
+       # the immediate is base upone a label
+       _imm=$_label
+       _imm_code=$(encode_offset $_label)
+    else
+       _imm_code=$(encode_immediate "$_imm")
+    fi
+
+
+    REGISTER[$_ir]="${_op_code}${_rs_code}${_rt_code}${_imm_code}"
+    [[ ${emit_encodings} == "TRUE" ]] || return
 
     printf "\t|%-6s|%-5s|%-5s|%-16s|\n" \
             " op" " rs" " rt" " imm"
     printf "\t|------|-----|-----|----------------|\n"
-    printf "\t|%-6s|%-5s|%-5s|%16s|\n" \
-            " ${_op:0:5}" " \$$_rs_name" " \$$_rt_name" $_imm
-    printf "\t|%s|%s|%s|%s|\n" \
-            $_op_code $_rs_code $_rt_code $_imm_code
+
+    if [[ -n "$_label" ]] ; then
+      printf "\t|%-6s|%-5s|%-5s| %-15s|\n" \
+              " ${_op:0:5}" " \$$_rs_name" " \$$_rt_name" "${_label:0:14}"
+    else        
+      printf "\t|%-6s|%-5s|%-5s|%16s|\n" \
+              " ${_op:0:5}" " \$$_rs_name" " \$$_rt_name" "$_imm"
+    fi
+    if [[ $_imm_code == "_deferred_" ]] ; then 
+        _imm_code="_   deferred  _ "   # To center it
+    fi
+
+    printf "\t|%s|%s|%s|%16s|\n" \
+            "$_op_code" "$_rs_code" "$_rt_code" "$_imm_code"
     printf "\n"
 }
 
-function print_J_encoding () {
-    [[ ${emit_encodings} == "TRUE" ]] || return
 
+# New format:  ?
+# encode_J_instruction
+# print_J_instruction
+
+function print_J_encoding () {
     local _op="$1"
     local _label="$2"
     local _op_code=$(lookup_opcode $_op) 
     local _addr_code=$(encode_address $_label)
 
+    # If the _addr_code is _deferred, perhaps
+    # REGISTER[$_ir]="${_op_code}\$(encode_address ${_label})"
 
-    # text_encodings+="$_op_code" "\$(encode_address $_label)"
-    # Issue is that the encoding will be added to the array each time it is executed.
-    #  - we would want to do this once.
-    # Perhaps
-    #  print_J_encoding
-    #     format=$(J_encoding)   # returns three fields.
-    #     print_routine          # this is the code below
-    #     _op_code=format[0]
-    #     _addr_code=format[1]
+    REGISTER[$_ir]="${_op_code}${_addr_code}"
+    [[ ${emit_encodings} == "TRUE" ]] || return
 
 
     printf "\t|%-6s|%-26s|\n" " op" " addr"
@@ -168,7 +163,7 @@ function print_J_encoding () {
     printf "\t| %-5s| %-25s|\n" " ${_op:0:5}" "${_label:0:24}"
 
     if [[ $_addr_code == "_deferred_" ]] ; then 
-        _addr_code="_deferred_         "   # To center it
+        _addr_code="_    deferred    _ "   # To center it
     fi
 
     printf "\t|%s|%26s|\n" "$_op_code" "$_addr_code"
