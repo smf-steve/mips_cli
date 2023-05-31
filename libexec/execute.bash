@@ -295,6 +295,8 @@ function execute_MD () {
 # Syntax: name rt imm
 function execute_LoadI () {
   # Usage: name -- rt, im
+  # Herre the immediate is a word...??
+  echo "Bug in this code"
 
   local _name="$1"
   local _op="$2"
@@ -324,6 +326,94 @@ function execute_LoadI () {
   print_ALU_state "$_op" $_rt
 }
 
+function execute_Branch () {
+  local _name="$1"
+  local _op="$2"
+  local _rs="$(sed -e 's/,$//' <<< $3)"
+  local _rt="$(sed -e 's/,$//' <<< $4)"
+  local _label="$5"
+  
+  local _imm=$(encode_offset $_label)
+
+  ## Print the Encoding
+  {
+    print_I_encoding $_name $_rs $_rt $_imm $_label
+
+    emit_p=${emit_encodings}
+    emit_encodings=FALSE
+    execute_ArithLog "sub" "-" $zero $_rs $zero 
+    emit_encodings=$emit_p
+
+  }
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
+  local _current=${REGISTER[$_pc]}
+  local _addr=$(lookup_text_label $_label)
+
+  case "$_name" in 
+    beq) if [[ ${STATUS_BITS[$_z_bit]} == "1" ]] ; then
+           REGISTER[$_pc]=$_addr
+         else
+           :
+         fi
+         ;;
+    bne) if [[ ${STATUS_BITS[$_z_bit]} == "0" ]] ; then
+           REGISTER[$_pc]=$_addr
+         else
+           :
+         fi
+         ;;
+  esac
+  print_PC_update "mux" ${STATUS_BITS[$_z_bit]} $_current  $_addr $_label
+  echo "Not Implemented"
+
+}
+
+
+function execute_BranchZ () {
+  local _name="$1"
+  local _op="$2"
+  local _rs="$(sed -e 's/,$//' <<< $3)"
+  local _label="$4"
+
+  ## Print the Encoding
+  {
+    print_I_encoding $_name $_rs $_rt $_imm $_label
+
+    emit_p=${emit_encodings}
+    emit_encodings=FALSE
+    execute_ArithLog "add" "-" $_zero $_rs $_zero 
+    emit_encodings=$emit_p
+  }
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
+  local _current=${REGISTER[$_pc]}
+  local _addr=$(lookup_text_label $_label)
+
+  case "$_name" in 
+    bgtz) if [[ ${STATUS_BITS[$_s_bit]} == 0 && ${STATUS_BITS[$_z_bit]} == 0 ]] ; then 
+             # result is positive, hence '$_rs > 0'
+             REGISTER[$_pc]=$_addr
+          else
+            :
+          fi
+          ;;
+    blez) if [[ ${STATUS_BITS[$_s_bit]} == 1 || ${STATUS_BITS[$_z_bit]} == 1 ]] ; then 
+             # result is positive, hence '$_rs <= 0'
+             REGISTER[$_pc]=$_addr
+          else
+            :
+          fi
+          ;;
+  esac
+
+  print_PC_update "mux" ${STATUS_BITS[$_z_bit]} $_current  $_addr $_label
+  echo "Not Implemented"
+
+}
+
+
+
 
 # Syntax: name rt imm(rs)
 #    Note that this function can't follow the appropriate syntax
@@ -347,7 +437,7 @@ function execute_LoadStore () {
 
     emit_p=${emit_encodings}
     emit_encodings=FALSE
-    execute_RRI "addi" "+" $_mar $_rs $_imm $_text
+    execute_ArithLogI "addi" "+" $_mar $_rs $_imm $_text
     emit_encodings=$emit_p
   }
   [[ ${execute_instructions} == "TRUE" ]] || return
@@ -406,13 +496,16 @@ function execute_Jump () {
 
 }
 
+
+
 function execute_JumpR () {
   # Usage:  name -- rs   # R-format
   local _name="$1"
   local _op="$2"
   local _rs="$(sed -e 's/,$//' <<< $3)"
 
-  print_R_encoding $_name $_rs "0" "0" "0"
+  ## encode_R_instruction $_name $_rs "0" "0" "0"
+  ## print_R_encoding $_name $_rs "0" "0" "0"
   [[ ${execute_instructions} == "TRUE" ]] || return
 
   case $_name in 
