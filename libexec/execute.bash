@@ -306,6 +306,7 @@ function execute_LoadI () {
 
   ## Print the Encoding
   print_I_encoding $_name $zero $_rt $_imm $_text
+  [[ ${execute_instructions} == "TRUE" ]] || return
 
   # Determine value 
   case $_name in 
@@ -315,8 +316,6 @@ function execute_LoadI () {
     llo) _value=$(( $_imm ))
          ;;
   esac
-
-  [[ ${execute_instructions} == "TRUE" ]] || return
 
   LATCH_A=()
   LATCH_B=( imm ${_literal} "$_text" )
@@ -342,15 +341,17 @@ function execute_LoadStore () {
   local _literal=$(sign_extension "$_imm")
   local _value
 
-   ## Print the Encoding
-   { 
-     print_I_encoding $_name $_rs $_rt $_imm
+  ## Print the Encoding
+  { 
+    print_I_encoding $_name $_rs $_rt $_imm
 
-     emit_p=${emit_encodings}
-     emit_encodings=FALSE
-     execute_RRI "addi" "+" $_mar $_rs $_imm $_text
-     emit_encodings=$emit_p
-   }
+    emit_p=${emit_encodings}
+    emit_encodings=FALSE
+    execute_RRI "addi" "+" $_mar $_rs $_imm $_text
+    emit_encodings=$emit_p
+  }
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
 
    # Determine size of the operation
    case $_name in 
@@ -388,7 +389,39 @@ function execute_LoadStore () {
 }
 
 
+function execute_Jump () {
+  # Usage:  name -- _label
+  local _name="$1"
+  local _op="$2"
+  local _label="$(sed -e 's/,$//' <<< $3)"
 
+  print_J_encoding $_name $_label
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
+  case $_name in 
+    jal) assign $ra REGISTER[$_pc]+4
+        ;;
+  esac
+  echo REGISTER[$_pc]=$(lookup_text_label $_label)
+
+}
+
+function execute_JumpR () {
+  # Usage:  name -- rs   # R-format
+  local _name="$1"
+  local _op="$2"
+  local _rs="$(sed -e 's/,$//' <<< $3)"
+
+  print_R_encoding $_name $_rs "0" "0" "0"
+  [[ ${execute_instructions} == "TRUE" ]] || return
+
+  case $_name in 
+    jalr) assign $ra REGISTER[$_pc]+4
+          ;;
+  esac
+  echo REGISTER[$_pc]=$(rval $_rs)
+
+}
 
 ## Move to memory...
 function print_WB_stage() {

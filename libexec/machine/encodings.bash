@@ -31,8 +31,8 @@ declare -r        op_code_lui='001111'  # 0x0F
 # declare -r       op_code_xx='010111'
 
 # 011 Row  # Not sure which version of MIPS, mars does not have these
-# declare -r      op_code_llo='011000'  # 0x18
-# declare -r      op_code_lhi='011001'  # 0x19
+declare -r      op_code_llo='011000'  # 0x18
+declare -r      op_code_lhi='011001'  # 0x19
 # declare -r     op_code_trap='011010'  # 0x1A
 # declare -r       op_code_xx='011011'  # 0x1B
 # declare -r       op_code_xx='011100'

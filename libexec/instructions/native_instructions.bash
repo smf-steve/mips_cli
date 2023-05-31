@@ -60,10 +60,10 @@ alias       sh='execute_LoadStore sh --'
 alias       sw='execute_LoadStore sw --'
 
 ## Jump and JumpR
-alias        j='echo To be implemented'
-alias      jal='echo To be implemented'
-alias       jr='echo To be implemented'
-alias     jalr='echo To be implemented'
+alias        j='execute_Jump  j   --'
+alias      jal='execute_Jump  jal  --'
+alias       jr='execute_JumpR jr   --'
+alias     jalr='execute_JumpR jalr --'
 alias  syscall='echo To be implemented'
 
 
