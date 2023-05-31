@@ -19,7 +19,9 @@
 
   1. Revise the approach to convering to hex, binary... 
      - leave the formating for the print routines.
-     
+  1. Implement the functions
+     * SE and ZE for sign_extension and zero_extension
+  1. double check that the ArithLogI use zE for logical operations
 # Notes:
   1. separate Instruction Memory from Data Memory
      - instruction memory holds a string that contains a command + at most one label
