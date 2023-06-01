@@ -157,8 +157,7 @@ function execute_RRR() {
            ;;
   esac
 
-  assign $_rd $_value $_rs_value $_rt_value
-
+  alu_assign $_rd $_value $_rs_value $_rt_value
   print_ALU_state "$_op" $_rd
   unset_cin
 }
@@ -186,8 +185,8 @@ function execute_RRI () {
   LATCH_B=( imm ${_literal} "$_text" )
 
   _value=$(( _rs_value $_op _literal ))
-  assign $_rt $_value $_rs_value $_literal
 
+  alu_assign $_rt $_value $_rs_value $_literal
   print_ALU_state "$_op" $_rt
   unset_cin
 }
@@ -221,8 +220,8 @@ function execute_Shift () {
     # we need to drop off the shifted bits
     _value=$(( _value & 0xFFFFFFFF ))
   fi
-  assign $_rd $_value $_rt_value $_shamt 
 
+  alu_assign $_rd $_value $_rt_value $_shamt 
   print_ALU_state "$_op" $_rd
 }
 
@@ -259,8 +258,7 @@ function execute_ShiftV () {
     _value=$(( _value & 0xFFFFFFFF ))
   fi
 
-  assign $_rd $_value $_rt_value $_rs_value 
-
+  alu_assign $_rd $_value $_rt_value $_rs_value 
   print_ALU_state "$_op" $_rd
 }
 
@@ -283,8 +281,8 @@ function execute_MoveTo ()  {
 
   LATCH_A=($_src $(rval $_src) )
   LATCH_B=()
-  assign "$_dst" "$(rval $_src)"
 
+  assign "$_dst" "$(rval $_src)"
   print_ALU_state "$_op" $_dst
 }
 
@@ -348,6 +346,7 @@ function execute_LoadI () {
 
   # Determine value 
   case $_name in 
+
     lui|lhi)
          _value=$(( $_imm << 16 ))
          ;;
@@ -357,8 +356,8 @@ function execute_LoadI () {
 
   LATCH_A=()
   LATCH_B=( imm ${_literal} "$_text" )
-  assign "$_rt" "$_value"
 
+  alu_assign "$_rt" "$_value"
   print_ALU_state "$_op" $_rt
 }
 
@@ -502,11 +501,12 @@ function execute_LoadStore () {
                 ;;
           esac     
 
-          assign $_rt $_rt_value   # status bits are being assigned?
+          alu_assign $_rt $_rt_value   # Operation is being run through the ALU
           ;;
       s*)
           _rt_value=$(rval $_rt)
-          assign $_mbr $_rt_value
+
+          alu_assign $_mbr $_rt_value
           data_memory_write $_size
           ;;
    esac
@@ -525,11 +525,11 @@ function execute_Jump () {
   [[ ${execute_instructions} == "TRUE" ]] || return
 
   case $_name in 
-    jal) assign $ra REGISTER[$_pc]+4
+    jal) assign $ra $(( REGISTER[$_pc]+4 ))     # Operation is NOT being run through the ALU
         ;;
   esac
   echo REGISTER[$_pc]=$(lookup_text_label $_label)
-
+  echo NOT IMPLMENTED
 }
 
 
@@ -545,11 +545,11 @@ function execute_JumpR () {
   [[ ${execute_instructions} == "TRUE" ]] || return
 
   case $_name in 
-    jalr) assign $ra REGISTER[$_pc]+4
+    jalr) assign $ra $(( REGISTER[$_pc]+4 ))  # Operation is NOT being run through the ALU
           ;;
   esac
   echo REGISTER[$_pc]=$(rval $_rs)
-
+  echo NOT IMPLMENTED
 }
 
 ## Move to memory...
