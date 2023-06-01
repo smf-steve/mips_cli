@@ -14,10 +14,6 @@ function pseudo_off () {
 }
 
 
-function .data () {
-  segment=".data"
-  PS1="(mips.data) "
-}
 
 function .text () {
   segment=".text"
@@ -45,14 +41,14 @@ function step_execute () {
   local label
   local instruction 
 
-  read label instruction 
+  read -e -p "$PS1" label instruction 
 
   # If the line is just a label then 
   while [[ "${label:((${#label}-1))}" == ":" && -z "$instruction" ]] ; do
     labels+=( ${label} )
     (( line_num++ ))
 
-    read label instruction 
+    read -e -p "$PS1" label instruction 
   done
   
   number_labels=${#labels[@]}

@@ -1,29 +1,15 @@
 #!/bin/bash
 
-ENDIANNESS="LITTLE"
-data_start=0x04000000
-data_next=$data_start
-data_limit=0x0FFFFFFF
-heap_start=$((data_top + 1))
-stack_top=0x7FFFFFFF
-
-declare -a MEM
-
-function allocate_data_memory() {
-   local _size="$1"
-   (( data_next = data_next + _size ))
-}
-
 
 function print_data_memory() {
    # Lets assume
    #  1. we print out each segment separately
    #  1. we have the first and last for each segement
    # For now, just print the data segment.
-
-   
-   _rows=$((  ${#MEM[@]} / 4 ))
-   _cols=$((  ${#MEM[@]} % 4 ))
+   local allocated
+   (( allocated = data_next - data_start ))
+   _rows=$((  allocated / 4 ))
+   _cols=$((  allocated % 4 ))
    if (( _cols != 0 )) ; then
       (( _rows ++ ))
    fi
@@ -52,7 +38,7 @@ function check_alignment() {
 	local _address=$1
 	local _size=$2
 
-   if ((_address < $data_start ||  _address > $stack_top)) ; then
+   if (( _address < $data_start ||  _address > $stack_top)) ; then
       instruction_error "protection error"
    fi
    case $_size in
@@ -87,14 +73,24 @@ function data_memory_read() {
 
 function data_memory_write() {
   local _size="$1"
+  local _address="$2"
+  local _value="$3"
 
-  local _mar_value=$(rval $_mar)
-  local _value=$(rval $_mbr)
+  # Usage
+  # 1.   .word 45          --> data_memory_write 4 $data_next 45
+  # 2.   sw $t1, imm ($t2) --> data_memory_write 4
+  #      - the value of the MAR and MBR are latched in
 
-  local _index=$(( _mar_value + _size - 1))
-  check_alignment $_mar_value $_size
+  if [[ -z "$_address" ]] ; then 
+    _address=$(rval $_mar)
+  fi
+  if [[ -z "$_value" ]] ; then 
+    _value=$(rval $_mbr)
+  fi
 
-  local _index=$(( _mar_value + _size - 1))
+  check_alignment $_address $_size
+
+  local _index=$(( _address + _size - 1))
   for (( i=0 ; i < $_size ; i++ )) ; do
     # Big Endian: first byte is msB
     # so start with lsB first
