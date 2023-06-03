@@ -18,6 +18,9 @@
      - deferred
 
 # Notes:
+
+  1. Rename assign to set...  This will become one of the debugger commands...
+
   1. Ensure sure assign is tied to the use of the ALU
      - maybe change the name to be "alu_assign"
      - the assign is just update the register
