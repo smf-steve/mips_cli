@@ -32,10 +32,8 @@ function allocate_data_memory() {
 }
 
 
-function .data () {
-  segment=".data"
-  PS1="(mips.data) "
-}
+alias .data=":"
+alias .text=":"
 
 function .dword () {
   local value="$1"
