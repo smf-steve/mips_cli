@@ -52,7 +52,6 @@ echo
 assign $_pc 0x04000000
 
 PS1="(mips) "
-text_segment=".text"
 
 
 
