@@ -41,9 +41,11 @@ declare -r  _pc='50' ; NAME[$_pc]="pc"    ; REGISTER[50]="0"
 declare -r  _hi='51' ; NAME[$_hi]="hi"    ; REGISTER[51]="0"
 declare -r  _lo='52' ; NAME[$_lo]="lo"    ; REGISTER[52]="0"
 
-declare -r _mar='53' ; NAME[$_mar]="MAR"  ; REGISTER[53]="0"
-declare -r _mbr='54' ; NAME[$_mbr]="MBR"  ; REGISTER[54]="0"
-declare -r  _ir='55' ; NAME[$_mbr]="IR"   ; REGISTER[55]="0"
+declare -r _npc='60' ; NAME[$_npc]="NPC"  ; REGISTER[55]="0"
+declare -r  _ir='61' ; NAME[$_ir]="IR"   ; REGISTER[55]="0"
+
+declare -r _mar='70' ; NAME[$_mar]="MAR"  ; REGISTER[53]="0"
+declare -r _mbr='71' ; NAME[$_mbr]="MBR"  ; REGISTER[54]="0"
 
 
 function name() {
@@ -56,8 +58,27 @@ function rval() {
 }
 
 
+function assign () {
+  # The value computed is 
 
-function assign() {
+  # Place a number that can be represented as a 
+  #   32-bit value into a register.
+  # Recall that the shell has 64 bits.
+
+  local _index="$1"
+  local _value="$2"
+
+  if (( _value > max_word )) ; then
+    # we need to extend the sign for a 64-bit value
+    _value=$(( _value | 0xFFFFFFFF00000000 ))
+  fi
+
+  REGISTER[$_index]="$_value"
+}
+
+
+
+function alu_assign() {
   # The value computed is 
 
   # Place a number that can be represented as a 
@@ -81,7 +102,7 @@ function assign() {
 function reset_registers() {
   assign $zero "0"  
   for ((i=1; i<32; i++)) ; do
-   assign $i "0"
+    assign $i "0"
   done
   # assign $_pc "0"
   assign $_hi "0"
