@@ -6,6 +6,8 @@ function print_data_memory() {
    #  1. we print out each segment separately
    #  1. we have the first and last for each segement
    # For now, just print the data segment.
+   #    (mips) echo ${!REGISTER[@]}
+
    local allocated
    (( allocated = data_next - data_start ))
    _rows=$((  allocated / 4 ))
