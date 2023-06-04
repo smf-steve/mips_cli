@@ -81,7 +81,9 @@ function print_R_encoding () {
     local _shamt_code=$(encode_shamt $_shamt)
     local _func_code="$(lookup_func $_name)" 
 
-    REGISTER[$_ir]="${_op_code}${_rs_code}${_rt_code}${_rd_code}${_shamt_code}${_func_code}"
+    local _encoding="${_op_code}${_rs_code}${_rt_code}${_rd_code}${_shamt_code}${_func_code}"
+    MEM[$(rval $_pc)]="$_encoding"
+
     [[ ${emit_encodings} == "TRUE" ]] || return
 
     printf "\t|%-6s|%-5s|%-5s|%-5s|%-5s|%-6s|\n" " op" " rs" " rt" " rd" " sh" " func"
@@ -117,8 +119,12 @@ function print_I_encoding () {
     fi
 
 
-    REGISTER[$_ir]="${_op_code}${_rs_code}${_rt_code}${_imm_code}"
+    local encoding="${_op_code}${_rs_code}${_rt_code}${_imm_code}"
+    MEM[$(rval $_pc)]="$_encoding"
+
     [[ ${emit_encodings} == "TRUE" ]] || return
+
+
 
     printf "\t|%-6s|%-5s|%-5s|%-16s|\n" \
             " op" " rs" " rt" " imm"
@@ -154,7 +160,9 @@ function print_J_encoding () {
     # If the _addr_code is _deferred, perhaps
     # REGISTER[$_ir]="${_op_code}\$(encode_address ${_label})"
 
-    REGISTER[$_ir]="${_op_code}${_addr_code}"
+    local encoding="${_op_code}${_addr_code}"
+    MEM[$(rval $_pc)]="$_encoding"
+
     [[ ${emit_encodings} == "TRUE" ]] || return
 
 
