@@ -5,8 +5,8 @@ mtlo  $t2
 mfhi  $t3
 mflo  $t4
 
-assign $t1 25
-assign $t2 5
+li $t1 25
+li $t2 5
 
 mult $t1, $t2
 div  $t1, $t2
