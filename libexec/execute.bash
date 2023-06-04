@@ -15,16 +15,6 @@ function pseudo_off () {
 
 
 
-function .text () {
-  segment=".text"
-  PS1="(mips) "
-}
-
-
-
-# HISTFILE=./.mips_cli_history
-
-
 # Presume we have a front't that changes things.
 # Syntax:
 #   line:          [ label:] [instruction  #comment]   
@@ -34,44 +24,148 @@ function .text () {
 #      note commas are optional but must be part of the token
 #      allow the current engine deal with the immediates and comments
 
-declare -i line_num=0
+declare -i line_num=0     # This is a global variable
+declare -a INSTRUCTIONS   # List of Instructions index by Address
 
-function step_execute () {
-  labels=()
+function cycle () {
+  # IR <- Mem[PC] ; Instruction Register, Program Counter 
+  # NPC <- PC + 4 ; Next Program Counter
+
   local label
   local instruction 
 
-  read -e -p "$PS1" label instruction 
+  # IR <- Mem[PC] ; Instruction Register, Program Counter 
+  #    Determine if the PC is an address or a label
+  #    
+  #    If it's a label or equal to text_next, we need to read the instruction.
+  #    When it is read, it is stored in Text Memory @ text_next
+  #    Then we can read it from memory
 
-  # If the line is just a label then 
-  while [[ "${label:((${#label}-1))}" == ":" && -z "$instruction" ]] ; do
-    labels+=( ${label} )
-    (( line_num++ ))
+  # Determine if the PC is an address or a label
+  #   If a label, the instruction is in the future. 
+  local target_label=
+  local PC=$(rval $_pc)
 
-    read -e -p "$PS1" label instruction 
-  done
-  
-  number_labels=${#labels[@]}
-  for (( i=0 ; i < ${number_labels} ; i++ )) ; do
-     # This loop processes just the labels on blank lines
-     local this_label=${labels[$i]}
-     local name=${this_label:0:((${#this_label}-1))} # strip the ":" at the end
-     assign_text_label ${name} 
-  done
-
-  if [[ "${label:((${#label}-1))}" != ":" ]] ; then
-    instruction="$label $instruction"
-  else 
-    local name=${label:0:((${#label}-1))}  # strip the ":" at the end
-    assign_text_label ${name} 
+  if [ $PC != "^[[:digit:]]*$" ] ; then 
+    target_label=$PC
+    PC=$text_next
   fi
 
-  (( line_num++ ))
-  (( REGISTER[$_pc]++ ))         # Maybe this is really npc
-  eval $instruction
+  if (( PC == text_next )) ; then 
+     # Prefetch the instruction which places the instruction into INSTRUCTIONS
+     PS1="(mips) "
+     prefetch ${text_next}
+  fi
+  if (( PC > $text_next )) ; then 
+     # We need to search the future for the right instruction.
+     PS1="(searching for ${target_label}) "
+     prefetch ${text_next} ${target_label}
+     PC=$(( text_next - 4 ))
+     assign $_pc $PC
+  fi
 
+  assign $_ir "${INSTRUCTIONS[${PC}]}"       #  Fetech
+  instruction=$(remove_label $_ir)
+
+
+  if (( PC < $text_next )) ; then 
+    echo "Ready to execute: \"$(rval $_ir)\""
+
+    # Here we antipate debugger command.
+    PS1="(debug) "
+
+    while read -p "$PS1" _command ; do 
+      case $_command in 
+        step | s ) 
+                   break
+                   ;;
+               *)
+      esac
+    done
+  fi
+
+  # NPC <- PC + 4 ; Next Program Counter
+  #   Execute the instruction or the command
+  #      If it is an instruction the "npc" will be updated inside the instruction
+  #      If it is a command "npc" remains the same
+
+  # assign $_npc $(( $(rval $_pc) + 4 )) 
+
+  eval $instruction 
 }
 
+function prefetch () {
+    local next_pc="$1"
+    local target_label="$2"
+    local labels=()
+
+    # If target_label is null, then we just return the next line
+    # otherwise, we cantion to get the next line until the label is found
+
+    while true ; do 
+      (( line_num ++ ))
+
+      read -e -p "$PS1" label instruction 
+  
+      ####################
+      # Continue to read blank
+      if [[ -z  "${label}" ]] ; then 
+         # We have a blank line
+         continue;
+      fi
+
+      if [[ $(is_label "$label") == "TRUE" ]] ; then 
+        name=$(label_name $label)
+        labels+=( "$name" )
+        ## Record the label in the database
+        LABELS[line_num]=${name}
+
+        if [[ ${target_label} == ${name} ]] ; then
+          # We have found the target_label so make it blank
+          target_label=""
+        fi
+      fi
+ 
+      if [[ ! ( $(is_label "$label" ) == TRUE ) ]] ; then 
+        instruction="$label $instruction"
+      fi
+
+      if [[ -z "${instruction}" ]] ; then
+         continue;
+      fi
+
+      break;
+    done 
+
+    ## We know have a line is either a directive or is executable
+    echo $instruction
+    echo ${labels[@]}
+    case "$instruction" in 
+       .* )
+            for i in ${labels[@]} ; do
+              assign_data_label "$i" "${data_next}"
+            done
+            eval ${instruction}
+            prefetch ${next_pc}"  "${target_label}
+            ;;
+        * ) 
+            for i in ${labels[@]} ; do
+              assign_text_label "$i" "${next_pc}"
+            done
+            ;;
+    esac
+
+    ## Record the instruction
+    INSTRUCTIONS[${next_pc}]="${label} ${instruction}"
+
+    ## But is it the right one.   
+    if [[ -n "${target_label}" ]] ; then 
+      # i.e., we have not found the right one, so continue
+      prefetch "$((${next_pc} + 4))"  "${target_label}"
+    fi
+
+    # We now have the next instruction to be executed queued up.
+}
 
 
 
@@ -117,6 +211,7 @@ function execute_RRR() {
   local _rt="$(sed -e 's/,$//' <<< $5)"
   local _shamt="0"
 
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name $_rs $_rt $_rd $_shamt
   [[ ${execute_instructions} == "TRUE" ]] || return
 
@@ -173,6 +268,7 @@ function execute_RRI () {
   local _literal=$(sign_extension "$_imm")
   local _value
 
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_I_encoding $_name $_rs $_rt $_imm
   [[ ${execute_instructions} == "TRUE" ]] || return
 
@@ -203,6 +299,7 @@ function execute_Shift () {
   local _shamt=$(read_shamt "$_text")
   local _value
 
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name "0" $_rt $_rd $_shamt
   [[ ${execute_instructions} == "TRUE" ]] || return
 
@@ -233,6 +330,7 @@ function execute_ShiftV () {
   local _rt="$(sed -e 's/,$//' <<< $4)"
   local _rs="$(sed -e 's/,$//' <<< $5)"
 
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name "$_rs" $_rt $_rd "0"
   [[ ${execute_instructions} == "TRUE" ]] || return
 
@@ -270,6 +368,7 @@ function execute_MoveTo ()  {
   local _dst="$(sed -e 's/,$//' <<< $3)"
   local _src="$4"
 
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   case $_name in
      mt*)  print_R_encoding $_name $_src "0" "0" "0"
            ;;
@@ -296,6 +395,7 @@ function execute_MD () {
   local _rs="$(sed -e 's/,$//' <<< $3)"
   local _rt="$4"
 
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name $_rs $_rt "0" "0"
   [[ ${execute_instructions} == "TRUE" ]] || return
 
@@ -340,7 +440,7 @@ function execute_LoadI () {
   local _literal=$(sign_extension "$_imm")
   local _value
 
-  ## Print the Encoding
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_I_encoding $_name $zero $_rt $_imm $_text
   [[ ${execute_instructions} == "TRUE" ]] || return
 
@@ -376,6 +476,8 @@ function execute_Branch () {
 
     emit_p=${emit_encodings}
     emit_encodings=FALSE
+
+    # assign $_npc $(( $(rval $_pc) + 4 ))   -- perform by execute_ArithLog
     execute_ArithLog "sub" "-" $zero $_rs $zero 
     emit_encodings=$emit_p
 
@@ -417,6 +519,8 @@ function execute_BranchZ () {
 
     emit_p=${emit_encodings}
     emit_encodings=FALSE
+
+    # assign $_npc $(( $(rval $_pc) + 4 ))    # Performed by execute_ArithLog
     execute_ArithLog "add" "-" $_zero $_rs $_zero 
     emit_encodings=$emit_p
   }
@@ -472,6 +576,8 @@ function execute_LoadStore () {
 
     emit_p=${emit_encodings}
     emit_encodings=FALSE
+
+    # assign $_npc $(( $(rval $_pc) + 4 ))    # Performed by execute_ArithLogI
     execute_ArithLogI "addi" "+" $_mar $_rs $_imm $_text
     emit_encodings=$emit_p
   }
@@ -521,14 +627,17 @@ function execute_Jump () {
   local _op="$2"
   local _label="$(sed -e 's/,$//' <<< $3)"
 
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_J_encoding $_name $_label
   [[ ${execute_instructions} == "TRUE" ]] || return
 
   case $_name in 
-    jal) assign $ra $(( REGISTER[$_pc]+4 ))     # Operation is NOT being run through the ALU
+    jal) 
+         assign $ra $(( REGISTER[$_pc]+4 ))     # Operation is NOT being run through the ALU
+         # Note that the [not the ALU] writeback stage needs to show pc --> ra
         ;;
   esac
-  echo REGISTER[$_pc]=$(lookup_text_label $_label)
+  assign $_npc $(lookup_text_label $_label)
   echo NOT IMPLMENTED
 }
 
@@ -545,16 +654,32 @@ function execute_JumpR () {
   [[ ${execute_instructions} == "TRUE" ]] || return
 
   case $_name in 
-    jalr) assign $ra $(( REGISTER[$_pc]+4 ))  # Operation is NOT being run through the ALU
+    jalr) 
+          assign $ra $(( $(rval $_pc) + 4 ))  # Operation is NOT being run through the ALU
           ;;
   esac
-  echo REGISTER[$_pc]=$(rval $_rs)
+
+  assign $_npc $(lookup_text_label $_label)
   echo NOT IMPLMENTED
 }
 
 ## Move to memory...
+#Maybe rename to:
+# print_mem_WB_stage
+# print_pc_WB_stage  
+
 function print_WB_stage() {
+  # The WB stage is responsible for 
+  #   1. summarizing the operation that was perfromed via a load store
+  #      -- print the values in the last two latches
+  #   1. summaryizig the operation that was performed via a jal and jalr operation
+  #      - print the values of the old pc --> $ra
+
+
   # Print values on the two input latches with the op and output register/s
+
+
+
   local _name="$1"
   local _register="$2"
   local _size="$3"

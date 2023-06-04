@@ -37,7 +37,13 @@ Command line options can also be provide to alter the output of the program.
    1. Only the main processor is executed. That is to say:
       - floating point operations are not support
       - exception and trap handling is not supported
-   1. Data Segment directives are limited.
+   1. Directives
+      - the .text and .data directives are mute
+        - i.e., the supported data-directives may appear anywhere
+      - only a subset of directives are supported.  These include
+        : byte, half, word, align, ...
+      - NOTE, we anticipate the tool will be fronted by a parser
+   
    1. Literal Values can be provided via based numbers, e.g., "2#1 0100 0001 0010"
       - see below
    1. There is limited syntax checking, it is presumed that
