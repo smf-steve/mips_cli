@@ -52,6 +52,22 @@ alias .set="echo Not Implemented."
 alias .ascii="echo Not Implemented."
 alias .asciiz="echo Not Implemented."
 
+function .asciiz () {
+   local str="$1"
+
+   .ascii "$str"
+   allocate_data_memory 8 0x00
+}
+
+function .ascii () {
+  local str="$1"
+
+  local len=${#str}
+  for (( i=0 ; i < len ; i++ )) ; do
+     allocate_data_memory 1  "${str:$i:1}"
+  done
+}
+
 function .space () {
    local count="$1"
    allocate_data_memory count
