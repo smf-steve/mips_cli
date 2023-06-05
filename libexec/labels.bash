@@ -13,13 +13,13 @@ function is_label () {
 }
 
 function remove_label () {
-   local _label=$1 ; shift
-   local _instruction="$@"
+   local first=$1 ; shift
+   local rest="$@"
 
-   if [[ $(is_label "$_label" ) ]] ; then
-      echo $_instruction
+   if [[ $(is_label "$first" ) == "TRUE" ]] ; then
+      echo "$rest"
    else
-      echo $_label _instruction
+      echo "$first $rest"
   fi
 
 }
@@ -127,6 +127,7 @@ function list_labels() {
   local name
   local address
 
+  # Does not take into account the size of the instruction nor the data type
   declare -p | grep ^data_label_ | while IFS='=' read name address ; do
     name=$(sed -e 's/data_label_//' -e 's/=/ /' <<< $name)
     printf "%s (0x%08x) : 0x%02x\n" $name $address ${MEM[$address]}
