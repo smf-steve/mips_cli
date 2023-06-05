@@ -18,13 +18,21 @@
      - deferred
 
 # Notes:
+  1. issue exist with ...
+      assign_data_label
 
-  1. Rename assign to set...  This will become one of the debugger commands...
+     - can't tell if it is a directive that was previous processed
+     - or a new directive with reuse of the same label.
+     * nay nay, prefetch only works on instructions that have not been processed
+       - if the input line has been processed (the first time), it is put into memory
+       - after it is put in memory, we don't try to assign either the data or the text labels.
 
-  1. Ensure sure assign is tied to the use of the ALU
-     - maybe change the name to be "alu_assign"
-     - the assign is just update the register
-     
+  1. implement the .ascii and .asciiZ directives
+  1. relook at list_labels
+      - current prints the value in memory but does not account for the size of the data, type
+      - I would need to also record the type of each label for proper print out.
+      - 
+
   1. Restruction
      ```
      ## encode_R_instruction $_name $_rs "0" "0" "0"

@@ -64,8 +64,8 @@ function cycle () {
      assign $_pc $PC
   fi
 
-  assign $_ir "${INSTRUCTIONS[${PC}]}"       #  Fetech
-  instruction=$(remove_label $_ir)
+  fetch $_ir "${INSTRUCTIONS[${PC}]}"       #  Fetech
+  instruction="$(remove_label $(rval $_ir) )"
 
 
   if (( PC < $text_next )) ; then 
@@ -97,6 +97,9 @@ function cycle () {
 function prefetch () {
     local next_pc="$1"
     local target_label="$2"
+
+    local first
+    local rest
     local labels=()
 
     # If target_label is null, then we just return the next line
@@ -105,18 +108,22 @@ function prefetch () {
     while true ; do 
       (( line_num ++ ))
 
-      read -e -p "$PS1" label instruction 
-  
+      read -e -p "$PS1" first rest
+
       ####################
       # Continue to read blank
-      if [[ -z  "${label}" ]] ; then 
+      if [[ -z  "${first}" ]] ; then 
          # We have a blank line
          continue;
       fi
 
-      if [[ $(is_label "$label") == "TRUE" ]] ; then 
+      if [[ $(is_label "$first") == "TRUE" ]] ; then 
+        label="${first}"
+        instruction="${rest}"
+
         name=$(label_name $label)
         labels+=( "$name" )
+
         ## Record the label in the database
         LABELS[line_num]=${name}
 
@@ -124,12 +131,11 @@ function prefetch () {
           # We have found the target_label so make it blank
           target_label=""
         fi
+      else
+        label=""
+        instruction="${first} ${rest}"
       fi
  
-      if [[ ! ( $(is_label "$label" ) == TRUE ) ]] ; then 
-        instruction="$label $instruction"
-      fi
-
       if [[ -z "${instruction}" ]] ; then
          continue;
       fi
@@ -138,8 +144,6 @@ function prefetch () {
     done 
 
     ## We know have a line is either a directive or is executable
-    echo $instruction
-    echo ${labels[@]}
     case "$instruction" in 
        .* )
             for i in ${labels[@]} ; do
@@ -156,7 +160,11 @@ function prefetch () {
     esac
 
     ## Record the instruction
-    INSTRUCTIONS[${next_pc}]="${label} ${instruction}"
+    if [[ $(is_label "$label" ) == TRUE ]] ; then 
+      instruction="$label $instruction"
+    fi
+
+    INSTRUCTIONS[${next_pc}]="${instruction}"
 
     ## But is it the right one.   
     if [[ -n "${target_label}" ]] ; then 

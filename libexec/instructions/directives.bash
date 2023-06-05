@@ -31,25 +31,41 @@ function allocate_data_memory() {
    (( data_next = data_next + _size ))
 }
 
-
-alias .data=":"
 alias .text=":"
+alias .data=":"
+
+alias .ktext="echo Not Implemented:"
+alias .kdata="echo Not Implemented:"
+
+alias .float="echo Not Implemented."
+alias .double="echo Not Implemented"
+
+alias .globl="echo Not Implemented."
+alias .extern="echo Not Implemented."
+
+alias .macro="echo Not Implemented."
+alias .end_macro="echo Not Implemented."
+alias .eqv="echo Not Implemented."
+alias .set="echo Not Implemented."
+
+
+alias .ascii="echo Not Implemented."
+alias .asciiz="echo Not Implemented."
+
+function .space () {
+   local count="$1"
+   allocate_data_memory count
+}
 
 function .dword () {
   local value="$1"
-  if [[ "$segment" != ".data" ]] ; then 
-    instruction_error "Only allowed in .data segment"
-  fi
 
   .align 3
-  allocate_data_memory 4 "$value"
+  allocate_data_memory 8 "$value"
 }
 
 function .word () {
   local value="$1"
-  if [[ "$segment" != ".data" ]] ; then 
-    instruction_error "Only allowed in .data segment"
-  fi
 
   .align 2
   allocate_data_memory 4 "$value"
@@ -57,9 +73,6 @@ function .word () {
 
 function .half () {
    local value="$1"
-   if [[ "$segment" != ".data" ]] ; then 
-   	 instruction_error "Only allowed in .data segment"
-   fi
 
    .align 1
    allocate_data_memory 2 "$value"
@@ -67,9 +80,6 @@ function .half () {
 
 function .byte () {
    local value="$1"
-   if [[ "$segment" != ".data" ]] ; then 
-   	 instruction_error "Only allowed in .data segment"
-   fi
 
    .align 0
    allocate_data_memory 1 "$value"
@@ -78,9 +88,6 @@ function .byte () {
 function .align () {
   # (0=byte, 1=half, 2=word, 3=double)
   local align="$1"
-  if [[ "$segment" != ".data" ]] ; then 
-  	 instruction_error "Only allowed in .data segment"
-  fi
 
   local _offset
   case ${align} in 
