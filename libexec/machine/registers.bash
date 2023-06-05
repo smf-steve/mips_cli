@@ -116,6 +116,8 @@ function alu_assign() {
 
 function reset_registers() {
   assign $zero "0"  
+  local i
+
   for ((i=1; i<32; i++)) ; do
     assign $i "0"
   done
@@ -126,6 +128,7 @@ function reset_registers() {
 
 function assign_registers() {
   local _value
+  local i
 
   if [[ $# == 0 ]] ; then
      assign_registers_random
@@ -146,7 +149,9 @@ function random_value() {
   echo $(( $RANDOM % 0xFFFF + 1))
 }
 function assign_registers_random () {
-  assign $zero "0";  
+  local i 
+
+  assign $zero "0"
   for ((i=1; i<32; i++)) ; do
    assign $i "$(random_value)"
   done
@@ -157,6 +162,8 @@ function assign_registers_random () {
 
 alias print_register="print_value"
 function print_registers() {
+  local i 
+  
   if [[ ${#} == 0 ]] ; then 
     for ((i=0; i<32; i++)) ; do
       print_register $i

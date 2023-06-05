@@ -48,23 +48,19 @@ alias .end_macro="echo Not Implemented."
 alias .eqv="echo Not Implemented."
 alias .set="echo Not Implemented."
 
-
-alias .ascii="echo Not Implemented."
-alias .asciiz="echo Not Implemented."
-
 function .asciiz () {
    local str="$1"
 
    .ascii "$str"
-   allocate_data_memory 8 0x00
+   allocate_data_memory 1 0x00
 }
 
 function .ascii () {
   local str="$1"
+  local i
 
-  local len=${#str}
-  for (( i=0 ; i < len ; i++ )) ; do
-     allocate_data_memory 1  "${str:$i:1}"
+  for i in $(ascii.index "$str") ; do
+     allocate_data_memory 1  "$i"
   done
 }
 

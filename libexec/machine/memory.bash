@@ -9,6 +9,11 @@ function print_data_memory() {
    #    (mips) echo ${!REGISTER[@]}
 
    local allocated
+   local _cols
+   local _rows
+   local _item_count
+   local _current
+
    (( allocated = data_next - data_start ))
    _rows=$((  allocated / 4 ))
    _cols=$((  allocated % 4 ))
@@ -60,6 +65,7 @@ function data_memory_read() {
 
   local _value=
   local _index=$(rval ${_mar})
+  local i
 
   check_alignment $(rval $_mar) $_size
 
@@ -77,6 +83,8 @@ function data_memory_write() {
   local _size="$1"
   local _address="$2"
   local _value="$3"
+
+  local i 
 
   # Usage
   # 1.   .word 45          --> data_memory_write 4 $data_next 45

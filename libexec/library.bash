@@ -125,3 +125,21 @@ function sign_extension() {
   
   echo ${_prefix}${_value}
 }
+
+
+
+function ascii.index () {
+    str="$*"
+    for (( i = 0; i < ${#str}; i++ )) ; do 
+        printf "%d " "'${str:i:1}"
+    done
+    printf "\n"
+}
+
+function ascii.char () {
+   for i in $@   ; do 
+       printf \\$(printf '%03o' $(( $i )) )
+   done
+   printf "\n"
+}
+
