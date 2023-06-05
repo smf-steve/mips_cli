@@ -18,16 +18,46 @@
      - deferred
 
 # Notes:
-  1. issue exist with ...
-      assign_data_label
+  1. build  
+       print_text_memory  <-- this has different output
 
-     - can't tell if it is a directive that was previous processed
-     - or a new directive with reuse of the same label.
-     * nay nay, prefetch only works on instructions that have not been processed
-       - if the input line has been processed (the first time), it is put into memory
-       - after it is put in memory, we don't try to assign either the data or the text labels.
+       print_data_memory
+       print_heap_memory
+       print_stack_memory
 
-  1. implement the .ascii and .asciiZ directives
+(mips) print_data_memory 
+address   :     4       3       2       1
+0x10010000:  0x73    0x69    0x68    0x74
+0x10010004:  0x20    0x73    0x69    0x20
+0x10010008:  0x20    0x65    0x68    0x74
+0x1001000c:  0x69    0x67    0x65    0x62
+0x10010010:  0x6e    0x69    0x6e    0x6e
+0x10010014:  0x66    0x6f    0x20    0x67
+0x10010018:  0x65    0x68    0x74    0x20
+0x1001001c:  0x69    0x72    0x73    0x20
+0x10010020:  0x00    0x00    0x67    0x6e
+
+verses
+
+(mips) print_data_memory 
+address   :                   2       1
+0x10010000:  0x73    's' ;   0x6973 (26995);  0x74686973 (1952999795)
+0x10010000:  0x69    'i' ;  
+0x10010000:  0x68    'h' ;   0x7468 (29800);
+0x10010000:  0x74    't' ;
+0x10010004:  0x20    ' ' ; 
+0x10010005:  0x73    's' ;  
+0x10010006:  0x69    'i' ;  
+0x10010007:  0x20    ' ' ;
+0x10010008:  0x20    ' ' ; 
+0x10010009:  0x65    'e' ; 
+0x1001000a:  0x68    'h' ;
+0x1001000b:  0x74    't' ;
+0x1001000c:  0x69    'i' ;  
+
+"this' ' is ' 'the ' 'begi' 'nnin'  'g of'  ' the' ' sri' 'ng"
+
+
   1. relook at list_labels
       - current prints the value in memory but does not account for the size of the data, type
       - I would need to also record the type of each label for proper print out.
@@ -47,34 +77,10 @@
      * potentiall, you also dump core and registers
        - declare -p MEM
        - declare -p REGISTERS
+
   1. Maybe after print the encoding: you can dumpt it out to a file
      - but defer can't be allowed:
      - so you would dump out the values at the end of the file.
-
-  1. Modify labels to be tuple  A=( 0x0a000a0,  file, 5)
-     - address, and line number
-
-
-  1. Create an execution step for blank_line
-     - line++, pc=pc
-     - when goto Label, goto to the first blank line
-     - i.e., label gets the line number of the first
-       --
-         ```
-         X:  
-         Y:  add
-         ```
-
-       read label line
-       while ${label:${#label}} == :   && line is null
-          local labels=( $label)
-          read label line 
-          line_num++
-       done
-       number_labels=${#labels}
-       for (( i=0 ; i < ${number_labels} , i++ )) labels  ;
-          assign_text_label $labels[ $number_labels - i] PC "file"  line_num
-       done
 
   1. Execution for the branch, BranZ, Jump must be completed
 
@@ -148,7 +154,7 @@
       (A)   t2:            0           0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
       (B)  imm:            4           4; 0x00 00 00 04; 0b0000 0000 0000 0000 0000 0000 0000 0100; "4"
                  + ----------  ----------- -------------- ------------------------------------------
-             t1:            4           4; 0x00 00 00 04; 0b0000 0000 0000 0000 0000 0000 0000 0100;
+            t1:            4           4; 0x00 00 00 04; 0b0000 0000 0000 0000 0000 0000 0000 0100;
 
         ```
    - assign: appears to be strange
