@@ -58,6 +58,21 @@ function rval() {
 }
 
 
+
+function fetch  () {
+  # This is an _ir specific operation.
+
+  # It places a text string into the register
+  # Place a text string into the _ir register
+
+  local _index="$1"
+  local _value="$2"
+
+  REGISTER[$_index]="$_value"
+}
+
+
+
 function assign () {
   # The value computed is 
 
