@@ -1,3 +1,4 @@
+.asciiz "This is a string\n"
 .data 
 .word  0xDEFACE00
 .byte  0xAA
