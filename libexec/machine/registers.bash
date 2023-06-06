@@ -42,8 +42,8 @@ declare -r  _hi='51' ; NAME[$_hi]="hi"    ; REGISTER[51]="0"
 declare -r  _lo='52' ; NAME[$_lo]="lo"    ; REGISTER[52]="0"
 
 declare -r _npc='60' ; NAME[$_npc]="NPC"  ; REGISTER[55]="0"
-declare -r  _ir='61' ; NAME[$_ir]="IR"   ; REGISTER[55]="0"
-
+declare -r  _ir='61' ; NAME[$_ir]="IR"    ; REGISTER[55]="0"
+ 
 declare -r _mar='70' ; NAME[$_mar]="MAR"  ; REGISTER[53]="0"
 declare -r _mbr='71' ; NAME[$_mbr]="MBR"  ; REGISTER[54]="0"
 
@@ -163,7 +163,7 @@ function assign_registers_random () {
 alias print_register="print_value"
 function print_registers() {
   local i 
-  
+
   if [[ ${#} == 0 ]] ; then 
     for ((i=0; i<32; i++)) ; do
       print_register $i
