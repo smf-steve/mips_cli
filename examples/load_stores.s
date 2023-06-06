@@ -1,30 +1,18 @@
-assign_data_label A
-allocate_data_memory 1
-assign_data_label B
-allocate_data_memory 1
-assign_data_label C
-allocate_data_memory 1
-assign_data_label D
-allocate_data_memory 1
+A: .byte 12
+B: .byte 12
+C: .byte 12
+D: .byte 12
 
-assign_data_label AA
-allocate_data_memory 2
-assign_data_label BB
-allocate_data_memory 2
-assign_data_label CC
-allocate_data_memory 2
-assign_data_label DD
-allocate_data_memory 2
+AA: .half 24
+BB: .half 24
+CC: .half 24
+DD: .half 24
 
 
-assign_data_label AAAA
-allocate_data_memory 4
-assign_data_label BBBB
-allocate_data_memory 4
-assign_data_label CCCC
-allocate_data_memory 4
-assign_data_label DDDD
-allocate_data_memory 4
+AAAA: .word 48
+BBBB: .word 48
+CCCC: .word 48
+DDDD: .word 48
 list_labels
 
 li $t0, 4
