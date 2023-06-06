@@ -30,6 +30,7 @@ instruction_warning () {
 
 
 # Inclue the support files:
+source libexec/settings.bash
 source libexec/library.bash
 source libexec/read_literal.bash
 source libexec/machine/machine.bash

@@ -13,54 +13,6 @@ function pseudo_off () {
   CMD_INDENT="  "
 }
 
-function dump_core () {
-  local _filename="$1"
-  local core_file=${_filename}.core
-
-  cat > ${core_FILE} <<- EOF 
-
-  # Symbol Table
-  $(dump_symbol_table )
-  # Instrution Table
-  $(declare -p INSTRUCTION)
-  # Text Segment
-  $(declare -p TEXT)
-  # Data Segment
-
-  $(declare -p MEM)
-  # Heap Segment
-  # Stack Segment
-  # Registers
-  $(declare -p REGISTER )
-
-  EOF
-}
-
-
-function load_file () {
-   _filename="$1"
-
-   # Remove secondary files if
-     - they are older than _filename
-     - _filename does not exist 
-
-   # If the file exist, load in the order of
-     - labels and text_core
-
-
-   # Core is created at the end of processing
-   filenmame.core.init    The initial 
-  
-      if [[ - ]]
-   CORE_FILE=${_filename}.core
-   LABELS_FILE=${_filename}.labels
-   TEXT_FILE=${_filename}.encoding
-
-   if [[ -f ${CORE_FILE}  ]] ; then 
-    source ${CORE_FILE}
-   fi
-
-}
 function execute () {
   _filename="$1"
 
@@ -70,16 +22,9 @@ function execute () {
     eval $_line
     sleep 1
   done < $_filename
-  dump_labels
-  dump_text
-  dump_core
 }
 
 
-function dump_core () {
-
-
-} > ${CORE_FILE}
 
 # Presume we have a front't that changes things.
 # Syntax:
@@ -91,7 +36,7 @@ function dump_core () {
 #      allow the current engine deal with the immediates and comments
 
 declare -i line_num=0     # This is a global variable
-declare -a INSTRUCTIONS   # List of Instructions index by Address
+declare -a INSTRUCTION   # List of Instructions index by Address
 
 function cycle () {
   # IR <- Mem[PC] ; Instruction Register, Program Counter 
@@ -118,7 +63,7 @@ function cycle () {
   fi
 
   if (( PC == text_next )) ; then 
-     # Prefetch the instruction which places the instruction into INSTRUCTIONS
+     # Prefetch the instruction which places the instruction into INSTRUCTION
      PS1="(mips) "
      prefetch ${text_next}
   fi
@@ -130,7 +75,7 @@ function cycle () {
      assign $_pc $PC
   fi
 
-  fetch $_ir "${INSTRUCTIONS[${PC}]}"       #  Fetech
+  fetch $_ir "${INSTRUCTION[${PC}]}"       #  Fetech
   instruction="$(remove_label $(rval $_ir) )"
 
 
@@ -175,9 +120,12 @@ function prefetch () {
       (( line_num ++ ))
 
       read -e -p "$PS1" first rest
+      if [[ $? != 0 ]] ; then
+        # EOF found: All has been processed
+        return
+      fi
 
-      ####################
-      # Continue to read blank
+      # Continue to read blank lines
       if [[ -z  "${first}" ]] ; then 
          # We have a blank line
          continue;
@@ -230,7 +178,7 @@ function prefetch () {
       instruction="$label $instruction"
     fi
 
-    INSTRUCTIONS[${next_pc}]="${instruction}"
+    INSTRUCTION[${next_pc}]="${instruction}"
 
     ## But is it the right one.   
     if [[ -n "${target_label}" ]] ; then 
