@@ -13,7 +13,73 @@ function pseudo_off () {
   CMD_INDENT="  "
 }
 
+function dump_core () {
+  local _filename="$1"
+  local core_file=${_filename}.core
 
+  cat > ${core_FILE} <<- EOF 
+
+  # Symbol Table
+  $(dump_symbol_table )
+  # Instrution Table
+  $(declare -p INSTRUCTION)
+  # Text Segment
+  $(declare -p TEXT)
+  # Data Segment
+
+  $(declare -p MEM)
+  # Heap Segment
+  # Stack Segment
+  # Registers
+  $(declare -p REGISTER )
+
+  EOF
+}
+
+
+function load_file () {
+   _filename="$1"
+
+   # Remove secondary files if
+     - they are older than _filename
+     - _filename does not exist 
+
+   # If the file exist, load in the order of
+     - labels and text_core
+
+
+   # Core is created at the end of processing
+   filenmame.core.init    The initial 
+  
+      if [[ - ]]
+   CORE_FILE=${_filename}.core
+   LABELS_FILE=${_filename}.labels
+   TEXT_FILE=${_filename}.encoding
+
+   if [[ -f ${CORE_FILE}  ]] ; then 
+    source ${CORE_FILE}
+   fi
+
+}
+function execute () {
+  _filename="$1"
+
+  [[ -f $_filename ]] ||  { echo "$_filename not found" ; return 1; }
+  while read _line; do
+    echo $_line
+    eval $_line
+    sleep 1
+  done < $_filename
+  dump_labels
+  dump_text
+  dump_core
+}
+
+
+function dump_core () {
+
+
+} > ${CORE_FILE}
 
 # Presume we have a front't that changes things.
 # Syntax:
@@ -177,16 +243,6 @@ function prefetch () {
 
 
 
-function execute () {
-  _filename="$1"
-
-  [[ -f $_filename ]] ||  { echo "$_filename not found" ; return 1; }
-  while read _line; do
-    echo $_line
-    eval $_line
-    sleep 1
-  done < $_filename
-}
 
 ################################################################################
 

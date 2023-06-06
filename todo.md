@@ -17,6 +17,22 @@
   1. load_stores.s
      - deferred
 
+# Execute a file
+  - Given "prefetch" works, processes all directives until the next instruction
+    * modify  execute: file to
+      - set target address to be MAX
+      - call prefetch to process the entire file
+    * create a process to
+      - create the .env file   <--
+      - create the .text file  <--
+      - create the .core file (defer)
+    - which processes all lab
+
+  - read with file completion, etc.
+    -- and readline completion
+
+
+
 # Notes:
   1. build  
        print_text_memory  <-- this has different output
@@ -57,6 +73,8 @@ address   :                   2       1
 
 "this' ' is ' 'the ' 'begi' 'nnin'  'g of'  ' the' ' sri' 'ng"
 
+C escape of interest:  \t \n \r \f \a \b \e
+Special characes \0
 
   1. relook at list_labels
       - current prints the value in memory but does not account for the size of the data, type
@@ -71,17 +89,20 @@ address   :                   2       1
      ```
   1. Read notes.txt to deal with Jump and JumpR instructions
 
-  1. create a notion of  <filename>.env or <filename>.labels
-     - data_label_A=0x0000x00
-     - text_label_A=
-     * potentiall, you also dump core and registers
-       - declare -p MEM
-       - declare -p REGISTERS
+  1. Create a core file.  
+     - 1. you can dump core at any time
+     - command line option to just assemble, produces a .core file
+     - .core contains 
+       - the symbol table (i.e., the labels)
+       - text segment
+       - data memory
+       - heap memory
+       - stack memory
+       - registers
 
-  1. Maybe after print the encoding: you can dumpt it out to a file
-     - but defer can't be allowed:
-     - so you would dump out the values at the end of the file.
-
+  1. Rename INstructions to INstrution
+  1. Rework memory operations to deal with DATA, TEXT, HEAP, STACK
+  
   1. Execution for the branch, BranZ, Jump must be completed
 
 
@@ -307,18 +328,6 @@ address   :                   2       1
    - ascii.index
    - ascii.char
 
-
-## Implement Labels:
-   1. Develop a pre-executes process that
-      - reads the file
-      - generates a list of labels
-      - emits any errors w.r.t. missing labels
-   1. Develop a process to 
-      - declare and define labels upon initial introduction
-      - declare labels upon first usage
-      - defines labels after first usage
-      * The execution engine needs to be shut off until the
-        label is defined.
 
 
 
