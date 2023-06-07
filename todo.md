@@ -18,23 +18,13 @@
      - deferred
 
 # Execute a file
-  - Given "prefetch" works, processes all directives until the next instruction
-    * modify  execute: file to
-      - set target address to be MAX
-      - call prefetch to process the entire file
-    * create a process to
-      - create the .env file   <--
-      - create the .text file  <--
-      - create the .core file (defer)
-    - which processes all lab
-
   - read with file completion, etc.
     -- and readline completion
 
 1. validate an instruction error
   - interactive mode= abort instructions
   - batch mode -> aborts program and dump core
-  
+
 
 # Notes:
   1. build  
@@ -92,22 +82,10 @@ Special characes \0
      ```
   1. Read notes.txt to deal with Jump and JumpR instructions
 
-  1. Create a core file.  
-     - 1. you can dump core at any time
-     - command line option to just assemble, produces a .core file
-     - .core contains 
-       - the symbol table (i.e., the labels)
-       - text segment
-       - data memory
-       - heap memory
-       - stack memory
-       - registers
 
   1. Rename INstructions to INstrution
-  1. Rework memory operations to deal with DATA, TEXT, HEAP, STACK
   
   1. Execution for the branch, BranZ, Jump must be completed
-
 
   1. create a list of functions exposed to the user
   1. Revise the approach to convering to hex, binary... 
@@ -117,10 +95,6 @@ Special characes \0
      * SE and ZE for sign_extension and zero_extension
   1. double check that the ArithLogI use zE for logical operations
 
-
-  1. separate Instruction Memory from Data Memory
-     - instruction memory holds a string that contains a command + at most one label
-  1. should line numbers also be kept tracked of?
 
   1. Syscall and trap, break?
      - output would be the input and then the output variables
@@ -282,14 +256,9 @@ Special characes \0
 
 ## Files:
    - filename.s  : a MIPS program
-   - filename.labels: a bash script that defines all of the labels in a program
-       - if this file exists && is newer than filename.s, it is source
-       - upon exit of a "execute filename", it is created.
    - filename.core:  a bash script that
        - enumerates the contents of the data, stack, and heap segments of the program
        - enumerates the contents of the registers (which include the PC)
-   - filename.text:  a bash script that contains the 
-       - the encoding of the instructions foud in filename.s
 
 ## CLI commands:
    - file filename:  sets the current filename
@@ -302,8 +271,6 @@ Special characes \0
      - time step
 
    - dump core
-   - dump labels
-   - dump text
 
    - print J_encoding  op address/Label
    - print R_encoding  func rs rt rd sh
@@ -338,12 +305,8 @@ Special characes \0
    - Should we have a memory module that shows how
      - values are placed into the MAR / MBR
 
-address   :         
-0x10010000:  0x73   MBR:   0x73  0x69  0x68  0x74    Big Endian
-0x10010001:  0x69   
-0x10010002:  0x68   
-0x10010003:  0x74   MBR:   0x74  0x68  0x69  0x73    Little Endian
-address   :         
+
+
 
 
 ## Validate

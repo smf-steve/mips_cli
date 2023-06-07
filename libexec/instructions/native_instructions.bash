@@ -32,11 +32,11 @@ alias     srav="execute_ShiftV srav '>>'"
 alias     srlv="execute_ShiftV srlv '>>>'"
 
 # MULT-DIV
-alias     mult="execute_MD mult \*"
-alias    multu="execute_MD multu \*"
+alias     mult="execute_DivMult mult \*"
+alias    multu="execute_DivMult multu \*"
 
-alias      div="execute_MD div /"
-alias     divu="execute_MD div /"
+alias      div="execute_DivMult div /"
+alias     divu="execute_DivMult div /"
 
 alias     mthi="execute_MoveTo   mthi "=" _hi"       # mfhi $t0
 alias     mtlo="execute_MoveTo   mtlo "=" _lo"       # mflo $t0
