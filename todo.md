@@ -338,6 +338,14 @@ Special characes \0
    - Should we have a memory module that shows how
      - values are placed into the MAR / MBR
 
+address   :         
+0x10010000:  0x73   MBR:   0x73  0x69  0x68  0x74    Big Endian
+0x10010001:  0x69   
+0x10010002:  0x68   
+0x10010003:  0x74   MBR:   0x74  0x68  0x69  0x73    Little Endian
+address   :         
+
+
 ## Validate
    - Refine, Test, and Validate examples
      - Branch Instructions: Need Labels
