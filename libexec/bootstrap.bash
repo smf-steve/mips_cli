@@ -44,6 +44,10 @@ source libexec/instructions/native_instructions.bash
 source libexec/instructions/pseudo_instructions.bash
 source libexec/instructions/synonym_instructions.bash
 
+
+## We need a boot process to set registers and such
+assign $sp $stack_start
+
 function error () {
 
   echo "$1"

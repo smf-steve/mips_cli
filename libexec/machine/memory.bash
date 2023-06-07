@@ -86,17 +86,17 @@ function check_segment () {
       break
     fi
 
-    if (( data_start <= address  &&  address < data_next ))  ; then 
+    if (( data_start <= address  &&  address <= data_next ))  ; then 
       segment="DATA"
       break
     fi
 
-    if (( heap_start <= address  &&  address < ${HEAP[${heap_start}]} ))  ; then 
+    if (( heap_start <= address  &&  address <= ${HEAP[${heap_start}]} ))  ; then 
       segment="HEAP"
       break
     fi
 
-    # Recall the stack works backwards
+    # Recall the stack grows downwards
     if (( $(rval $sp) <= address &&  address <= $stack_start ))  ; then 
       segment="STACK"
       break
