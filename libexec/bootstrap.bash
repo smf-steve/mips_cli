@@ -34,8 +34,10 @@ source libexec/settings.bash
 source libexec/library.bash
 source libexec/read_literal.bash
 source libexec/machine/machine.bash
-source libexec/execute.bash
+
 source libexec/labels.bash
+source libexec/execute.bash
+source libexec/dump.bash
 source libexec/encoding.bash
 source libexec/instructions/directives.bash
 source libexec/instructions/native_instructions.bash
@@ -52,7 +54,7 @@ echo "Entering the MIPS Command-Line-Interface"
 echo
 assign $_pc 0x04000000
 
-PS1="(mips) "
+#PS1="(mips) "
 
 
 

@@ -24,6 +24,18 @@ function execute () {
   done < $_filename
 }
 
+function execute () {
+  _filename="$1"
+
+  [[ -f $_filename ]] ||  { echo "$_filename not found" ; return 1; }
+  while prefetch ; do
+    echo $_line
+    eval $_line
+    sleep 1
+  done < $_filename
+}
+
+
 
 
 # Presume we have a front't that changes things.
@@ -65,7 +77,7 @@ function cycle () {
   if (( PC == text_next )) ; then 
      # Prefetch the instruction which places the instruction into INSTRUCTION
      PS1="(mips) "
-     prefetch ${text_next}
+     prefetch ${text_next} ""
   fi
   if (( PC > $text_next )) ; then 
      # We need to search the future for the right instruction.
@@ -164,7 +176,7 @@ function prefetch () {
               assign_data_label "$i" "${data_next}"
             done
             eval ${instruction}
-            prefetch ${next_pc}"  "${target_label}
+            prefetch "${next_pc}"  "${target_label}"
             ;;
         * ) 
             for i in ${labels[@]} ; do

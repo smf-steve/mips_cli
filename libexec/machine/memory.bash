@@ -1,6 +1,9 @@
 #!/bin/bash
 
 declare -a MEM
+declare -a DATA
+declare -a HEAP
+declare -a STACK
 
 function allocate_data_memory() {
    local _size="$1"
@@ -53,14 +56,64 @@ function print_data_memory() {
 }
 
 
+function check_segment () {
+  local address="$1"
+  local segment        # return value:  "data", "heap", "stack"
+
+  # From bottom to top:
+  # stack_start
+  # $(rval $fp) === stark_end
+  # heap_end
+  # heap_start
+  # data_end
+  # data_start
+  # text_end
+  # text_start
+
+  while true ; do 
+
+    if (( address == 0 )) ; then 
+      instruction_error "Address is NULL"
+      break
+    fi
+    if (( address < text_start  || stack_start < address ))  ; then 
+      instruction_error "Kernel space is inaccessible to user"
+      break
+    fi
+
+    if (( address < data_start ))  ; then 
+      instruction_error "Text segment is inaccessible via the data path"
+      break
+    fi
+
+    if (( data_start <= address  &&  address < data_next ))  ; then 
+      segment="DATA"
+      break
+    fi
+
+    if (( heap_start <= address  &&  address < ${HEAP[${heap_start}]} ))  ; then 
+      segment="HEAP"
+      break
+    fi
+
+    # Recall the stack works backwards
+    if (( $(rval $sp) <= address &&  address <= $stack_start ))  ; then 
+      segment="STACK"
+      break
+    fi
+  
+    instruction_warning "read/write between stack and heap"
+    instruction_warning "Best practice is to up \$sp prior to performing memory operation"
+    segment="STACK" 
+    break
+  done
+  echo $segment
+}
 
 function check_alignment() {
 	local _address=$1
 	local _size=$2
 
-   if (( _address < $data_start ||  _address > $stack_top)) ; then
-      instruction_error "protection error"
-   fi
    case $_size in
       1|2|4)
         	if (( _address % _size != 0 )) ; then
@@ -73,19 +126,31 @@ function check_alignment() {
 }
 
 
+
+# Usage: data_memory_{read/write}
+#   1.   .word 45          --> data_memory_write 4 $data_next 45
+#   2.   sw $t1, imm ($t2) --> data_memory_write 4
+#      - the value of the MAR and MBR are latched in
+
 function data_memory_read() {
   local _size="$1"
+  local _address="$2"
 
   local _value=
-  local _index=$(rval ${_mar})
+
+  if [[ -z "$_address" ]] ; then 
+    _address=$(rval $_mar)
+  fi
+
+  check_alignment $_address $_size
+  local segment=$(check_segment $_address)
+
+  local _index=$_address
   local i
-
-  check_alignment $(rval $_mar) $_size
-
   for (( i=0 ; i < $_size ; i++ )) ; do
     # Big Endian: first byte is msB
-
-     local _byte=${MEM[$_index]} 
+     local _byte
+     eval _byte=\${${segment}[$_index]} 
      (( _value= ( _value << 8 | _byte ) ))
      (( _index++ ))
   done
@@ -97,13 +162,6 @@ function data_memory_write() {
   local _address="$2"
   local _value="$3"
 
-  local i 
-
-  # Usage
-  # 1.   .word 45          --> data_memory_write 4 $data_next 45
-  # 2.   sw $t1, imm ($t2) --> data_memory_write 4
-  #      - the value of the MAR and MBR are latched in
-
   if [[ -z "$_address" ]] ; then 
     _address=$(rval $_mar)
   fi
@@ -112,15 +170,17 @@ function data_memory_write() {
   fi
 
   check_alignment $_address $_size
+  local segment=$(check_segment $_address)
 
   local _index=$(( _address + _size - 1))
+  local i 
   for (( i=0 ; i < $_size ; i++ )) ; do
     # Big Endian: first byte is msB
     # so start with lsB first
     local _byte
 
     (( _byte =  _value  & 0xFF ))
-    MEM[${_index}]=$_byte
+    eval ${segment}[${_index}]=$_byte
     (( _value =  _value >> 8 ))
     (( _index-- ))
   done

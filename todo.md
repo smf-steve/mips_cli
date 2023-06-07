@@ -31,7 +31,10 @@
   - read with file completion, etc.
     -- and readline completion
 
-
+1. validate an instruction error
+  - interactive mode= abort instructions
+  - batch mode -> aborts program and dump core
+  
 
 # Notes:
   1. build  
