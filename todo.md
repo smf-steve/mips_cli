@@ -1,5 +1,14 @@
 # To Do List
 
+reveiw the jump and JumpR
+  -- need to update the value of the PC
+  -- need to store the encoding of the instructions
+
+
+1. change read_blah ==> parse_blah  ???
+1. come up with a way to identify GLOBAL_VARS -- i.e., all CAPS
+
+
 # Testing: May 26
   1. set.s
   1. logical.s

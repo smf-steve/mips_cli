@@ -7,9 +7,11 @@
 
 
 # Function list
-#   function cycle 
-#     - performs the prefetch, fetch, decode, execute, memory, and write-back operations
-#     - prefetch is used to support interactive operations
+#   function cycle
+#     - using the current value of PC,
+#       - fetch, decode, execute, memory, and write-back operations
+#     - uses prefetch if the optional address has not been read yet
+#       - this allows for support of interactive operations
 #
 #   function prefetch [address]
 #     - prefetches the next instruction, 
@@ -39,7 +41,9 @@
 #   function execute_LoadI    
 #   function execute_Branch   
 #   function execute_BranchZ  
-#   function execute_LoadStore
+#   function execute_LoadStore  
+#      Note a secondary syntax is only support:  "[label:]  op rt rs imm"
+#      As apposed to:                            "[label:]  op rt imm ( rs )"
 #   function execute_Jump     
 #   function execute_JumpR    
 
@@ -74,14 +78,19 @@ declare -i line_num=0     # This is a global variable
 declare -a INSTRUCTION   # List of Instructions index by Address
 
 function cycle () {
-  # IR <- Mem[PC] ; Instruction Register, Program Counter 
-  # NPC <- PC + 4 ; Next Program Counter
 
-  local label
-  local instruction 
-
-  # IR <- Mem[PC] ; Instruction Register, Program Counter 
-  #    Determine if the PC is an address or a label
+  # IR <- Mem[PC] 
+  #    1. Determine if the value of PC is an address or a label
+  #       If it is an addrsss, set PC to be text_end
+  #    1. Based upon the value of PC
+  #       1. PC <  text_next  -- no prefetch is needed
+  #       1. PC == text_next  -- 1 prefetch is needed
+  #       1. PC >  text_next  -- N prefetches are needed
+  #            i.e., its an unresolve label)
+  #
+  #       - if it is a label then
+  #         * the associated instruction has not read in yet
+  #       - hence we need to prefetch a bunch of instructions
   #    
   #    If it's a label or equal to text_next, we need to read the instruction.
   #    When it is read, it is stored in Text Memory @ text_next
@@ -89,32 +98,40 @@ function cycle () {
 
   # Determine if the PC is an address or a label
   #   If a label, the instruction is in the future. 
-  local target_label=
   local PC=$(rval $_pc)
+  local target_label
 
-  if [ $PC != "^[[:digit:]]*$" ] ; then 
+  local text_next=${TEXT_NEXT}
+     # TEXT_NEXT is updated by prefetch, 
+
+  if [[ $PC == "^[[:digit:]]*$" ]] ; then 
     target_label=$PC
-    PC=$text_next
+    PC=${TEXT_END}   # Setting the PC to the instruction furthest away in the future
   fi
 
   if (( PC == text_next )) ; then 
      # Prefetch the instruction which places the instruction into INSTRUCTION
      PS1="(mips) "
      prefetch ${text_next} ""
+     if [[ $? != 0 ]] ; then 
+       return 1
+     fi
   fi
-  if (( PC > $text_next )) ; then 
+  if (( PC > text_next )) ; then 
      # We need to search the future for the right instruction.
      PS1="(searching for ${target_label}) "
      prefetch ${text_next} ${target_label}
+     if [[ $? != 0 ]] ; then 
+       return 1
+     fi
      PC=$(( text_next - 4 ))
-     assign $_pc $PC
   fi
 
-  fetch $_ir "${INSTRUCTION[${PC}]}"       #  Fetech
-  instruction="$(remove_label $(rval $_ir) )"
+  assign $_pc $PC
+  fetch $_ir "${INSTRUCTION[${PC}]}"       #  Fetch
+  local instruction="$(remove_label $(rval $_ir) )"
 
-
-  if (( PC < $text_next )) ; then 
+  if (( PC < text_next )) ; then 
     echo "Ready to execute: \"$(rval $_ir)\""
 
     # Here we antipate debugger command.
@@ -128,6 +145,9 @@ function cycle () {
                *)
       esac
     done
+    if [[ $? != 0 ]] ; then 
+      return
+    fi
   fi
 
   # NPC <- PC + 4 ; Next Program Counter
@@ -137,7 +157,24 @@ function cycle () {
 
   # assign $_npc $(( $(rval $_pc) + 4 )) 
 
-  eval $instruction 
+  # Here is where we might want to change the syntax of the LoadStore instructions
+  #   from: "[label:]  op rt imm ( rs )"
+  #   to: "[label:]  op rt rs imm"
+
+  # This is where we echo the instruction... if we are not interactive..
+  [[ false ]] || echo $instruction 
+
+  # If the instruction is a MIPS instruction, it
+  #   1. finish the Fetch step:  NPC <- PC + 4
+  #   2. performs the Decode step:
+  #   3. performs the Execute step:
+  #   4. performs the WB step 
+  eval $instruction    
+
+  assign $_pc $(rval $_npc)
+
+
+  return 0;
 }
 
 function prefetch () {
@@ -157,7 +194,7 @@ function prefetch () {
       read -e -p "$PS1" first rest
       if [[ $? != 0 ]] ; then
         # EOF found: All has been processed
-        return
+        return 1
       fi
 
       # Continue to read blank lines
@@ -213,7 +250,9 @@ function prefetch () {
       instruction="$label $instruction"
     fi
 
+    # Record as the last instruction, and move the pointer to the next slot
     INSTRUCTION[${next_pc}]="${instruction}"
+    TEXT_NEXT=$(( next_pc + 4 ))
 
     ## But is it the right one.   
     if [[ -n "${target_label}" ]] ; then 
@@ -222,6 +261,7 @@ function prefetch () {
     fi
 
     # We now have the next instruction to be executed queued up.
+    return 0
 }
 
 
@@ -522,7 +562,7 @@ function execute_Branch () {
     emit_p=${emit_encodings}
     emit_encodings=FALSE
 
-    # assign $_npc $(( $(rval $_pc) + 4 ))   -- perform by execute_ArithLog
+    # assign $_npc $(( $(rval $_pc) + 4 ))    # Perform by execute_ArithLog
     execute_ArithLog "sub" "-" $zero $_rs $zero 
     emit_encodings=$emit_p
 
@@ -615,6 +655,7 @@ function execute_LoadStore () {
   local _literal=$(sign_extension "$_imm")
   local _value
 
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   ## Print the Encoding
   { 
     print_I_encoding $_name $_rs $_rt $_imm
@@ -683,7 +724,6 @@ function execute_Jump () {
         ;;
   esac
   assign $_npc $(lookup_text_label $_label)
-  echo NOT IMPLMENTED
 }
 
 
@@ -694,6 +734,7 @@ function execute_JumpR () {
   local _op="$2"
   local _rs="$(sed -e 's/,$//' <<< $3)"
 
+  assign $_npc $(( $(rval $_pc) + 4 )) 
   ## encode_R_instruction $_name $_rs "0" "0" "0"
   ## print_R_encoding $_name $_rs "0" "0" "0"
   [[ ${execute_instructions} == "TRUE" ]] || return
@@ -705,5 +746,4 @@ function execute_JumpR () {
   esac
 
   assign $_npc $(lookup_text_label $_label)
-  echo NOT IMPLMENTED
 }
