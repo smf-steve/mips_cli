@@ -308,7 +308,19 @@ Special characes \0
    - ascii.char
 
 
+# Consider the following
+ Test case:
 
+.text
+      nop
+      nop
+back: nop
+      j fore
+      nop
+fore: nop
+      j back
+
+- infinite loop
 
 ## Memory and Alignment
    - Should we have a memory module that shows how

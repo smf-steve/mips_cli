@@ -238,13 +238,23 @@ function prefetch () {
             eval ${instruction}
             prefetch "${next_pc}"  "${target_label}"
             ;;
+
+       "shell "* )
+            :  # this is a shell command
+               # to be consistent with gdb
+            (( line_num -- ))
+            eval $instruction
+            prefetch "${next_pc}"  "${target_label}"
+            ;;
         * ) 
+            # 
             for i in ${labels[@]} ; do
               assign_text_label "$i" "${next_pc}"
             done
             ;;
     esac
 
+    ## At this point, we should have a legal MIPS instruction
     ## Record the instruction
     if [[ $(is_label "$label" ) == TRUE ]] ; then 
       instruction="$label $instruction"
