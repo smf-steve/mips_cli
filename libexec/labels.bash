@@ -134,6 +134,6 @@ function list_labels() {
   done
   declare -p | grep ^text_label_ | while IFS='=' read name address ; do
     name=$(sed -e 's/text_label_//' -e 's/=/ /' <<< $name)
-    printf "%s (0x%08x) : 0x%08x %s\n" $name $address "${MEM[$address]}"  "\"${INSTRUCTIONS[$address]}\""
+    printf "%s (0x%08x) : 0x%08x %s\n" $name $address "${MEM[$address]}"  "\"${INSTRUCTION[$address]}\""
   done
 }

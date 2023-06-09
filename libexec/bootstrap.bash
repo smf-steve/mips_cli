@@ -30,16 +30,23 @@ instruction_warning () {
 
 
 # Inclue the support files:
+source libexec/settings.bash
 source libexec/library.bash
 source libexec/read_literal.bash
 source libexec/machine/machine.bash
-source libexec/execute.bash
+
 source libexec/labels.bash
+source libexec/execute.bash
+source libexec/dump.bash
 source libexec/encoding.bash
 source libexec/instructions/directives.bash
 source libexec/instructions/native_instructions.bash
 source libexec/instructions/pseudo_instructions.bash
 source libexec/instructions/synonym_instructions.bash
+
+
+## We need a boot process to set registers and such
+assign $sp $stack_start
 
 function error () {
 
@@ -51,38 +58,42 @@ echo "Entering the MIPS Command-Line-Interface"
 echo
 assign $_pc 0x04000000
 
-PS1="(mips) "
+#PS1="(mips) "
 
 
+function execute () {
+  _filename="$1"
 
-# At this point, the shell will process things interactive.
-#  - one issue is that we are not keeping track of our history
-#  - hence we can't assign values to the branch/jump label
-    #  * perhaps the history shell function can help us out
-#
-# Another problem is that labels can be implicitly created.
-#   hence on there first use, they is a command not found error
-#     (mips) foo: add $t1, $t2, $t4
-#     bash: foo:: command not found
-#     (mips) echo !!
-#     echo foo: add $t1, $t2, $t4
-#     foo: add 9, 10, 12
+  [[ -f $_filename ]] ||  { echo "$_filename not found" ; return 1; }
+  while read _line; do
+    echo $_line
+    eval $_line
+    sleep 1
+  done < $_filename
+}
 
-# Solutions:
-#  1. predeclare the notion of label name
-#     label l:
-#  1. do a two pass scan of the input file -- will not work for interactive
-#  1. capture the error message and use the history command to extract what was typed
-#     1. assert the value of the label, anbd then execute the command
-#  1. use a input loop to parse the command line, and then call eval
-#       echo -n "$PS1"
-#       while read -a _line; do
-#         if [[ _line[0] ~= "*:" ]] ; then
-#            # first token is a label
-#         echo $_line
-#         shift _line
-#         eval $_line
-#         sleep 2
-#         echo -n "$PS1"
-#       done
+function execute () {
+  _filename="$1"
+
+  [[ -f $_filename ]] ||  { echo "$_filename not found" ; return 1; }
+  while prefetch ; do
+    echo $_line
+    eval $_line
+    sleep 1
+  done < $_filename
+}
+
+
+function assemble_file () {
+   local source_filename="$1"
+   local core_file="$(basename -e .s ${source_file}).core"
+
+   if [[ ${source_file} -nt ${core_file} ]] ; then
+     rm -f ${core_file}
+   fi
+
+   prefetch ${text_end}
+
+}
+
 

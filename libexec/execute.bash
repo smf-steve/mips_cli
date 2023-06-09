@@ -1,4 +1,49 @@
 #! /bin/bash
+
+
+## "execute.bash"
+## Purpose:
+##   - to contain all of the versious functions related to "execution" of an instruction.
+
+
+# Function list
+#   function cycle 
+#     - performs the prefetch, fetch, decode, execute, memory, and write-back operations
+#     - prefetch is used to support interactive operations
+#
+#   function prefetch [address]
+#     - prefetches the next instruction, 
+#       - or all instructions until the give address
+#       - an address of {text_end} effecively reads all instructions
+#     - loads each instruction into INSTRUCTION[{address}]="{instruction}"
+#     - additionaly 
+#       - records all labels encounted
+#         - into LABELS[line_num]={name}, and
+#         - into text_label_{name}={address} or data_label_{labels}={address}
+#           > The approach to use:  text_label_{name}={address}
+#           > was done due to not having hashed arrays
+#       - handles all assembler directives
+
+
+# The following are the functions that decode and execute 
+# the various instructions based upon their syntax.
+#   See:  documentation/mips_encoding_reference.pdf
+#
+#   function execute_ArithLog 
+#   function execute_ArithLogI
+#   function execute_Shift    
+#   function execute_ShiftV   
+#   function execute_MoveTo   
+#   function execute_MoveFro  
+#   function execute_DivMult  
+#   function execute_LoadI    
+#   function execute_Branch   
+#   function execute_BranchZ  
+#   function execute_LoadStore
+#   function execute_Jump     
+#   function execute_JumpR    
+
+
 _cmd_indent=" "
 
 function native_on () {
@@ -13,73 +58,8 @@ function pseudo_off () {
   CMD_INDENT="  "
 }
 
-function dump_core () {
-  local _filename="$1"
-  local core_file=${_filename}.core
-
-  cat > ${core_FILE} <<- EOF 
-
-  # Symbol Table
-  $(dump_symbol_table )
-  # Instrution Table
-  $(declare -p INSTRUCTION)
-  # Text Segment
-  $(declare -p TEXT)
-  # Data Segment
-
-  $(declare -p MEM)
-  # Heap Segment
-  # Stack Segment
-  # Registers
-  $(declare -p REGISTER )
-
-  EOF
-}
 
 
-function load_file () {
-   _filename="$1"
-
-   # Remove secondary files if
-     - they are older than _filename
-     - _filename does not exist 
-
-   # If the file exist, load in the order of
-     - labels and text_core
-
-
-   # Core is created at the end of processing
-   filenmame.core.init    The initial 
-  
-      if [[ - ]]
-   CORE_FILE=${_filename}.core
-   LABELS_FILE=${_filename}.labels
-   TEXT_FILE=${_filename}.encoding
-
-   if [[ -f ${CORE_FILE}  ]] ; then 
-    source ${CORE_FILE}
-   fi
-
-}
-function execute () {
-  _filename="$1"
-
-  [[ -f $_filename ]] ||  { echo "$_filename not found" ; return 1; }
-  while read _line; do
-    echo $_line
-    eval $_line
-    sleep 1
-  done < $_filename
-  dump_labels
-  dump_text
-  dump_core
-}
-
-
-function dump_core () {
-
-
-} > ${CORE_FILE}
 
 # Presume we have a front't that changes things.
 # Syntax:
@@ -91,7 +71,7 @@ function dump_core () {
 #      allow the current engine deal with the immediates and comments
 
 declare -i line_num=0     # This is a global variable
-declare -a INSTRUCTIONS   # List of Instructions index by Address
+declare -a INSTRUCTION   # List of Instructions index by Address
 
 function cycle () {
   # IR <- Mem[PC] ; Instruction Register, Program Counter 
@@ -118,9 +98,9 @@ function cycle () {
   fi
 
   if (( PC == text_next )) ; then 
-     # Prefetch the instruction which places the instruction into INSTRUCTIONS
+     # Prefetch the instruction which places the instruction into INSTRUCTION
      PS1="(mips) "
-     prefetch ${text_next}
+     prefetch ${text_next} ""
   fi
   if (( PC > $text_next )) ; then 
      # We need to search the future for the right instruction.
@@ -130,7 +110,7 @@ function cycle () {
      assign $_pc $PC
   fi
 
-  fetch $_ir "${INSTRUCTIONS[${PC}]}"       #  Fetech
+  fetch $_ir "${INSTRUCTION[${PC}]}"       #  Fetech
   instruction="$(remove_label $(rval $_ir) )"
 
 
@@ -175,9 +155,12 @@ function prefetch () {
       (( line_num ++ ))
 
       read -e -p "$PS1" first rest
+      if [[ $? != 0 ]] ; then
+        # EOF found: All has been processed
+        return
+      fi
 
-      ####################
-      # Continue to read blank
+      # Continue to read blank lines
       if [[ -z  "${first}" ]] ; then 
          # We have a blank line
          continue;
@@ -216,7 +199,7 @@ function prefetch () {
               assign_data_label "$i" "${data_next}"
             done
             eval ${instruction}
-            prefetch ${next_pc}"  "${target_label}
+            prefetch "${next_pc}"  "${target_label}"
             ;;
         * ) 
             for i in ${labels[@]} ; do
@@ -230,7 +213,7 @@ function prefetch () {
       instruction="$label $instruction"
     fi
 
-    INSTRUCTIONS[${next_pc}]="${instruction}"
+    INSTRUCTION[${next_pc}]="${instruction}"
 
     ## But is it the right one.   
     if [[ -n "${target_label}" ]] ; then 
@@ -266,8 +249,7 @@ function prefetch () {
 execute_instructions=TRUE
 emit_execution_summary=TRUE
 
-alias execute_ArithLog=execute_RRR
-function execute_RRR() {
+function execute_ArithLog() {
   local _name="$1"
   local _op="$2"
   local _rd="$(sed -e 's/,$//' <<< $3)"
@@ -321,8 +303,7 @@ function execute_RRR() {
   unset_cin
 }
 
-alias execute_ArithLogI=execute_RRI
-function execute_RRI () {
+function execute_ArithLogI () {
   local _name="$1"
   local _op="$2"
   local _rt="$(sed -e 's/,$//' <<< $3)"
@@ -453,7 +434,7 @@ function execute_MoveFrom() {
   execute_MoveTo $1 $2 $4 $3
 }
 
-function execute_MD () {
+function execute_DivMult () {
   local _name="$1"
   local _op="$2"
   local _rs="$(sed -e 's/,$//' <<< $3)"
@@ -726,71 +707,3 @@ function execute_JumpR () {
   assign $_npc $(lookup_text_label $_label)
   echo NOT IMPLMENTED
 }
-
-## Move to memory...
-#Maybe rename to:
-# print_mem_WB_stage
-# print_pc_WB_stage  
-
-function print_WB_stage() {
-  # The WB stage is responsible for 
-  #   1. summarizing the operation that was perfromed via a load store
-  #      -- print the values in the last two latches
-  #   1. summaryizig the operation that was performed via a jal and jalr operation
-  #      - print the values of the old pc --> $ra
-
-
-  # Print values on the two input latches with the op and output register/s
-
-
-
-  local _name="$1"
-  local _register="$2"
-  local _size="$3"
-
-
-  [[ $emit_execution_summary == "TRUE" ]] || return
-  case "$_name" in
-    l*)
-       print_mem_value "$(name $_mbr)" $(rval $_mbr) $_size
-       print_op "$_name"
-       print_mem_value "$(name $_register)" $(rval $_register)
-       ;;
-    s*)
-       print_mem_value "$(name $_register)" $(rval $_register)
-       print_op "$_name"
-       print_mem_value "$(name $_mbr)" $(rval $_mbr) $_size
-       ;;
-  esac
-  echo 
-}
-
-
-function print_mem_value () {
-  local _name="$1"
-  local _rval="$2"
-  local _size="$3"   # The number of raw bits trnansfered
-
-  [[ $_size == "" ]] && _size=4
-
-  local _dec=${_rval}
-  local _unsigned=$(( _rval & 0xFFFFFFFF ))
-  local _hex=$(to_hex $(( _size * 2 )) $_unsigned )
-
-  local _bin=$(to_binary "${_hex}")
-
-  printf "   %5s:  %11d %11d; 0x%11s; 0b%39s;"  \
-        "${_name}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
-  printf "\n"
-}
-
-#     load/read:  lb
-#       LATCH_IN        xxxx xxxx xxxx s???      MBR
-#                 $name -------- ------   ------     
-#       Latch_out       ssss ssss ssss s???      rt
-#
-#     store/write: sb
-#       LATCH_IN        ???? ???? ???? ????     rt
-#                 $name -------- ------   ------     
-#       Latch_out                      ????     MBR
-

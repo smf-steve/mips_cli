@@ -167,3 +167,71 @@ function print_cin() {
              "cin:" "${cin}" "${cin}" "${cin}" "${cin}"
 }
 
+
+
+#Maybe rename to:
+# print_mem_WB_stage
+# print_pc_WB_stage  
+
+function print_WB_stage() {
+  # The WB stage is responsible for 
+  #   1. summarizing the operation that was perfromed via a load store
+  #      -- print the values in the last two latches
+  #   1. summaryizig the operation that was performed via a jal and jalr operation
+  #      - print the values of the old pc --> $ra
+
+
+  # Print values on the two input latches with the op and output register/s
+
+  local _name="$1"
+  local _register="$2"
+  local _size="$3"
+
+
+  [[ $emit_execution_summary == "TRUE" ]] || return
+  case "$_name" in
+    l*)
+       print_mem_value "$(name $_mbr)" $(rval $_mbr) $_size
+       print_op "$_name"
+       print_mem_value "$(name $_register)" $(rval $_register)
+       ;;
+    s*)
+       print_mem_value "$(name $_register)" $(rval $_register)
+       print_op "$_name"
+       print_mem_value "$(name $_mbr)" $(rval $_mbr) $_size
+       ;;
+  esac
+  echo 
+}
+
+
+function print_mem_value () {
+  local _name="$1"
+  local _rval="$2"
+  local _size="$3"   # The number of raw bits trnansfered
+
+  [[ $_size == "" ]] && _size=4
+
+  local _dec=${_rval}
+  local _unsigned=$(( _rval & 0xFFFFFFFF ))
+  local _hex=$(to_hex $(( _size * 2 )) $_unsigned )
+
+  local _bin=$(to_binary "${_hex}")
+
+  printf "   %5s:  %11d %11d; 0x%11s; 0b%39s;"  \
+        "${_name}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
+  printf "\n"
+}
+
+#     load/read:  lb
+#       LATCH_IN        xxxx xxxx xxxx s???      MBR
+#                 $name -------- ------   ------     
+#       Latch_out       ssss ssss ssss s???      rt
+#
+#     store/write: sb
+#       LATCH_IN        ???? ???? ???? ????     rt
+#                 $name -------- ------   ------     
+#       Latch_out                      ????     MBR
+
+
+
