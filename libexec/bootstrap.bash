@@ -54,11 +54,6 @@ function error () {
 
 }
 
-echo "Entering the MIPS Command-Line-Interface"
-echo
-assign $_pc 0x04000000
-
-#PS1="(mips) "
 
 
 function execute () {
@@ -76,10 +71,8 @@ function execute () {
   _filename="$1"
 
   [[ -f $_filename ]] ||  { echo "$_filename not found" ; return 1; }
-  while prefetch ; do
-    echo $_line
-    eval $_line
-    sleep 1
+  while cycle ; do
+    :
   done < $_filename
 }
 
@@ -92,8 +85,23 @@ function assemble_file () {
      rm -f ${core_file}
    fi
 
-   prefetch ${text_end}
+   prefetch ${TEXT_END}
 
 }
 
 
+
+echo "Entering the MIPS Command-Line-Interface"
+echo
+assign $_npc ${TEXT_START}
+assign $_pc ${TEXT_START}
+
+#PS1="(mips) "
+
+# while cycle ; do
+#   :
+# done
+# 
+# echo
+# echo "Exiting the MIPS Command-Line-Interface"
+# exit

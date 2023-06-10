@@ -12,9 +12,10 @@ function allocate_data_memory() {
    # The issue here is that we need to place a zero or some value in each location
    # others
    if [[ -n $_value ]]; then 
-     data_memory_write $_size $data_next $_value
+     data_memory_write $_size $DATA_NEXT $_value
    fi
-   (( data_next = data_next + _size ))
+   (( DATA_LAST = DATA_NEXT ))
+   (( DATA_NEXT = DATA_NEXT + _size ))
 }
 
 function print_data_memory() {
@@ -30,7 +31,7 @@ function print_data_memory() {
    local _item_count
    local _current
 
-   (( allocated = data_next - data_start ))
+   (( allocated = DATA_NEXT - DATA_START ))
    _rows=$((  allocated / 4 ))
    _cols=$((  allocated % 4 ))
    if (( _cols != 0 )) ; then
@@ -38,16 +39,16 @@ function print_data_memory() {
    fi
    _item_count=$(( _rows * 4 ))
   
-   _current=$data_start
+   _current=$DATA_START
    if [[ "$ENDIANNESS" == "BIG" ]] ; then
      printf "%-10s:\t %4d\t %4d\t %4d\t %4d\n" address 1 2 3 4
-     for (( i=0; i < _item_count && _current < data_next; i+=4, _current+=4 )) ; do
+     for (( i=0; i < _item_count && _current < DATA_NEXT; i+=4, _current+=4 )) ; do
        printf "0x%08x:\t 0x%02x\t 0x%02x\t 0x%02x\t 0x%02x\n"  $_current \
        "${MEM[$_current]}" "${MEM[$_current+1]}" "${MEM[$_current+2]}" "${MEM[$_current+3]}"
      done
   else
     printf "%-10s:\t %4d\t %4d\t %4d\t %4d\n" address 4 3 2 1
-    for (( i=0; i < _item_count && _current < data_next; i+=4, _current+=4 )) ; do
+    for (( i=0; i < _item_count && _current < DATA_NEXT; i+=4, _current+=4 )) ; do
       printf "0x%08x:\t 0x%02x\t 0x%02x\t 0x%02x\t 0x%02x\n"  $_current \
       "${MEM[$_current+3]}" "${MEM[$_current+2]}" "${MEM[$_current+1]}" "${MEM[$_current]}"
     done
@@ -58,17 +59,17 @@ function print_data_memory() {
 
 function check_segment () {
   local address="$1"
-  local segment        # return value:  "data", "heap", "stack"
+  local segment        # return value:  "DATA", "HEAP", "STACK"
 
   # From bottom to top:
-  # stack_start
-  # $(rval $fp) === stark_end
-  # heap_end
-  # heap_start
-  # data_end
-  # data_start
-  # text_end
-  # text_start
+  # STACK_START
+  # $(rval $fp) === STACK_END
+  # HEAP_END
+  # HEAP_START
+  # DATA_END
+  # DATA_START
+  # TEXT_END
+  # TEXT_START
 
   while true ; do 
 
@@ -76,33 +77,33 @@ function check_segment () {
       instruction_error "Address is NULL"
       break
     fi
-    if (( address < text_start  || stack_start < address ))  ; then 
+    if (( address < TEXT_START | STACK_START < address ))  ; then 
       instruction_error "Kernel space is inaccessible to user"
       break
     fi
 
-    if (( address < data_start ))  ; then 
-      instruction_error "Text segment is inaccessible via the data path"
+    if (( address < DATA_START ))  ; then 
+      instruction_error "Text segment is inaccessible via the DATA path"
       break
     fi
 
-    if (( data_start <= address  &&  address <= data_next ))  ; then 
+    if (( DATA_START <= address  &&  address <= DATA_NEXT ))  ; then 
       segment="DATA"
       break
     fi
 
-    if (( heap_start <= address  &&  address <= ${HEAP[${heap_start}]} ))  ; then 
+    if (( HEAP_START <= address  &&  address <= ${HEAP[${HEAP_START}]} ))  ; then 
       segment="HEAP"
       break
     fi
 
-    # Recall the stack grows downwards
-    if (( $(rval $sp) <= address &&  address <= $stack_start ))  ; then 
+    # Recall the STACK grows downwards
+    if (( $(rval $sp) <= address &&  address <= $STACK_START ))  ; then 
       segment="STACK"
       break
     fi
   
-    instruction_warning "read/write between stack and heap"
+    instruction_warning "read/write between STACK and HEAP"
     instruction_warning "Best practice is to up \$sp prior to performing memory operation"
     segment="STACK" 
     break
@@ -128,7 +129,7 @@ function check_alignment() {
 
 
 # Usage: data_memory_{read/write}
-#   1.   .word 45          --> data_memory_write 4 $data_next 45
+#   1.   .word 45          --> data_memory_write 4 $DATA_NEXT 45
 #   2.   sw $t1, imm ($t2) --> data_memory_write 4
 #      - the value of the MAR and MBR are latched in
 

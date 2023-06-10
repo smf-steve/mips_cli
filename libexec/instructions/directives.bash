@@ -72,16 +72,15 @@ function .align () {
   case ${align} in 
     0) # No adjustment is needed
        ;;
-    1) _offset=$((data_next % 2))
+    1) _offset=$((DATA_NEXT % 2))
        [[ $_offset == 0 ]] || allocate_data_memory $(( 2 - $_offset ))
        ;;
-    2) _offset=$((data_next % 4))
+    2) _offset=$((DATA_NEXT % 4))
        [[ $_offset == 0 ]] || allocate_data_memory $(( 4 - $_offset ))
        ;;
-    3) _offset=$((data_next % 8))
+    3) _offset=$((DATA_NEXT % 8))
        [[ $_offset == 0 ]] || allocate_data_memory $(( 8 - $_offset ))
        ;;
    esac
-
 }
 
