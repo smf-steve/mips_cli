@@ -13,14 +13,14 @@
 #     - uses prefetch if the optional address has not been read yet
 #       - this allows for support of interactive operations
 #
-#   function prefetch [address]
+#   function prefetch next_pc [label]
 #     - prefetches the next instruction, 
-#       - or all instructions until the give address
-#       - an address of {text_end} effecively reads all instructions
-#     - loads each instruction into INSTRUCTION[{address}]="{instruction}"
+#       - or all instructions until the we reach the provided label
+#       - a defined and unresolved label --- effecively reads all instructions
+#     - loads each instruction into INSTRUCTION[{next_pc}]="{instruction}"
 #     - additionaly 
 #       - records all labels encounted
-#         - into LABELS[line_num]={name}, and
+#         - into LABELS[{LINE_NUM}]={name}, and
 #         - into text_label_{name}={address} or data_label_{labels}={address}
 #           > The approach to use:  text_label_{name}={address}
 #           > was done due to not having hashed arrays
@@ -63,8 +63,6 @@ function pseudo_off () {
 }
 
 
-
-
 # Presume we have a front't that changes things.
 # Syntax:
 #   line:          [ label:] [instruction  #comment]   
@@ -74,12 +72,14 @@ function pseudo_off () {
 #      note commas are optional but must be part of the token
 #      allow the current engine deal with the immediates and comments
 
-declare -i line_num=0     # This is a global variable
+declare -i LINE_NUM=0    # This is a global variable
 declare -a INSTRUCTION   # List of Instructions index by Address
 
 function cycle () {
 
-  # IR <- Mem[PC] 
+  # IR <- Mem[PC]    
+  #    The potential PC is stored in 'local {potential_pc}'
+  #  
   #    1. Determine if the value of PC is an address or a label
   #       If it is an addrsss, set PC to be text_end
   #    1. Based upon the value of PC
@@ -96,48 +96,58 @@ function cycle () {
   #    When it is read, it is stored in Text Memory @ text_next
   #    Then we can read it from memory
 
-  # Determine if the PC is an address or a label
-  #   If a label, the instruction is in the future. 
-  local PC=$(rval $_pc)
+  local next_pc=${TEXT_NEXT}  #  This is the next available address
   local target_label
 
-  local text_next=${TEXT_NEXT}
-     # TEXT_NEXT is updated by prefetch, 
-
-  if [[ $PC == "^[[:digit:]]*$" ]] ; then 
-    target_label=$PC
-    PC=${TEXT_END}   # Setting the PC to the instruction furthest away in the future
+  local potential_pc=$(rval $_pc)  
+  if [[ ${potential_pc:0:1} =~ [[:alpha:]] ]] ; then 
+    # The provided PC is a label, so search for that label
+    target_label=${potential_pc}
+    potential_pc=${TEXT_END}   
   fi
 
-  if (( PC == text_next )) ; then 
-     # Prefetch the instruction which places the instruction into INSTRUCTION
+  if (( potential_pc == next_pc )) ; then 
+     # The next instruction has not been read into memory. So read it!
      PS1="(mips) "
-     prefetch ${text_next} ""
+     prefetch "${next_pc}" ""
      if [[ $? != 0 ]] ; then 
        return 1
      fi
   fi
-  if (( PC > text_next )) ; then 
+  if [[ -n "${target_label}" ]] ; then        ## (( potential_pc > next_pc )) 
      # We need to search the future for the right instruction.
-     PS1="(searching for ${target_label}) "
-     prefetch ${text_next} ${target_label}
+     PS1="(prefetch: ${target_label}) "
+     prefetch "${next_pc}" "${target_label}"
      if [[ $? != 0 ]] ; then 
        return 1
      fi
-     PC=$(( text_next - 4 ))
+     potential_pc=$(( next_pc - 4 ))
   fi
 
-  assign $_pc $PC
-  fetch $_ir "${INSTRUCTION[${PC}]}"       #  Fetch
+  #################################################
+  assign $_pc $potential_pc
+
+  fetch $_ir "${INSTRUCTION[ $(rval $_pc) ]}"       #  Fetch
   local instruction="$(remove_label $(rval $_ir) )"
 
-  if (( PC < text_next )) ; then 
+
+  # NPC <- PC + 4 ; Next Program Counter
+  #   Execute the instruction or the command
+  #      If it is an instruction the "npc" will be updated inside the instruction
+  #      If it is a command "npc" remains the same
+  assign $_npc $(( $(rval $_pc) + 4 )) 
+
+
+  ###############################################
+
+  if (( _pc < next_pc )) ; then 
     echo "Ready to execute: \"$(rval $_ir)\""
 
     # Here we antipate debugger command.
-    PS1="(debug) "
-
-    while read -p "$PS1" _command ; do 
+    while read -p "(debug) " _command ; do 
+      if [[ $? != 0 ]] ; then 
+        return
+      fi
       case $_command in 
         step | s ) 
                    break
@@ -145,17 +155,8 @@ function cycle () {
                *)
       esac
     done
-    if [[ $? != 0 ]] ; then 
-      return
-    fi
   fi
 
-  # NPC <- PC + 4 ; Next Program Counter
-  #   Execute the instruction or the command
-  #      If it is an instruction the "npc" will be updated inside the instruction
-  #      If it is a command "npc" remains the same
-
-  # assign $_npc $(( $(rval $_pc) + 4 )) 
 
   # Here is where we might want to change the syntax of the LoadStore instructions
   #   from: "[label:]  op rt imm ( rs )"
@@ -189,9 +190,9 @@ function prefetch () {
     # otherwise, we cantion to get the next line until the label is found
 
     while true ; do 
-      (( line_num ++ ))
+      (( LINE_NUM ++ ))
 
-      read -e -p "$PS1" first rest
+      read -e -p "(prefetch) " first rest
       if [[ $? != 0 ]] ; then
         # EOF found: All has been processed
         return 1
@@ -211,7 +212,7 @@ function prefetch () {
         labels+=( "$name" )
 
         ## Record the label in the database
-        LABELS[line_num]=${name}
+        LABELS[${LINE_NUM}]=${name}
 
         if [[ ${target_label} == ${name} ]] ; then
           # We have found the target_label so make it blank
@@ -232,17 +233,22 @@ function prefetch () {
     ## We know have a line is either a directive or is executable
     case "$instruction" in 
        .* )
-            for i in ${labels[@]} ; do
-              assign_data_label "$i" "${data_next}"
-            done
+
+            # For allocation directives, we have a bug since DATA_NEXT might move if
+            # we have to align 
             eval ${instruction}
-            prefetch "${next_pc}"  "${target_label}"
+            for i in ${labels[@]} ; do
+              # labels only make sense on data allocation 
+              # if the instruction is not an allocation, it can be deemed a bug
+              assign_data_label "$i" "${DATA_LAST}"
+            done
+            prefetch "${next_pc}" "${target_label}"
             ;;
 
        "shell "* )
             :  # this is a shell command
                # to be consistent with gdb
-            (( line_num -- ))
+            (( LINE_NUM -- ))
             eval $instruction
             prefetch "${next_pc}"  "${target_label}"
             ;;
@@ -260,17 +266,18 @@ function prefetch () {
       instruction="$label $instruction"
     fi
 
-    # Record as the last instruction, and move the pointer to the next slot
+    # Record the instruction, and advance the location of TEXT_NEXT
     INSTRUCTION[${next_pc}]="${instruction}"
-    TEXT_NEXT=$(( next_pc + 4 ))
+    (( next_pc = next_pc + 4))
+    TEXT_NEXT=${next_pc}
 
     ## But is it the right one.   
     if [[ -n "${target_label}" ]] ; then 
       # i.e., we have not found the right one, so continue
-      prefetch "$((${next_pc} + 4))"  "${target_label}"
+      prefetch "${next_pc}" "${target_label}"
     fi
 
-    # We now have the next instruction to be executed queued up.
+    # The instruction to be executed has been stored in TEXT Memory.
     return 0
 }
 
