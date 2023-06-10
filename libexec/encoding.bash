@@ -81,8 +81,8 @@ function print_R_encoding () {
     local _shamt_code=$(encode_shamt $_shamt)
     local _func_code="$(lookup_func $_name)" 
 
-    local _encoding="${_op_code}${_rs_code}${_rt_code}${_rd_code}${_shamt_code}${_func_code}"
-    MEM[$(rval $_pc)]="$_encoding"
+    local encoding="${_op_code}${_rs_code}${_rt_code}${_rd_code}${_shamt_code}${_func_code}"
+    TEXT[$(rval $_pc)]="$encoding"
 
     [[ ${emit_encodings} == "TRUE" ]] || return
 
@@ -120,7 +120,7 @@ function print_I_encoding () {
 
 
     local encoding="${_op_code}${_rs_code}${_rt_code}${_imm_code}"
-    MEM[$(rval $_pc)]="$_encoding"
+    TEXT[$(rval $_pc)]="$encoding"
 
     [[ ${emit_encodings} == "TRUE" ]] || return
 
@@ -161,7 +161,7 @@ function print_J_encoding () {
     # REGISTER[$_ir]="${_op_code}\$(encode_address ${_label})"
 
     local encoding="${_op_code}${_addr_code}"
-    MEM[$(rval $_pc)]="$_encoding"
+    TEXT[$(rval $_pc)]="$encoding"
 
     [[ ${emit_encodings} == "TRUE" ]] || return
 
