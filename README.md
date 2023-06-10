@@ -32,6 +32,25 @@ While in batch mode, the tool executes a mips subroutine based upon command line
    ```
 Command line options can also be provide to alter the output of the program.
 
+## Interactive Modes:
+
+1. cli:   any shell or mips instruction can be executed from the prompt
+   - each mips instruction is added as the next instruction in the interactive program being created
+
+1. prefetch: any shell or mips instruction can be entered from the prompt
+   - cause: a branch instruction that has an unresolved target has been entered
+   - each MIPS instructin is added, but not executed to the interactive program
+
+   - each shell command is executed
+   - a MIPS instruction that is prepaned with an "@" is executed but not added to the program
+
+1. debug: you can step through the program
+   - cause: a branch instruction that has a resolved target has been entered
+   - debug commands are now active, unit completionof the code that that is part of the current interacive program
+   - MIPS and shell instructions prepaned with an "@" are executed but not added to the program
+
+
+
 
 ## MIPS Language Deviations
    1. Only the main processor is executed. That is to say:
