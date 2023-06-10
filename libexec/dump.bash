@@ -50,7 +50,6 @@ EOF
 }
 
 alias dump_instructions="dump_segment INSTRUCTION"
-alias dump_registers="dump_segment REGISTER"
 function dump_segment  () {
 	local segment="$1" 
 	local raw="$2"
@@ -67,4 +66,16 @@ function dump_segment  () {
 # dump_registers:
 # for readability, perhaps the putput should be
 #  [$t1]="value"
+function dump_registers () {
+	local segment="$1" 
+	local raw="$2"
+
+	[[ "$raw" == "TRUE" ]] ||  echo  "declare -a REGISTER=("
+	for key in ${!REGISTER[@]} ; do
+		 [[ "$raw" == "TRUE" ]] || printf " [\$$(name ${key})]="
+		 echo \"${REGISTER[${key}]}\"
+	done
+	[[ "$raw" == "TRUE" ]] || echo ")"
+	echo
+}
 

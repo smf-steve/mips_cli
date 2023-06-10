@@ -45,8 +45,6 @@ source libexec/instructions/pseudo_instructions.bash
 source libexec/instructions/synonym_instructions.bash
 
 
-## We need a boot process to set registers and such
-assign $sp $stack_start
 
 function error () {
 
@@ -91,10 +89,14 @@ function assemble_file () {
 
 
 
-echo "Entering the MIPS Command-Line-Interface"
-echo
+## We need a boot process to set registers and such
 assign $_npc ${TEXT_START}
 assign $_pc ${TEXT_START}
+assign $sp ${SP_START}
+
+echo "Entering the MIPS Command-Line-Interface"
+echo
+
 
 #PS1="(mips) "
 

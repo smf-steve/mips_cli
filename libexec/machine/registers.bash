@@ -41,11 +41,11 @@ declare -r  _pc='50' ; NAME[$_pc]="pc"    ; REGISTER[50]="0"
 declare -r  _hi='51' ; NAME[$_hi]="hi"    ; REGISTER[51]="0"
 declare -r  _lo='52' ; NAME[$_lo]="lo"    ; REGISTER[52]="0"
 
-declare -r _npc='60' ; NAME[$_npc]="NPC"  ; REGISTER[55]="0"
-declare -r  _ir='61' ; NAME[$_ir]="IR"    ; REGISTER[55]="0"
+declare -r _npc='60' ; NAME[$_npc]="NPC"  ; REGISTER[60]="0"
+declare -r  _ir='61' ; NAME[$_ir]="IR"    ; REGISTER[61]="0"
  
-declare -r _mar='70' ; NAME[$_mar]="MAR"  ; REGISTER[53]="0"
-declare -r _mbr='71' ; NAME[$_mbr]="MBR"  ; REGISTER[54]="0"
+declare -r _mar='70' ; NAME[$_mar]="MAR"  ; REGISTER[70]="0"
+declare -r _mbr='71' ; NAME[$_mbr]="MBR"  ; REGISTER[71]="0"
 
 
 function name() {
