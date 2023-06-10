@@ -46,22 +46,22 @@ function lookup_data_label() {
 
 function apply_data_labels () { 
    local labels="$1"
-   local data_next="$2"
+   local data_address="$2"
    local i
 
    for i in $labels ; do
-      assign_data_label "$i" "${data_next}"
+      assign_data_label "$i" "${data_address}"
    done
 
 }
 
 function apply_text_labels () { 
    local labels="$1"
-   local next_pc="$2"
+   local pc_address="$2"
    local i
 
    for i in $labels ; do
-      assign_text_label "$i" "${next_pc}"
+      assign_text_label "$i" "${pc_address}"
    done
 
 }
