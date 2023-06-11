@@ -140,7 +140,7 @@ function cycle () {
 
   ###############################################
 
-  if (( _pc < next_pc )) ; then 
+  if (( $(rval _pc) < next_pc )) ; then 
     echo "Ready to execute: \"$(rval $_ir)\""
 
     # Here we antipate debugger command.
@@ -192,7 +192,8 @@ function prefetch () {
     while true ; do 
       (( LINE_NUM ++ ))
 
-      read -e -p "(prefetch) " first rest
+      # -p "(prefetch) "
+      read -e  -p "$PS1" first rest
       if [[ $? != 0 ]] ; then
         # EOF found: All has been processed
         return 1

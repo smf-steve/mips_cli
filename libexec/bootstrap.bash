@@ -57,18 +57,10 @@ function error () {
 function execute () {
   _filename="$1"
 
-  [[ -f $_filename ]] ||  { echo "$_filename not found" ; return 1; }
-  while read _line; do
-    echo $_line
-    eval $_line
-    sleep 1
-  done < $_filename
-}
+  [[ -n $_filename ]] || _filename="/dev/tty"
+  [[ -e $_filename ]] || { echo "$_filename not found" ; return 1; }
 
-function execute () {
-  _filename="$1"
-
-  [[ -f $_filename ]] ||  { echo "$_filename not found" ; return 1; }
+  # boot
   while cycle ; do
     :
   done < $_filename
@@ -83,7 +75,7 @@ function assemble_file () {
      rm -f ${core_file}
    fi
 
-   prefetch ${TEXT_END}
+   prefetch "${TEXT_START}"  "!unresolvabe_label"
 
 }
 
