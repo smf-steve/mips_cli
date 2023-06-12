@@ -95,7 +95,9 @@ function print_immediate() {
 #   unsigned:  $(signed_contraction $((value )) )
 
 function print_value() {
-  # if the input is one value, then print it as a register
+  # if the input is one value, 
+  #   then print it as a register
+  #   otherwise print as an immediate
   local _register="$1"
   local _value="$2"
   local _text="$3"
@@ -120,7 +122,7 @@ function print_value() {
          _rval=$((${_prefix}${_value} ))
          ;;
       3) # print the value as an immediate
-         _name="imm"    
+         _name="$_register"    
          _rval=$(( ${_prefix}${_value} ))
          ;;
   esac
@@ -136,13 +138,27 @@ function print_value() {
    _prefix=""
   fi
 
+  print_value_i "$_name" "$_rval" "$_text"
+}
 
-  local _dec=${_rval}
-  local _unsigned=$(( _rval & 0xFFFFFFFF ))
-  local _hex=$(to_hex 8 $_unsigned )
-  local _bin=$(to_binary "${_hex}")
+function print_value_i () {
+  local _name="$1"
+  local _rval="$2"
+  local _text="$3"
 
-  printf "   %5s:  %11d %11d; 0x%s; 0b%s;"  \
+  if [[ -z "$_rval" ]] ; then 
+    # its a deferred value
+    local _dec="?"
+    local _unsigned="?"
+    local _hex="?? ?? ?? ??"
+    local _bin="???? ???? ???? ???? ???? ???? ???? ????"
+  else
+    local _dec=${_rval}
+    local _unsigned=$(( _rval & 0xFFFFFFFF ))
+    local _hex=$(to_hex 8 $_unsigned )
+    local _bin=$(to_binary "${_hex}")
+  fi
+  printf "   %5s:  %11s %11s; 0x%s; 0b%s;"  \
         "${_name}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
 
   if [[ "$_text" != "" ]] ; then
@@ -155,7 +171,7 @@ function print_value() {
 function print_op() {
    local _op="$1"
       
-   printf "       %4s ----------  ----------- -------------- ------------------------------------------\n" \
+   printf "   %9s  --------  ----------- -------------- ------------------------------------------\n" \
           "${_op}"      
 }
 
@@ -167,13 +183,42 @@ function print_cin() {
              "cin:" "${cin}" "${cin}" "${cin}" "${cin}"
 }
 
+function print_Z() {
+   local value=${STATUS_BITS[$_z_bit]}
+
+   printf "     %4s         %4s        %4s;             %c;                                         %c;\n" \
+             "Z  :" "${value}" "${value}" "${value}" "${value}"
+}
 
 
 #Maybe rename to:
 # print_mem_WB_stage
 # print_pc_WB_stage  
 
-function print_WB_stage() {
+
+function print_PCWB_stage () {
+  local z_bit="$1"
+  local _current="$2"
+  local _addr="$3"
+  local _label="$4"
+
+  print_value_i "#0" "$_current" "pc"
+  print_value_i "#1" "$_addr" "$_label"
+  print_op "mux (Z=${z_bit})"
+  print_value   "$_pc"  
+}
+
+
+#      #0:           0           0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000; "pc"
+#      #1:           5           5; 0x00 00 00 05; 0b0000 0000 0000 0000 0000 0000 0000 0101; "_address"
+#      Z:            0           0;             0;                                         0;
+#       mux ----------  ----------- -------------- ------------------------------------------
+#     npc:           5           5; 0x00 00 00 05; 0b0000 0000 0000 0000 0000 0000 0000 0101;
+
+
+
+alias print_WB_stage="print_MEMWB_stage"
+function print_MEMWB_stage() {
   # The WB stage is responsible for 
   #   1. summarizing the operation that was perfromed via a load store
   #      -- print the values in the last two latches

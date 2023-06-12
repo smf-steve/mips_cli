@@ -146,7 +146,7 @@ function cycle () {
     # Here we antipate debugger command.
     while read -p "(debug) " _command ; do 
       if [[ $? != 0 ]] ; then 
-        return
+         return 1
       fi
       case $_command in 
         step | s ) 
@@ -580,32 +580,30 @@ function execute_Branch () {
     emit_p=${emit_encodings}
     emit_encodings=FALSE
 
-    # assign $_npc $(( $(rval $_pc) + 4 ))    # Perform by execute_ArithLog
-    execute_ArithLog "sub" "-" $zero $_rs $zero 
+    execute_ArithLog "sub" "-" $zero $_rs $_rt
     emit_encodings=$emit_p
 
   }
   [[ ${execute_instructions} == "TRUE" ]] || return
 
-  local _current=${REGISTER[$_pc]}
+  local _current=$(rval $_pc)
   local _addr=$(lookup_text_label $_label)
 
   case "$_name" in 
     beq) if [[ ${STATUS_BITS[$_z_bit]} == "1" ]] ; then
-           REGISTER[$_pc]=$_addr
+           assign $_pc $_addr
          else
            :
          fi
          ;;
     bne) if [[ ${STATUS_BITS[$_z_bit]} == "0" ]] ; then
-           REGISTER[$_pc]=$_addr
+           assign $_pc $_addr
          else
            :
          fi
          ;;
   esac
-  print_PC_update "mux" ${STATUS_BITS[$_z_bit]} $_current  $_addr $_label
-  echo "Not Implemented"
+  print_PCWB_stage "${STATUS_BITS[$_z_bit]}" "$_current"  "$_addr" "$_label"
 
 }
 
@@ -623,8 +621,7 @@ function execute_BranchZ () {
     emit_p=${emit_encodings}
     emit_encodings=FALSE
 
-    # assign $_npc $(( $(rval $_pc) + 4 ))    # Performed by execute_ArithLog
-    execute_ArithLog "add" "-" $_zero $_rs $_zero 
+    execute_ArithLog "sub" "-" $_zero $_rs $_zero 
     emit_encodings=$emit_p
   }
   [[ ${execute_instructions} == "TRUE" ]] || return
@@ -635,23 +632,22 @@ function execute_BranchZ () {
   case "$_name" in 
     bgtz) if [[ ${STATUS_BITS[$_s_bit]} == 0 && ${STATUS_BITS[$_z_bit]} == 0 ]] ; then 
              # result is positive, hence '$_rs > 0'
-             REGISTER[$_pc]=$_addr
+             assign $_pc $_addr
           else
             :
           fi
           ;;
     blez) if [[ ${STATUS_BITS[$_s_bit]} == 1 || ${STATUS_BITS[$_z_bit]} == 1 ]] ; then 
              # result is positive, hence '$_rs <= 0'
-             REGISTER[$_pc]=$_addr
+             assign $_pc $_addr
           else
             :
           fi
           ;;
   esac
 
-  print_PC_update "mux" ${STATUS_BITS[$_z_bit]} $_current  $_addr $_label
-  echo "Not Implemented"
-
+  print_PCWB_stage "${STATUS_BITS[$_z_bit]}" "$_current"  "$_addr" "$_label"
+  
 }
 
 
