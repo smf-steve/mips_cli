@@ -138,7 +138,7 @@ function print_I_encoding () {
               " ${_op:0:5}" " \$$_rs_name" " \$$_rt_name" "$_imm"
     fi
     if [[ $_imm_code == "_deferred_" ]] ; then 
-        _imm_code="_   deferred  _ "   # To center it
+        _imm_code="????????????????"   # To center it
     fi
 
     printf "\t|%s|%s|%s|%16s|\n" \
