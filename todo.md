@@ -8,6 +8,7 @@ reveiw the jump and JumpR
 1. change read_blah ==> parse_blah  ???
 1. come up with a way to identify GLOBAL_VARS -- i.e., all CAPS
 
+1. test cycle loop
 
 # Testing: May 26
   1. set.s

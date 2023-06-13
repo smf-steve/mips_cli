@@ -78,7 +78,7 @@ function print_ALU_state() {
 
 function print_immediate() {
   local _text="$1"
-  local _value=$(read_immediate "$_text")
+  local _value=$(parse_immediate "$_text")
 
   print_value imm $_value "$_text"
 }

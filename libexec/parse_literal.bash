@@ -1,4 +1,4 @@
-function read_literal() {
+function parse_literal() {
    # This function converts a number of various bases and notations
    # to a normal form.  This normal form a string representation of a 
    # decimal number.
@@ -118,9 +118,9 @@ function read_literal() {
     echo ${_prefix}${_value}
 }
 
-function read_word() {
+function parse_word() {
 
-   local _value=$(read_literal "$1")
+   local _value=$(parse_literal "$1")
 
    if (( _value > 0 &&  _value <= max_word_unsigned && _value & 0x80000000 )) ; then
      # Its a unsigned number with the sign bit on
@@ -135,9 +135,9 @@ function read_word() {
    echo $_value
 }
 
-function read_immediate () {
+function parse_immediate () {
 
-   local _value=$(read_literal "$1")
+   local _value=$(parse_literal "$1")
 
    # Check to see if the sign bits is set
    if (( _value > 0 &&  _value <= max_immediate_unsigned && _value & 0x8000 )) ; then
@@ -153,11 +153,11 @@ function read_immediate () {
    echo $_value
 }
 
-function read_shamt() {
+function parse_shamt() {
    # The value passed in must be a positive 5 bit value
    # 0 .. 32
 
-   local _value=$(read_literal "$1")
+   local _value=$(parse_literal "$1")
 
    if (( _value >= 32 || _value < 0 )) ; then
       _msg="Error: the shift amount not in range: 0..31"

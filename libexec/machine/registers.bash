@@ -135,7 +135,7 @@ function assign_registers() {
      return
   fi
 
-  _value=$(read_word "$1")
+  _value=$(parse_word "$1")
 
   assign $zero "0";  
   for ((i=1; i<32; i++)) ; do

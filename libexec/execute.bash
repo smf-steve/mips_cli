@@ -367,7 +367,7 @@ function execute_ArithLogI () {
   local _rt="$(sed -e 's/,$//' <<< $3)"
   local _rs="$(sed -e 's/,$//' <<< $4)"
   local _text="$5"
-  local _imm=$(read_immediate "$_text")
+  local _imm=$(parse_immediate "$_text")
   local _literal=$(sign_extension "$_imm")
   local _value
 
@@ -399,7 +399,7 @@ function execute_Shift () {
   local _rd="$(sed -e 's/,$//' <<< $3)"
   local _rt="$(sed -e 's/,$//' <<< $4)"
   local _text="$5"
-  local _shamt=$(read_shamt "$_text")
+  local _shamt=$(parse_shamt "$_text")
   local _value
 
   assign $_npc $(( $(rval $_pc) + 4 )) 
@@ -539,7 +539,7 @@ function execute_LoadI () {
   local _op="$2"
   local _rt="$(sed -e 's/,$//' <<< $3)"
   local _text="$4"
-  local _imm=$(read_immediate "$_text")
+  local _imm=$(parse_immediate "$_text")
   local _literal=$(sign_extension "$_imm")
   local _value
 
@@ -665,7 +665,7 @@ function execute_LoadStore () {
   local _rt="$(sed -e 's/,$//' <<< $3)"
   local _rs="$(sed -e 's/,$//' <<< $4)"
   local _text="$5"
-  local _imm=$(read_immediate "$_text")
+  local _imm=$(parse_immediate "$_text")
   local _literal=$(sign_extension "$_imm")
   local _value
 
