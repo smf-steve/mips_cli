@@ -21,3 +21,9 @@ STACK_START=0x7FFFFFFF        ; STACK_NEXT=$STACK_START   # does this point to t
 STACK[${STACK_START}]=0xDEADBEAF
 #assign $fp ${stark_start}
    # A "deadbeaf" value is stored on top of the stack!
+
+
+
+EXECUTE_INSTRUCTIONS=TRUE
+EMIT_ENCODINGS=TRUE
+EMIT_EXECUTION_SUMMARY=TRUE

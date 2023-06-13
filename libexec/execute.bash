@@ -304,8 +304,6 @@ function prefetch () {
 ##alias BranchZ
 ##alias Jump
 ##alias JumpR
-execute_instructions=TRUE
-emit_execution_summary=TRUE
 
 function execute_ArithLog() {
   local _name="$1"
@@ -317,7 +315,7 @@ function execute_ArithLog() {
 
   assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name $_rs $_rt $_rd $_shamt
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   local _carry_in=0
   local _rt_prefix=""
@@ -373,7 +371,7 @@ function execute_ArithLogI () {
 
   assign $_npc $(( $(rval $_pc) + 4 )) 
   print_I_encoding $_name $_rs $_rt $_imm
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   if [[ $_op == "+" ]] ; then 
     reset_cin
@@ -404,7 +402,7 @@ function execute_Shift () {
 
   assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name "0" $_rt $_rd $_shamt
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   local _rt_value=$(rval $_rt)
   LATCH_A=( $_rt $_rt_value )
@@ -435,7 +433,7 @@ function execute_ShiftV () {
 
   assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name "$_rs" $_rt $_rd "0"
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   local _rt_value=$(rval $_rt)
   local _rs_value=$(rval $_rs)
@@ -479,7 +477,7 @@ function execute_MoveTo ()  {
            ;;
   esac
 
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   LATCH_A=($_src $(rval $_src) )
   LATCH_B=()
@@ -500,7 +498,7 @@ function execute_DivMult () {
 
   assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name $_rs $_rt "0" "0"
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
 
   local _rs_value=$(rval $_rs)
@@ -545,7 +543,7 @@ function execute_LoadI () {
 
   assign $_npc $(( $(rval $_pc) + 4 )) 
   print_I_encoding $_name $zero $_rt $_imm $_text
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   # Determine value 
   case $_name in 
@@ -577,14 +575,14 @@ function execute_Branch () {
   {
     print_I_encoding $_name $_rs $_rt $_imm $_label
 
-    emit_p=${emit_encodings}
-    emit_encodings=FALSE
+    emit_p=${EMIT_ENCODINGS}
+    EMIT_ENCODINGS=FALSE
 
     execute_ArithLog "sub" "-" $zero $_rs $_rt
-    emit_encodings=$emit_p
+    EMIT_ENCODINGS=$emit_p
 
   }
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   local _current=$(rval $_pc)
   local _addr=$(lookup_text_label $_label)
@@ -618,13 +616,13 @@ function execute_BranchZ () {
   {
     print_I_encoding $_name $_rs $_rt $_imm $_label
 
-    emit_p=${emit_encodings}
-    emit_encodings=FALSE
+    emit_p=${EMIT_ENCODINGS}
+    EMIT_ENCODINGS=FALSE
 
     execute_ArithLog "sub" "-" $_zero $_rs $_zero 
-    emit_encodings=$emit_p
+    EMIT_ENCODINGS=$emit_p
   }
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   local _current=${REGISTER[$_pc]}
   local _addr=$(lookup_text_label $_label)
@@ -647,7 +645,7 @@ function execute_BranchZ () {
   esac
 
   print_PCWB_stage "${STATUS_BITS[$_z_bit]}" "$_current"  "$_addr" "$_label"
-  
+
 }
 
 
@@ -674,14 +672,14 @@ function execute_LoadStore () {
   { 
     print_I_encoding $_name $_rs $_rt $_imm
 
-    emit_p=${emit_encodings}
-    emit_encodings=FALSE
+    emit_p=${EMIT_ENCODINGS}
+    EMIT_ENCODINGS=FALSE
 
     # assign $_npc $(( $(rval $_pc) + 4 ))    # Performed by execute_ArithLogI
     execute_ArithLogI "addi" "+" $_mar $_rs $_imm $_text
-    emit_encodings=$emit_p
+    EMIT_ENCODINGS=$emit_p
   }
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
 
    # Determine size of the operation
@@ -729,7 +727,7 @@ function execute_Jump () {
 
   assign $_npc $(( $(rval $_pc) + 4 )) 
   print_J_encoding $_name $_label
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   case $_name in 
     jal) 
@@ -751,7 +749,7 @@ function execute_JumpR () {
   assign $_npc $(( $(rval $_pc) + 4 )) 
   ## encode_R_instruction $_name $_rs "0" "0" "0"
   ## print_R_encoding $_name $_rs "0" "0" "0"
-  [[ ${execute_instructions} == "TRUE" ]] || return
+  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
   case $_name in 
     jalr) 

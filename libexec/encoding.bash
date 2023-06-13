@@ -63,7 +63,6 @@ function decode_address () {
 }
 
 
-emit_encodings=TRUE
 function print_R_encoding () {
     local _name="$1"
     local _rs="$2"
@@ -84,7 +83,7 @@ function print_R_encoding () {
     local encoding="${_op_code}${_rs_code}${_rt_code}${_rd_code}${_shamt_code}${_func_code}"
     TEXT[$(rval $_pc)]="$encoding"
 
-    [[ ${emit_encodings} == "TRUE" ]] || return
+    [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
 
     printf "\t|%-6s|%-5s|%-5s|%-5s|%-5s|%-6s|\n" " op" " rs" " rt" " rd" " sh" " func"
     printf "\t|------|-----|-----|-----|-----|------|\n"
@@ -122,7 +121,7 @@ function print_I_encoding () {
     local encoding="${_op_code}${_rs_code}${_rt_code}${_imm_code}"
     TEXT[$(rval $_pc)]="$encoding"
 
-    [[ ${emit_encodings} == "TRUE" ]] || return
+    [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
 
 
 
@@ -163,7 +162,7 @@ function print_J_encoding () {
     local encoding="${_op_code}${_addr_code}"
     TEXT[$(rval $_pc)]="$encoding"
 
-    [[ ${emit_encodings} == "TRUE" ]] || return
+    [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
 
 
     printf "\t|%-6s|%-26s|\n" " op" " addr"

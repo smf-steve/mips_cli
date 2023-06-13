@@ -62,7 +62,7 @@ function print_ALU_state() {
   local _dst1="$2"
   local _dst2="$3"
 
-  [[ $emit_execution_summary == "TRUE" ]] || return
+  [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
 
   print_cin $cin
   print_value "${LATCH_A[@]}"
@@ -202,6 +202,8 @@ function print_PCWB_stage () {
   local _addr="$3"
   local _label="$4"
 
+  [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
+
   print_value_i "#0" "$_current" "pc"
   print_value_i "#1" "$_addr" "$_label"
   print_op "mux (Z=${z_bit})"
@@ -233,7 +235,7 @@ function print_MEMWB_stage() {
   local _size="$3"
 
 
-  [[ $emit_execution_summary == "TRUE" ]] || return
+  [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
   case "$_name" in
     l*)
        print_mem_value "$(name $_mbr)" $(rval $_mbr) $_size

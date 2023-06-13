@@ -4,9 +4,21 @@ reveiw the jump and JumpR
   -- need to update the value of the PC
   -- need to store the encoding of the instructions
 
+currently recording non MIPS instrucitons
 
-1. change read_blah ==> parse_blah  ???
-1. come up with a way to identify GLOBAL_VARS -- i.e., all CAPS
+(mips) dump_instructions
+declare -a INSTRUCTION=(
+ [4194304]="a: nop"
+ [4194308]="b: nop"
+ [4194312]="c: nop"
+ [4194316]="dump_segment DATA"
+ [4194320]="dump_instructions "
+)
+
+Is this good or bad?
+  - good: we can pay what we have  
+  - bad: we have PC being updated incorrectly  <<--
+
 
 1. test cycle loop
 
@@ -37,7 +49,7 @@ reveiw the jump and JumpR
 
 
 # Notes:
-  1. build  
+  1. build  routines to print out memory and the like
        print_text_memory  <-- this has different output
 
        print_data_memory
@@ -79,16 +91,28 @@ address   :                   2       1
 C escape of interest:  \t \n \r \f \a \b \e
 Special characes \0
 
-  1. relook at list_labels
-      - current prints the value in memory but does not account for the size of the data, type
-      - I would need to also record the type of each label for proper print out.
-      - 
+  1. Labels:
+      - currently a label is only associated with a single location in memory
+      - for data labels, we have no notion of the size
+      - for text labels, we do know it is a size of four bytes
+      - Should we include a size with a label
+
+      ```
+      function lookup_data_size() {
+        eval echo \$data_size_${1}
+      }
+      ```
+
+     - size can be determined here as:  (( DATA_NEXT - DATA_LAST))
+     ```
+     assign_data_label "$i" "${DATA_LAST}"
+     ```
 
   1. Restruction
      ```
      ## encode_R_instruction $_name $_rs "0" "0" "0"
      ## print_R_encoding $_name $_rs "0" "0" "0"
-     [[ ${execute_instructions} == "TRUE" ]] || return
+     [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
      ```
   1. Read notes.txt to deal with Jump and JumpR instructions
 
