@@ -129,11 +129,11 @@ function list_labels() {
 
   # Does not take into account the size of the instruction nor the data type
   declare -p | grep ^data_label_ | while IFS='=' read name address ; do
-    name=$(sed -e 's/data_label_//' -e 's/=/ /' <<< $name)
-    printf "%s (0x%08x) : 0x%02x\n" $name $address ${MEM[$address]}
+    name=$(sed -e 's/data_label_//' -e 's/=/ /' <<< "$name" )
+    printf "%s (0x%08x) : 0x%02x\n" "$name" "$address" "${MEM[$address]}"
   done
   declare -p | grep ^text_label_ | while IFS='=' read name address ; do
-    name=$(sed -e 's/text_label_//' -e 's/=/ /' <<< $name)
+    name=$(sed -e 's/text_label_//' -e 's/=/ /' <<< "$name" )
     printf "%s (0x%08x) : 0x%08x %s\n" $name $address "${MEM[$address]}"  "\"${INSTRUCTION[$address]}\""
   done
 }

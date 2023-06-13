@@ -26,7 +26,7 @@ max_dword=$(( - max_dword -1  ))
 function to_hex () {
   local _size=${1}
   local _decimal=${2}
-  local _hex=$(printf "%0${_size}X" ${_decimal} )
+  local _hex=$(printf "%0${_size}X" "${_decimal}" )
 
   # Make it a byte at a time:
   sed -e 's/\(..\)/ \1/g' -e 's/^ //' <<< $_hex
@@ -138,7 +138,7 @@ function ascii.index () {
 
 function ascii.char () {
    for i in $@   ; do 
-       printf \\$(printf '%03o' $(( $i )) )
+       printf \\$(printf '%03o' "$(( $i ))" )
    done
    printf "\n"
 }
