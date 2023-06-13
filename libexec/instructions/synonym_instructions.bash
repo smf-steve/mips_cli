@@ -12,7 +12,7 @@ function synonym_off () {
 }
 
 function li () {
-    _dst=$(name "$(sed 's/,$//' <<< $1 ))"
+    _dst="$(name $(sed 's/,$//' <<< $1 ))"
     _src="$2"
     _text="$(sed 's/ //g' <<< $2 )"
 
