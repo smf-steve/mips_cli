@@ -108,17 +108,7 @@ Special characes \0
      assign_data_label "$i" "${DATA_LAST}"
      ```
 
-  1. Restruction
-     ```
-     ## encode_R_instruction $_name $_rs "0" "0" "0"
-     ## print_R_encoding $_name $_rs "0" "0" "0"
-     [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
-     ```
   1. Read notes.txt to deal with Jump and JumpR instructions
-
-
-  1. Rename INstructions to INstrution
-  
   1. Execution for the branch, BranZ, Jump must be completed
 
   1. create a list of functions exposed to the user

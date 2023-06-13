@@ -4,7 +4,7 @@ function encode_register () {
    local _reg=$1
    local _code=$(to_binary $(to_hex 2 $_reg))
    local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< $_code )
-   echo $_code
+   echo "${_code}"
 }
 alias encode_shamt=encode_register
 
@@ -12,7 +12,7 @@ function encode_immediate () {
    local _value=$1
    local _value=$(( $1 & 0xFFFF ))
    local _code=$(to_binary "$(to_hex 4 $_value)")
-   sed -e 's/ //g' <<< $_code 
+   sed -e 's/ //g' <<< "${_code}"
 }
 
 function encode_offset () {
@@ -31,14 +31,14 @@ function encode_offset () {
      local _code=$(to_binary "$(to_hex 2 $(( _offset >> 2 )) )" )
      local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< $_code )
 
-     echo $_code
+     echo "${_code}"
   fi
 }
 
 function decode_offset () {
   local _imm="$1"
 
-  echo $(( _imm + $(rval $_pc)  ))
+  echo "$(( _imm + $(rval $_pc)  ))"
 }
 
 function encode_address () {
@@ -52,14 +52,14 @@ function encode_address () {
     local _code=$(to_binary "$(to_hex 7 $(( _address  >> 2 )) )" )
     local _code=$(sed -e 's/ //g'  <<< $_code )
     #ensure the code is no more than 26 bits
-    echo ${_code:2}
+    echo "${_code:2}"
   fi
 }
 
 function decode_address () {
   local _addr="$1"
 
-  echo $(( _addr << 2 ))
+  echo "$(( _addr << 2 ))"
 }
 
 

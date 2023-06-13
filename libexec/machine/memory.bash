@@ -23,7 +23,7 @@ function print_data_memory() {
    #  1. we print out each segment separately
    #  1. we have the first and last for each segement
    # For now, just print the data segment.
-   #    (mips) echo ${!REGISTER[@]}
+   #    (mips) echo "${!REGISTER[@]}"
 
    local allocated
    local _cols
@@ -108,7 +108,7 @@ function check_segment () {
     segment="STACK" 
     break
   done
-  echo $segment
+  echo "${segment}"
 }
 
 function check_alignment() {

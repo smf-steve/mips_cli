@@ -115,7 +115,7 @@ function parse_literal() {
       _value=$(( _text ))
     fi 
  
-    echo ${_prefix}${_value}
+    echo "${_prefix}${_value}"
 }
 
 function parse_word() {
@@ -132,7 +132,7 @@ function parse_word() {
      _msg="Error: the word is in range: -2^31..2^31-1"
      instruction_error "$_msg"
    fi
-   echo $_value
+   echo "${_value}"
 }
 
 function parse_immediate () {
@@ -150,7 +150,7 @@ function parse_immediate () {
      instruction_error "$_msg"
      _value=0
    fi
-   echo $_value
+   echo "${_value}"
 }
 
 function parse_shamt() {
@@ -164,6 +164,6 @@ function parse_shamt() {
       instruction_error "$_msg"
       _value=0
    fi
-   echo $_value
+   echo "${_value}"
 
 }

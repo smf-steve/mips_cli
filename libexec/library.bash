@@ -60,7 +60,7 @@ function to_binary () {
        f|F ) _value="${_value} 1111" ;;
     esac
   done
-  echo $_value
+  echo "${_value}"
 }
 
 # below is defunct!
@@ -70,7 +70,7 @@ function sign_contraction () {
     local _bit_31
     local _upper_word
 
-    echo $(( $1 & 0xFFFFFFFF ))
+    echo "$(( $1 & 0xFFFFFFFF ))"
 
     # Do some error checking based upon the value of bit 31
     # should have been replicated in bits 63-32
@@ -97,7 +97,7 @@ function sign_extension_byte() {
     # The sign bit is on... so extend it
     ((_value = ( - 0x80 ) | _value ))
   fi
-  echo $_value
+  echo "${_value}"
 }
 
 function sign_extension() {
@@ -123,7 +123,7 @@ function sign_extension() {
     ((_value = ( - 0x8000 ) | _value ))
   fi
   
-  echo ${_prefix}${_value}
+  echo "${_prefix}${_value}"
 }
 
 

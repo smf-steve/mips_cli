@@ -17,9 +17,9 @@ function remove_label () {
    local rest="$@"
 
    if [[ $(is_label "$first" ) == "TRUE" ]] ; then
-      echo "$rest"
+      echo "${rest}"
    else
-      echo "$first $rest"
+      echo "${first} ${rest}"
   fi
 
 }
@@ -37,10 +37,10 @@ function label_name () {
 #   address      : previously defined
 
 function lookup_text_label() {
-    eval echo \$text_label_${1}
+    eval echo "\$text_label_${1}"
 }
 function lookup_data_label() {
-    eval echo \$data_label_${1}
+    eval echo "\$data_label_${1}"
 }
 
 

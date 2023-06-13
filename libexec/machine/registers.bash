@@ -50,11 +50,11 @@ declare -r _mbr='71' ; NAME[$_mbr]="MBR"  ; REGISTER[71]="0"
 
 function name() {
   local _index=$(sed -e 's/,$//' <<< "$1" )
-  echo ${NAME[$_index]}
+  echo "${NAME[$_index]}"
 }
 function rval() {
   local _index=$(sed -e 's/,$//' <<< "$1" )
-  echo ${REGISTER[$_index]}
+  echo "${REGISTER[$_index]}"
 }
 
 
@@ -146,7 +146,7 @@ function assign_registers() {
   assign $_lo "$_value"
 }
 function random_value() {
-  echo $(( $RANDOM % 0xFFFF + 1))
+  echo "$(( $RANDOM % 0xFFFF + 1))"
 }
 function assign_registers_random () {
   local i 

@@ -15,7 +15,7 @@ function lower() {
     printf "0x%04x\n" $((  _value & 0xFFFF ))
 }
 function la() {
-    _address=$(eval echo \$data_label_${2})
+    _address=$(eval echo "\$data_label_${2}")
     _lower=$(lower $_address)
     _upper=$(upper $_address)
 

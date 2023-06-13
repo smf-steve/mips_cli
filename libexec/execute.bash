@@ -163,7 +163,7 @@ function cycle () {
   #   to: "[label:]  op rt rs imm"
 
   # This is where we echo the instruction... if we are not interactive..
-  [[ false ]] || echo $instruction 
+  [[ false ]] || echo "${instruction}"
 
   # If the instruction is a MIPS instruction, it
   #   1. finish the Fetch step:  NPC <- PC + 4
