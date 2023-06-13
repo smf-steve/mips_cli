@@ -1,5 +1,6 @@
 #! /bin/bash
 
+
 # It is intended that this script is called via
 #  $ bash --init-file libexec/bootstrap.bash -i
 #
@@ -46,6 +47,7 @@ source libexec/instructions/synonym_instructions.bash
 
 
 
+
 function error () {
 
   echo "$1"
@@ -79,7 +81,11 @@ function assemble_file () {
 
 }
 
-
+##
+columns=$(tput cols)
+if (( columns <  95 )) ; then
+  echo "Width of window is to small -- resize to a minimum width of 95"
+fi
 
 ## We need a boot process to set registers and such
 assign $_npc ${TEXT_START}
