@@ -49,11 +49,11 @@ declare -r _mbr='71' ; NAME[$_mbr]="MBR"  ; REGISTER[71]="0"
 
 
 function name() {
-  local _index=$(sed -e 's/,$//' <<< "$1" )
+  local _index="$(sed -e 's/,$//' <<< $1 )"
   echo "${NAME[$_index]}"
 }
 function rval() {
-  local _index=$(sed -e 's/,$//' <<< "$1" )
+  local _index="$(sed -e 's/,$//' <<< $1 )"
   echo "${REGISTER[$_index]}"
 }
 

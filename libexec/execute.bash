@@ -308,9 +308,9 @@ function prefetch () {
 function execute_ArithLog() {
   local _name="$1"
   local _op="$2"
-  local _rd="$(sed -e 's/,$//' <<< $3)"
-  local _rs="$(sed -e 's/,$//' <<< $4)"
-  local _rt="$(sed -e 's/,$//' <<< $5)"
+  local _rd="$(sed -e 's/,$//' <<< $3 )"
+  local _rs="$(sed -e 's/,$//' <<< $4 )"
+  local _rt="$(sed -e 's/,$//' <<< $5 )"
   local _shamt="0"
 
   assign $_npc $(( $(rval $_pc) + 4 )) 

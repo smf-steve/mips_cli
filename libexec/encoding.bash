@@ -3,7 +3,7 @@
 function encode_register () {
    local _reg=$1
    local _code=$(to_binary $(to_hex 2 $_reg))
-   local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< $_code )
+   local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< "${_code}" )
    echo "${_code}"
 }
 alias encode_shamt=encode_register
@@ -29,7 +29,7 @@ function encode_offset () {
      fi
   
      local _code=$(to_binary "$(to_hex 2 $(( _offset >> 2 )) )" )
-     local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< $_code )
+     local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< "${_code}" )
 
      echo "${_code}"
   fi
@@ -50,7 +50,7 @@ function encode_address () {
     echo "_deferred_"
   else
     local _code=$(to_binary "$(to_hex 7 $(( _address  >> 2 )) )" )
-    local _code=$(sed -e 's/ //g'  <<< $_code )
+    local _code=$(sed -e 's/ //g'  <<< "${_code}" )
     #ensure the code is no more than 26 bits
     echo "${_code:2}"
   fi

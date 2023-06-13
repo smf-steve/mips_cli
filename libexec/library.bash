@@ -29,7 +29,7 @@ function to_hex () {
   local _hex=$(printf "%0${_size}X" "${_decimal}" )
 
   # Make it a byte at a time:
-  sed -e 's/\(..\)/ \1/g' -e 's/^ //' <<< $_hex
+  sed -e 's/\(..\)/ \1/g' -e 's/^ //' <<< "${_hex}"
 }
 
 ## Convert a hexadecimal number to binary with nibbles separated
@@ -37,7 +37,7 @@ function to_hex () {
 function to_binary () {
   local _hex=${1}
   # Make it a nibble at a time
-  local _exploded=$(sed -e 's/ //g' -e 's/\(.\)/ \1/g' <<< $_hex)
+  local _exploded=$(sed -e 's/ //g' -e 's/\(.\)/ \1/g' <<< "${_hex}")
   local _value=""
 
   for i in $_exploded ; do
