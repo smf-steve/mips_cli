@@ -313,7 +313,6 @@ function execute_ArithLog() {
   local _rt="$(sed -e 's/,$//' <<< $5 )"
   local _shamt="0"
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name $_rs $_rt $_rd $_shamt
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
@@ -369,7 +368,6 @@ function execute_ArithLogI () {
   local _literal=$(sign_extension "$_imm")
   local _value
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_I_encoding $_name $_rs $_rt $_imm
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
@@ -400,7 +398,6 @@ function execute_Shift () {
   local _shamt=$(parse_shamt "$_text")
   local _value
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name "0" $_rt $_rd $_shamt
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
@@ -431,7 +428,6 @@ function execute_ShiftV () {
   local _rt="$(sed -e 's/,$//' <<< $4)"
   local _rs="$(sed -e 's/,$//' <<< $5)"
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name "$_rs" $_rt $_rd "0"
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
@@ -469,7 +465,6 @@ function execute_MoveTo ()  {
   local _dst="$(sed -e 's/,$//' <<< $3)"
   local _src="$4"
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
   case $_name in
      mt*)  print_R_encoding $_name $_src "0" "0" "0"
            ;;
@@ -496,7 +491,6 @@ function execute_DivMult () {
   local _rs="$(sed -e 's/,$//' <<< $3)"
   local _rt="$4"
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_R_encoding $_name $_rs $_rt "0" "0"
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
@@ -530,35 +524,51 @@ function execute_DivMult () {
 # Syntax: name rt imm
 function execute_LoadI () {
   # Usage: name -- rt, im
-  # Herre the immediate is a word...??
-  echo "Bug in this code"
+  #    llo $t1,           0xAAAA AAAA
+  #    lhi $t1, 0xFFFF FFFF 
+  #  llo:  LH ($t) = i
+  #  lhi:  HH ($t) = i
+  #  implicit "|" is performed
 
   local _name="$1"
   local _op="$2"
   local _rt="$(sed -e 's/,$//' <<< $3)"
   local _text="$4"
   local _imm=$(parse_immediate "$_text")
-  local _literal=$(sign_extension "$_imm")
-  local _value
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
-  print_I_encoding $_name $zero $_rt $_imm $_text
+  local _op="|"
+  local _value
+  local _rt_name="$(name $_rt)"
+  local _rt_value="$(rval $_rt)"
+
+  print_I_encoding $_name $zero $_rt $_imm
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
-  # Determine value 
   case $_name in 
-
-    lui|lhi)
-         _value=$(( $_imm << 16 ))
+    lui)
+         (( _value= $_imm << 16 ))
+         _text="$_text << 16"
+         LATCH_A=(  )
+         _op="="
          ;;
-    llo) _value=$(( $_imm ))
+
+    lhi)
+         (( _rt_value =  _rt_value &  0x0000FFFF ))
+         (( _value = $_imm << 16 ))
+         _text="$_text << 16"
+         LATCH_A=( "HH(${_rt_name})" $_rt_value "${_rt_name} & 0x0000FFFF")
+         ;;
+
+    llo)
+         (( _rt_value =  _rt_value &  0xFFFF0000 ))
+         (( _value= _imm ))
+         _text="$_text"
+         LATCH_A=( "LH(${_rt_name})" $_rt_value "${_rt_name} & 0xFFFF0000" )
          ;;
   esac
+  LATCH_B=( imm "${_value}" "$_text" )
 
-  LATCH_A=()
-  LATCH_B=( imm ${_literal} "$_text" )
-
-  alu_assign "$_rt" "$_value"
+  alu_assign $_rt $(( _rt_value $_op _value ))
   print_ALU_state "$_op" $_rt
 }
 
@@ -667,7 +677,6 @@ function execute_LoadStore () {
   local _literal=$(sign_extension "$_imm")
   local _value
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
   ## Print the Encoding
   { 
     print_I_encoding $_name $_rs $_rt $_imm
@@ -675,7 +684,6 @@ function execute_LoadStore () {
     emit_p=${EMIT_ENCODINGS}
     EMIT_ENCODINGS=FALSE
 
-    # assign $_npc $(( $(rval $_pc) + 4 ))    # Performed by execute_ArithLogI
     execute_ArithLogI "addi" "+" $_mar $_rs $_imm $_text
     EMIT_ENCODINGS=$emit_p
   }
@@ -725,7 +733,6 @@ function execute_Jump () {
   local _op="$2"
   local _label="$(sed -e 's/,$//' <<< $3)"
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
   print_J_encoding $_name $_label
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
@@ -746,7 +753,6 @@ function execute_JumpR () {
   local _op="$2"
   local _rs="$(sed -e 's/,$//' <<< $3)"
 
-  assign $_npc $(( $(rval $_pc) + 4 )) 
   ## encode_R_instruction $_name $_rs "0" "0" "0"
   ## print_R_encoding $_name $_rs "0" "0" "0"
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return

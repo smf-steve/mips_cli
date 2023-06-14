@@ -65,7 +65,7 @@ function print_ALU_state() {
   [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
 
   print_cin $cin
-  print_value "${LATCH_A[@]}"
+  [[ $LATCH_A != "" ]]  &&  print_value "${LATCH_A[@]}"
   [[ $LATCH_B != "" ]]  &&  print_value "${LATCH_B[@]}"
 
   print_op "$_op"
@@ -158,7 +158,7 @@ function print_value_i () {
     local _hex=$(to_hex 8 $_unsigned )
     local _bin=$(to_binary "${_hex}")
   fi
-  printf "   %5s:  %11s %11s; 0x%s; 0b%s;"  \
+  printf "   %6s:  %11s %11s; 0x%s; 0b%s;"  \
         "${_name}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
 
   if [[ "$_text" != "" ]] ; then
@@ -265,7 +265,7 @@ function print_mem_value () {
 
   local _bin=$(to_binary "${_hex}")
 
-  printf "   %5s:  %11d %11d; 0x%11s; 0b%39s;"  \
+  printf "   %6s:  %11d %11d; 0x%11s; 0b%39s;"  \
         "${_name}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
   printf "\n"
 }

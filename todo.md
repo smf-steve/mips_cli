@@ -27,6 +27,8 @@ Is this good or bad?
   1. logical.s
   1. shifts.s
   1. mult-div.s
+  1. load_stores.s
+     - deferred
  
   1. arithmetic.s
      - need more test exampls
@@ -36,8 +38,29 @@ Is this good or bad?
        - v-trap (on):  V=1  --> trap
        - V-trap (off): V=1  --> off
        - no trap:
-  1. load_stores.s
-     - deferred
+
+      1. Consider how to handle traps (on overflow)
+
+
+## Traps Error Handling
+
+1. Error Handling
+   - Modify errors to call:  instruction_error "message"
+   - Consider the error output
+     1. bash: slr: command not found
+     1. --> mips: slr: statement undefined
+
+1. Implement Traps
+
+
+## Syscalls
+  1. Syscall and trap, break?
+     - output would be the input and then the output variables
+
+
+
+
+
 
 # Execute a file
   - read with file completion, etc.
@@ -46,6 +69,24 @@ Is this good or bad?
 1. validate an instruction error
   - interactive mode= abort instructions
   - batch mode -> aborts program and dump core
+
+
+## Bugs
+1. implement
+   - Validate the Add/u addi/u and Sub/u functionality
+
+   1. High encodings for adding does not work correctlry
+       - carry bit, overflow bit
+         - assign $t1 0x7FFFFFFF # overflow
+         -  addi $t1, $t1, 1
+         - assign $t1 0x80000000 # overflow
+         -  addi $t1, $t1, -1
+       - double check the subu, addu
+
+
+
+
+
 
 
 # Notes:
@@ -91,22 +132,6 @@ address   :                   2       1
 C escape of interest:  \t \n \r \f \a \b \e
 Special characes \0
 
-  1. Labels:
-      - currently a label is only associated with a single location in memory
-      - for data labels, we have no notion of the size
-      - for text labels, we do know it is a size of four bytes
-      - Should we include a size with a label
-
-      ```
-      function lookup_data_size() {
-        eval echo \$data_size_${1}
-      }
-      ```
-
-     - size can be determined here as:  (( DATA_NEXT - DATA_LAST))
-     ```
-     assign_data_label "$i" "${DATA_LAST}"
-     ```
 
   1. Read notes.txt to deal with Jump and JumpR instructions
   1. Execution for the branch, BranZ, Jump must be completed
@@ -119,9 +144,6 @@ Special characes \0
      * SE and ZE for sign_extension and zero_extension
   1. double check that the ArithLogI use zE for logical operations
 
-
-  1. Syscall and trap, break?
-     - output would be the input and then the output variables
 
   1. check the iput values for LoadI, is it:
      ```version 1
@@ -136,22 +158,28 @@ Special characes \0
      - per the document:  HH ($t) = i,  hence 
        - it is version 2
        - with an implicit |
-   1. double check all echo and printf that the args are quoted
 
-# NAMEing
-  - Develop Glossary of variable names and definitions for encodings
-    - offset:  and immediate that is an address
-    - immediate
-    - encoded_address: 
-  - Develop a programming naming convention
-    - All Global Variables associated with the machine are ALL UPPERCASE
-      - MEMORY
-    - all global constanstant associated with the machine, are
-      - e.g., text_start, data_start
-    - all with an initial _  means?
 
 # Bugs
-   - modify assign_data_label A -->  assign_label data A
+
+1. 
+
+Here the value of the register t3 should be presented in the comment
+(mips) sub $t1, $t2, $t3
+
+   | op   | rs  | rt  | rd  | sh  | func |
+   |------|-----|-----|-----|-----|------|
+   | REG  | $t2 | $t3 | $t1 |    0| sub  |
+   |000000|01010|01011|01001|00000|100010|
+
+     cin:            1           1;             1;                                         1;
+      t2:            6           6; 0x00 00 00 06; 0b0000 0000 0000 0000 0000 0000 0000 0110;
+     ~t3:           -9  4294967287; 0xFF FF FF F7; 0b1111 1111 1111 1111 1111 1111 1111 0111;  t3: 8
+          + ----------  ----------- -------------- ------------------------------------------
+      t1:           -2  4294967294; 0xFF FF FF FE; 0b1111 1111 1111 1111 1111 1111 1111 1110;
+
+   C: 0; V: 0; S: 1; Z: 0
+
 
    - loadStore
      - validate the use of imm and literal
@@ -184,6 +212,10 @@ Special characes \0
      - review how/when the status bits are updated...
      - maybe its only the V and C that need to be defined in particular situations.
        - ie..,  assign_SZ_bits ; assign_CV_bits
+
+
+## Installation
+1. proper call anywhere where files are staged in ~/class/comp122/bin
 
 
 ## Documenations
@@ -278,6 +310,21 @@ Special characes \0
      - simulation: execute the program that is provided to system
      - with-core: execute the program and then dump core
 
+
+
+1. Usage
+   ```
+   mips_cli  
+       --encode:          provide the encoding of an instruction
+       --execute       :  execute the code
+       --single-pseudo :  execute the macro as a single instruction 
+          -- how to show the results of the operation
+       --single-macro  :  execute the pseudo instruction as a single 
+
+   ```
+
+
+
 ## Files:
    - filename.s  : a MIPS program
    - filename.core:  a bash script that
@@ -323,19 +370,6 @@ Special characes \0
    - ascii.char
 
 
-# Consider the following
- Test case:
-
-.text
-      nop
-      nop
-back: nop
-      j fore
-      nop
-fore: nop
-      j back
-
-- infinite loop
 
 ## Memory and Alignment
    - Should we have a memory module that shows how
@@ -343,24 +377,6 @@ fore: nop
 
 
 
-
-
-## Validate
-   - Refine, Test, and Validate examples
-     - Branch Instructions: Need Labels
-     - Jump Instructions: Need Labels
-     - Load and Stores: Need Labels
-
-
-## Traps Error Handling
-
-1. Error Handling
-   - Modify errors to call:  instruction_error "message"
-   - Consider the error output
-     1. bash: slr: command not found
-     1. --> mips: slr: statement undefined
-
-1. Implement Traps
 
 ## Extended Instructions
    1. Implement Pseudo Instructions
@@ -394,17 +410,6 @@ fore: nop
       ```
 
 
-## Bugs
-1. implement
-   - Validate the Add/u addi/u and Sub/u functionality
-
-   1. High encodings for adding does not work correctlry
-       - carry bit, overflow bit
-         - assign $t1 0x7FFFFFFF # overflow
-         -  addi $t1, $t1, 1
-         - assign $t1 0x80000000 # overflow
-         -  addi $t1, $t1, -1
-       - double check the subu, addu
 
 ## Improvements
 1. Consider completting the carry in ... operations..
@@ -417,100 +422,27 @@ fore: nop
    - U+2213      MINUS-OR-PLUS SIGN      ∓
 
 
-1. Move to a move to the loop, eval ... approach
-   1. Needed to handle labels
+  1. Labels:
+      - currently a label is only associated with a single location in memory
+      - for data labels, we have no notion of the size
+      - for text labels, we do know it is a size of four bytes
+      - Should we include a size with a label
 
-1. Add labels:
+      ```
+      function lookup_data_size() {
+        eval echo \$data_size_${1}
+      }
+      ```
 
-
- 1. Consider adding branch instructions..
-    1. Augment PS1 to include the value of PC
-    1. Augment execute to increment PC +4 
-    1. ALU output shows the value of the PC
-    1. if labels are know... allow the instructions
-    1. if label is unknown.. please xxxx in the PC instruction
-    1. have a flag to either exectue the instruction or not
-    1. once the label is found, place into database:
-
-
-
-1. Consider how to handle traps (on overflow)
-
-
-1. Usage
-   ```
-   mips_cli  
-       --encode:          provide the encoding of an instruction
-       --execute       :  execute the code
-       --single-pseudo :  execute the macro as a single instruction 
-          -- how to show the results of the operation
-       --single-macro  :  execute the pseudo instruction as a single 
-
-   ```
-
-
- 1. Consider adding memory operations.
-
- (mips) .data
- (mips-data)  A:  value
- &A = 0x1001 0000
- (mips-data) .text
- (mips) 
-
-lb
-
-     MAR:    -16777216  4278190080; 0xFF 00 00 00; 0b1111 1111 0000 0000 0000 0000 0000 0000;
-     MBR:                      252; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 1111 1100;
-          lb ----------  ----------- -------------- ------------------------------------------
-      t1:         xxxx        xxx ; 0xFF FF FF FC; 0b1111 1111 1111 1111 1111 1111 1111 1100;
+     - size can be determined here as:  (( DATA_NEXT - DATA_LAST))
+     ```
+     assign_data_label "$i" "${DATA_LAST}"
+     ```
 
 
 
-1. proper call anywhere where files are staged in ~/class/comp122/bin
 
 
 
-## Documentation
- 1. Min col COLUMNS=94
- 1. Note that the Parsing of each command is trivially done
-    - the third argument could be a immediate or a register -- there is no telling.
-    - you can shoe-horn in a parser after all is done
-
-1. Print the abstract names of the registers in the execution and the encoding
-
-
-```
-(mips) sub $t4, $t5, $t6
-    | op   |  rs |  rt | rd  | sh  | func |
-    |------|-----|-----|-----|-----|------|
-    | REG  | $t5 | $t6 | $t4 |    0| sub  |
-    |000000|11110|01011|01000|00000|100010|
-
-    cin:                1;             1;                                                        1;
-    rs:  t5;   4294967291;             0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
-    rt: ~t6;   4294967291;            -1; 0xFF FF FF FF; 0b1111 1111 1111 1111 1111 1111 1111 1111;
-    -------- + ----------- ------------- -------------- ------------------------------------------
-    rd:  t4;          -16;             0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
-
-    C: 0;       V: 0;       S: 1;       Z: 0
-
-```
-
-
-Here the value of the register t3 should be presented in the comment
-(mips) sub $t1, $t2, $t3
-
-   | op   | rs  | rt  | rd  | sh  | func |
-   |------|-----|-----|-----|-----|------|
-   | REG  | $t2 | $t3 | $t1 |    0| sub  |
-   |000000|01010|01011|01001|00000|100010|
-
-     cin:            1           1;             1;                                         1;
-      t2:            6           6; 0x00 00 00 06; 0b0000 0000 0000 0000 0000 0000 0000 0110;
-     ~t3:           -9  4294967287; 0xFF FF FF F7; 0b1111 1111 1111 1111 1111 1111 1111 0111;  t3: 8
-          + ----------  ----------- -------------- ------------------------------------------
-      t1:           -2  4294967294; 0xFF FF FF FE; 0b1111 1111 1111 1111 1111 1111 1111 1110;
-
-   C: 0; V: 0; S: 1; Z: 0
 
 
