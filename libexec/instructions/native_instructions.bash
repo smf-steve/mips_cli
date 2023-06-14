@@ -45,7 +45,7 @@ alias     mflo="execute_MoveFrom mflo "=" _lo"       # mtlo $t0
 
 
 ## LoadImmediate
-alias      lui='execute_LoadI lui --'
+alias      lui='execute_LoadI lui --'      
 alias      lhi='execute_LoadI lhi --'       # Part of Hennessy&Pattrson
 alias      llo='execute_LoadI llo --'
 

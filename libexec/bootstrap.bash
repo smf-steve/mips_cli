@@ -54,18 +54,28 @@ function error () {
 
 }
 
+function reinitialize () {
 
+  assign $_npc ${TEXT_START}
+  assign $_pc ${TEXT_START}
+  assign $sp ${SP_START}
+
+}
 
 function execute () {
-  _filename="$1"
+  local _filename="$1"
 
-  [[ -n $_filename ]] || _filename="/dev/tty"
+  INTERACTIVE=FALSE
+
+  old_PS1="$PS1 "
+  [[ -n $_filename ]] || { _filename="/dev/tty" ; INTERACTIVE=TRUE ; }
   [[ -e $_filename ]] || { echo "$_filename not found" ; return 1; }
 
   # boot
   while cycle ; do
     :
   done < $_filename
+  PS1="post "
 }
 
 
@@ -87,21 +97,12 @@ if (( columns <  95 )) ; then
   echo "Width of window is to small -- resize to a minimum width of 95"
 fi
 
-## We need a boot process to set registers and such
-assign $_npc ${TEXT_START}
-assign $_pc ${TEXT_START}
-assign $sp ${SP_START}
 
 echo "Entering the MIPS Command-Line-Interface"
 echo
+reinitialize
+# execute
 
-
-#PS1="(mips) "
-
-# while cycle ; do
-#   :
-# done
-# 
-# echo
-# echo "Exiting the MIPS Command-Line-Interface"
-# exit
+echo
+echo "Exiting the MIPS Command-Line-Interface"
+exit

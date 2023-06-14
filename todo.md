@@ -58,8 +58,13 @@ Is this good or bad?
      - output would be the input and then the output variables
 
 
-
-
+## Print Status Bits
+ 1. Consider moving print_status_bits -- outside of the print_ALU function, or
+ 1. Consider creating a non Print-ALU fuctions for wiring 
+    -- Concern:
+       - mfhi  does not go through the ALU so no status bits should be printed out.
+       - only the insgtruciotns of LoadStore, ArithLog/I, ShiftV, Branch/Z shold call print_status_bits
+       - hence LoadI, Jump/R Move/?  should not
 
 
 # Execute a file

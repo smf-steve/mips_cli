@@ -130,7 +130,6 @@ function cycle () {
   fetch $_ir "${INSTRUCTION[ $(rval $_pc) ]}"       #  Fetch
   local instruction="$(remove_label $(rval $_ir) )"
 
-
   # NPC <- PC + 4 ; Next Program Counter
   #   Execute the instruction or the command
   #      If it is an instruction the "npc" will be updated inside the instruction
@@ -144,7 +143,8 @@ function cycle () {
     echo "Ready to execute: \"$(rval $_ir)\""
 
     # Here we antipate debugger command.
-    while read -p "(debug) " _command ; do 
+    while true ; do
+      read -p "(debug) " _command
       if [[ $? != 0 ]] ; then 
          return 1
       fi
@@ -153,6 +153,7 @@ function cycle () {
                    break
                    ;;
                *)
+                   echo "Only s[tep] is implemented in DEBUG mode"
       esac
     done
   fi
@@ -163,7 +164,7 @@ function cycle () {
   #   to: "[label:]  op rt rs imm"
 
   # This is where we echo the instruction... if we are not interactive..
-  [[ false ]] || echo "${instruction}"
+  [[ ${INTERACTIVE} == "TRUE" ]] || echo "$(rval $_ir)"
 
   # If the instruction is a MIPS instruction, it
   #   1. finish the Fetch step:  NPC <- PC + 4
@@ -561,7 +562,7 @@ function execute_LoadI () {
 
     llo)
          (( _rt_value =  _rt_value &  0xFFFF0000 ))
-         (( _value= _imm ))
+         (( _value= _imm & 0x0000FFFF ))
          _text="$_text"
          LATCH_A=( "LH(${_rt_name})" $_rt_value "${_rt_name} & 0xFFFF0000" )
          ;;
@@ -599,19 +600,19 @@ function execute_Branch () {
 
   case "$_name" in 
     beq) if [[ ${STATUS_BITS[$_z_bit]} == "1" ]] ; then
-           assign $_pc $_addr
+           assign $_npc $_addr
          else
            :
          fi
          ;;
     bne) if [[ ${STATUS_BITS[$_z_bit]} == "0" ]] ; then
-           assign $_pc $_addr
+           assign $_npc $_addr
          else
            :
          fi
          ;;
   esac
-  print_PCWB_stage "${STATUS_BITS[$_z_bit]}" "$_current"  "$_addr" "$_label"
+  print_NPCWB_stage "${STATUS_BITS[$_z_bit]}" "$_current"  "$_addr" "$_label"
 
 }
 
@@ -634,27 +635,27 @@ function execute_BranchZ () {
   }
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
-  local _current=${REGISTER[$_pc]}
+  local _next=${REGISTER[$_npc]}
   local _addr=$(lookup_text_label $_label)
 
   case "$_name" in 
     bgtz) if [[ ${STATUS_BITS[$_s_bit]} == 0 && ${STATUS_BITS[$_z_bit]} == 0 ]] ; then 
              # result is positive, hence '$_rs > 0'
-             assign $_pc $_addr
+             assign $_npc $_addr
           else
             :
           fi
           ;;
     blez) if [[ ${STATUS_BITS[$_s_bit]} == 1 || ${STATUS_BITS[$_z_bit]} == 1 ]] ; then 
              # result is positive, hence '$_rs <= 0'
-             assign $_pc $_addr
+             assign $_npc $_addr
           else
             :
           fi
           ;;
   esac
 
-  print_PCWB_stage "${STATUS_BITS[$_z_bit]}" "$_current"  "$_addr" "$_label"
+  print_NPCWB_stage "${STATUS_BITS[$_z_bit]}" "$_next"  "$_addr" "$_label"
 
 }
 

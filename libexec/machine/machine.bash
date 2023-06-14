@@ -179,14 +179,14 @@ function print_op() {
 function print_cin() {
    [[ $cin == -1 ]]  && return
 
-   printf "     %4s         %4s        %4s;             %c;                                         %c;\n" \
+   printf "     %5s         %4s        %4s;             %c;                                          %c;\n" \
              "cin:" "${cin}" "${cin}" "${cin}" "${cin}"
 }
 
 function print_Z() {
    local value=${STATUS_BITS[$_z_bit]}
 
-   printf "     %4s         %4s        %4s;             %c;                                         %c;\n" \
+   printf "     %5s         %4s        %4s;             %c;                                         %c;\n" \
              "Z  :" "${value}" "${value}" "${value}" "${value}"
 }
 
@@ -196,7 +196,7 @@ function print_Z() {
 # print_pc_WB_stage  
 
 
-function print_PCWB_stage () {
+function print_NPCWB_stage () {
   local z_bit="$1"
   local _current="$2"
   local _addr="$3"
@@ -204,10 +204,10 @@ function print_PCWB_stage () {
 
   [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
 
-  print_value_i "#0" "$_current" "pc"
+  print_value_i "#0" "$_current" "npc"
   print_value_i "#1" "$_addr" "$_label"
   print_op "mux (Z=${z_bit})"
-  print_value   "$_pc"  
+  print_value   "$_npc"  
 }
 
 
