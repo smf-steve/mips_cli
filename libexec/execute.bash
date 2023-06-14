@@ -595,24 +595,28 @@ function execute_Branch () {
   }
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
-  local _current=$(rval $_pc)
+  local _next=$(rval $_npc)
   local _addr=$(lookup_text_label $_label)
+  local _resolved=$_addr
+  if [[ -z "$_addr" ]] ; then
+    _resolved=$_label   # the label is unresolved
+  fi
 
   case "$_name" in 
     beq) if [[ ${STATUS_BITS[$_z_bit]} == "1" ]] ; then
-           assign $_npc $_addr
+           assign $_npc $_resolved
          else
            :
          fi
          ;;
     bne) if [[ ${STATUS_BITS[$_z_bit]} == "0" ]] ; then
-           assign $_npc $_addr
+           assign $_npc $_resolved
          else
            :
          fi
          ;;
   esac
-  print_NPCWB_stage "${STATUS_BITS[$_z_bit]}" "$_current"  "$_addr" "$_label"
+  print_NPCWB_stage "${STATUS_BITS[$_z_bit]}" "$_next" "$_addr" "$_label"
 
 }
 
@@ -635,20 +639,24 @@ function execute_BranchZ () {
   }
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
-  local _next=${REGISTER[$_npc]}
+  local _next=$(rval $_npc)
   local _addr=$(lookup_text_label $_label)
+  local _resolved=$_addr
+  if [[ -z "$_addr" ]] ; then
+    _resolved=$_label   # the label is unresolved
+  fi
 
   case "$_name" in 
     bgtz) if [[ ${STATUS_BITS[$_s_bit]} == 0 && ${STATUS_BITS[$_z_bit]} == 0 ]] ; then 
              # result is positive, hence '$_rs > 0'
-             assign $_npc $_addr
+             assign $_npc $_resolved
           else
             :
           fi
           ;;
     blez) if [[ ${STATUS_BITS[$_s_bit]} == 1 || ${STATUS_BITS[$_z_bit]} == 1 ]] ; then 
              # result is positive, hence '$_rs <= 0'
-             assign $_npc $_addr
+             assign $_npc $_resolved
           else
             :
           fi

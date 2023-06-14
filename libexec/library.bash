@@ -60,7 +60,7 @@ function to_binary () {
        f|F ) _value="${_value} 1111" ;;
     esac
   done
-  echo "${_value}"
+  echo "${_value:1}"
 }
 
 # below is defunct!

@@ -171,7 +171,7 @@ function print_value_i () {
 function print_op() {
    local _op="$1"
       
-   printf "   %9s  --------  ----------- -------------- ------------------------------------------\n" \
+   printf "   %9s   --------  ----------- -------------- ------------------------------------------\n" \
           "${_op}"      
 }
 
@@ -179,14 +179,14 @@ function print_op() {
 function print_cin() {
    [[ $cin == -1 ]]  && return
 
-   printf "     %5s         %4s        %4s;             %c;                                          %c;\n" \
+   printf "     %5s         %4s        %4s;             %c;                                         %c;\n" \
              "cin:" "${cin}" "${cin}" "${cin}" "${cin}"
 }
 
 function print_Z() {
    local value=${STATUS_BITS[$_z_bit]}
 
-   printf "     %5s         %4s        %4s;             %c;                                         %c;\n" \
+   printf "     %5s         %4s        %4s;             %c;                                        %c;\n" \
              "Z  :" "${value}" "${value}" "${value}" "${value}"
 }
 
@@ -207,7 +207,14 @@ function print_NPCWB_stage () {
   print_value_i "#0" "$_current" "npc"
   print_value_i "#1" "$_addr" "$_label"
   print_op "mux (Z=${z_bit})"
-  print_value   "$_npc"  
+
+  # Now handle the special case where the address in NPC is an unresolved reference
+  local _next=$(rval $_npc)
+  if [[ ${_next:0:1} =~ [[:alpha:]]   ]] ; then 
+    print_value_i "npc" "" "$_next"
+  else
+    print_value_i "npc" "$_next"  
+  fi
 }
 
 

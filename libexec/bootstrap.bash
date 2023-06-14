@@ -103,6 +103,6 @@ echo
 reinitialize
 # execute
 
-echo
-echo "Exiting the MIPS Command-Line-Interface"
-exit
+# echo
+# echo "Exiting the MIPS Command-Line-Interface"
+# exit
