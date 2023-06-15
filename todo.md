@@ -1,26 +1,58 @@
 # To Do List
 
-reveiw the jump and JumpR
-  -- need to update the value of the PC
-  -- need to store the encoding of the instructions
+1. Jump/R instructions
+  - need to do the NPCWB and the 
+  - RA assignment
+  - is the Branch instruction a model for the output?
 
-currently recording non MIPS instrucitons
-
-(mips) dump_instructions
-declare -a INSTRUCTION=(
- [4194304]="a: nop"
- [4194308]="b: nop"
- [4194312]="c: nop"
- [4194316]="dump_segment DATA"
- [4194320]="dump_instructions "
-)
-
-Is this good or bad?
-  - good: we can pay what we have  
-  - bad: we have PC being updated incorrectly  <<--
+1. For forward labels,
+   - need to put in a message..
+     ```
+      Paused execution of:  beq $t1, $t2, next
+      (prefetch next)  next: nop
+      Ready to execute: "beq $t1, $t2, next"
+      (debug) s
+      Ready to execute: "next: nop"
+     ```
 
 
-1. test cycle loop
+1. get rid of the _deferred_, change to unresolved or ??????
+
+1. execute a file...
+   - should this force it to got into preload first, then execute no stop...
+1. newline after NPCWB_stage
+
+1. Debug Mode..
+   - need some message to say comming out of debug mode.
+   - yes the prompt changes but...
+
+1. add a l list to debug mode to proint out current lines.
+
+1. validate an instruction error
+  - interactive mode= abort instructions
+  - batch mode -> aborts program and dump core
+
+1. reveiw all of the promps.
+   - e.g., the execute prompt should not be $
+
+1.  Currently recording non MIPS instructions
+    ```
+    
+    (mips) dump_instructions
+    declare -a INSTRUCTION=(
+     [4194304]="a: nop"
+     [4194308]="b: nop"
+     [4194312]="c: nop"
+     [4194316]="dump_segment DATA"
+     [4194320]="dump_instructions "
+    )
+    ```
+    - update prefetch loop to ignore non-MIPS instructions
+    - I.e., need a list of supported instructions
+
+
+1. Test forward loop
+1. Add test case of forward and backward loops
 
 # Testing: May 26
   1. set.s
@@ -58,22 +90,12 @@ Is this good or bad?
      - output would be the input and then the output variables
 
 
-## Print Status Bits
- 1. Consider moving print_status_bits -- outside of the print_ALU function, or
- 1. Consider creating a non Print-ALU fuctions for wiring 
-    -- Concern:
-       - mfhi  does not go through the ALU so no status bits should be printed out.
-       - only the insgtruciotns of LoadStore, ArithLog/I, ShiftV, Branch/Z shold call print_status_bits
-       - hence LoadI, Jump/R Move/?  should not
+## Status Bits Review
+ 1. Validate the following syntax don't or do make use of the ALU
+      * DivMult, LoadI, Move {From, To}, Trap, Syscall
+    - If the use the ALU (to pass values through), then make an appropriate call to the ALU
+    - Ensure the status bits are set
 
-
-# Execute a file
-  - read with file completion, etc.
-    -- and readline completion
-
-1. validate an instruction error
-  - interactive mode= abort instructions
-  - batch mode -> aborts program and dump core
 
 
 ## Bugs
@@ -87,9 +109,6 @@ Is this good or bad?
          - assign $t1 0x80000000 # overflow
          -  addi $t1, $t1, -1
        - double check the subu, addu
-
-
-
 
 
 
@@ -150,20 +169,6 @@ Special characes \0
   1. double check that the ArithLogI use zE for logical operations
 
 
-  1. check the iput values for LoadI, is it:
-     ```version 1
-     llo $t1, 0xFFFF FFFF AAAA AAAA
-     lhi $t2, 0xFFFF FFFF AAAA AAAA
-     ```
-     ```version2 
-     llo $t1,           0xAAAA AAAA
-     lhi $t2, 0xFFFF FFFF 
-     ```
-     - can the registers be the same.  I.e., an implicit | is performed
-     - per the document:  HH ($t) = i,  hence 
-       - it is version 2
-       - with an implicit |
-
 
 # Bugs
 
@@ -212,12 +217,6 @@ Here the value of the register t3 should be presented in the comment
             t1:            4           4; 0x00 00 00 04; 0b0000 0000 0000 0000 0000 0000 0000 0100;
 
         ```
-   - assign: appears to be strange
-     - because it then calls assign status bits: so it passes in 4 things
-     - review how/when the status bits are updated...
-     - maybe its only the V and C that need to be defined in particular situations.
-       - ie..,  assign_SZ_bits ; assign_CV_bits
-
 
 ## Installation
 1. proper call anywhere where files are staged in ~/class/comp122/bin
@@ -419,6 +418,9 @@ Here the value of the register t3 should be presented in the comment
 ## Improvements
 1. Consider completting the carry in ... operations..
    (It's for educational purposes..)
+
+1. READLINE:
+  - use of readline for file line completion
 
 
 1. Consider using digital gates for output symbols

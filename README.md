@@ -15,22 +15,24 @@ The "mips_cli" utility provides three main purposes to students as a learning to
 
    1. View the encoding of the instruction.  
       Three instruction types are supported:  R-encoding, I-encoding, J-encoding
+
    1. Observe the execution of these instructions via a summary output of:
       - Arithmetic, Logic, and Shift operations via the depiction of the ALU unit
       - Multiplication and Division operations via the depiction of the MDU unit
       - Load and Store Operations via the depiction of the ALU and MEM units
       - Branch and Jump operations via the depiction for ALU and PC-Update units
       - Syscall and Trap operations via the depiction of register modifications
+
    1. Retain the encoding of the both text and data segment
 
-This tool can be used either in interactive mode or in batch model.  While in interactive mode, students are prompted to enter one instruction at a time.  The instruction is encoded and executed.  Additional commands can be provide to examine or alter the state of the machine (a limited debugger in some ways).
+This tool can be used either in either interactive mode or in batch mode.  While in interactive mode, students are prompted to enter one instruction at a time.  The instruction is encoded and executed.  Additional commands can be provided to examine or alter the state of the machine (a limited debugger in some ways).
 
-While in batch mode, the tool executes a mips subroutine based upon command line operations.  For example, the following depict how to invoke the mips_cli tool execute a mips subroutine. In the following example, it is presumed that the subroutine is located in file named "subroutine.s"
+While in batch mode, the tool executes a mips subroutine based upon command line arguements.  For example, the following depict hows to invoke the mips_cli tool execute a mips subroutine called "subroutine"  (It is presumed that the subroutine is located in file named "subroutine.s")
 
    ```bash
    $ mips_cli subroutine  arg1 arg2 ... arg3
    ```
-Command line options can also be provide to alter the output of the program.
+Command line options can also be provided to alter the operation of the program.
 
 ## Interactive Modes:
 
@@ -39,15 +41,15 @@ Command line options can also be provide to alter the output of the program.
 
 1. prefetch: any shell or mips instruction can be entered from the prompt
    - cause: a branch instruction that has an unresolved target has been entered
-   - each MIPS instructin is added, but not executed to the interactive program
+   - each MIPS instruction is added, but not executed to the interactive program
 
    - each shell command is executed
-   - a MIPS instruction that is prepaned with an "@" is executed but not added to the program
+   - a MIPS instruction that is prepended with an "@" is executed but not added to the program
 
 1. debug: you can step through the program
    - cause: a branch instruction that has a resolved target has been entered
-   - debug commands are now active, unit completionof the code that that is part of the current interacive program
-   - MIPS and shell instructions prepaned with an "@" are executed but not added to the program
+   - debug commands are now active, unit completion of the code that that is part of the current interactive program
+   - MIPS and shell instructions prepended with an "@" are executed but not added to the program
 
 
 

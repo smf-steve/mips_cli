@@ -110,7 +110,7 @@ function print_I_encoding () {
 
     local _imm_code
     if [[ -n "$_label" ]] ; then
-       # the immediate is base upone a label
+       # the immediate is base upon a label
        _imm=$_label
        _imm_code=$(encode_offset $_label)
     else
@@ -170,7 +170,7 @@ function print_J_encoding () {
     printf "\t| %-5s| %-25s|\n" " ${_op:0:5}" "${_label:0:24}"
 
     if [[ $_addr_code == "_deferred_" ]] ; then 
-        _addr_code="_    deferred    _ "   # To center it
+        _addr_code="??????????????????????????"   # To center it
     fi
 
     printf "\t|%s|%26s|\n" "$_op_code" "$_addr_code"

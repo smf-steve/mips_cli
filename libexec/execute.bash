@@ -164,7 +164,7 @@ function cycle () {
   #   to: "[label:]  op rt rs imm"
 
   # This is where we echo the instruction... if we are not interactive..
-  [[ ${INTERACTIVE} == "TRUE" ]] || echo "$(rval $_ir)"
+  [[ ${INTERACTIVE} == "TRUE" ]] || echo "\$ $(rval $_ir)"
 
   # If the instruction is a MIPS instruction, it
   #   1. finish the Fetch step:  NPC <- PC + 4
@@ -174,6 +174,7 @@ function cycle () {
   eval $instruction    
 
   assign $_pc $(rval $_npc)
+  # Issue arises here if the value of pc is unsolved
 
 
   return 0;
@@ -634,6 +635,8 @@ function execute_BranchZ () {
     emit_p=${EMIT_ENCODINGS}
     EMIT_ENCODINGS=FALSE
 
+    # I could also also execute an any instruction that results in the ALU output
+    # beign the same as $_rs
     execute_ArithLog "sub" "-" $_zero $_rs $_zero 
     EMIT_ENCODINGS=$emit_p
   }
@@ -740,18 +743,24 @@ function execute_Jump () {
   # Usage:  name -- _label
   local _name="$1"
   local _op="$2"
-  local _label="$(sed -e 's/,$//' <<< $3)"
+  local _label="$3"
 
   print_J_encoding $_name $_label
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
+  local _addr=$(lookup_text_label $_label)
+  local _resolved=$_addr
+  if [[ -z "$_addr" ]] ; then
+    _resolved=$_label   # the label is unresolved
+  fi
+
   case $_name in 
     jal) 
-         assign $ra $(( REGISTER[$_pc]+4 ))     # Operation is NOT being run through the ALU
-         # Note that the [not the ALU] writeback stage needs to show pc --> ra
+         assign $ra $(( $(rval $_pc) + 4 ))
+         # Insert code to print out the output like the branch instruction
         ;;
   esac
-  assign $_npc $(lookup_text_label $_label)
+  assign $_npc $_resolved
 }
 
 
@@ -760,17 +769,24 @@ function execute_JumpR () {
   # Usage:  name -- rs   # R-format
   local _name="$1"
   local _op="$2"
-  local _rs="$(sed -e 's/,$//' <<< $3)"
+  local _rs="$3"
 
   ## encode_R_instruction $_name $_rs "0" "0" "0"
   ## print_R_encoding $_name $_rs "0" "0" "0"
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
+  local _addr=$(lookup_text_label $_label)
+  local _resolved=$_addr
+  if [[ -z "$_addr" ]] ; then
+    _resolved=$_label   # the label is unresolved
+  fi
+
   case $_name in 
     jalr) 
-          assign $ra $(( $(rval $_pc) + 4 ))  # Operation is NOT being run through the ALU
+          assign $ra $(( $(rval $_pc) + 4 )) 
+          # Insert code to print out the output like the branch instruction
           ;;
   esac
 
-  assign $_npc $(lookup_text_label $_label)
+  assign $_npc $_resolved
 }
