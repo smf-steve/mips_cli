@@ -14,7 +14,11 @@
       (debug) s
       Ready to execute: "next: nop"
      ```
-
+1. should the LoadI be use the ALU for the operation
+   -- or should there be a separate forward unit
+      - forward might be cleaner, but the ALU can do the work
+      - the wiring is similar to the extended sign
+      
 
 1. get rid of the _deferred_, change to unresolved or ??????
 

@@ -62,6 +62,15 @@ function reinitialize () {
 
 }
 
+
+###  Interactive:  (and on the fly)
+#  execute
+
+##  Debug
+##  load - this assembles it
+##  execute PC=${PC_START}
+
+
 function execute () {
   local _filename="$1"
 
