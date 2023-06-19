@@ -526,7 +526,7 @@ function execute_DivMult () {
 # Syntax: name rt imm
 function execute_LoadI () {
   # Usage: name -- rt, im
-  #    llo $t1,           0xAAAA AAAA
+  #    llo $t1,              0xAAAA AAAA
   #    lhi $t1, 0xFFFF FFFF 
   #  llo:  LH ($t) = i
   #  lhi:  HH ($t) = i
