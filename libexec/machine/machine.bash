@@ -18,26 +18,76 @@ declare -r _v_bit=1 ;  STATUS_BITS[$_v_bit]="0"
 declare -r _s_bit=2 ;  STATUS_BITS[$_s_bit]="0" 
 declare -r _z_bit=3 ;  STATUS_BITS[$_z_bit]="0" 
 
+
+function reset_trap_on() {
+  trap_C="FALSE"
+  trap_V="FALSE"
+  trap_S="FALSE"
+  trap_V="FALSE"
+}
+
+alias trap_on_C="trap_C=TRUE"
+alias trap_on_V="trap_V=TRUE"
+alias trap_on_S="trap_S=TRUE"
+alias trap_on_Z="trap_Z=TRUE"
+
+alias C_trap=":"
+alias S_trap=":"
+alias Z_trap=":"
+function V_trap () {
+  if [[ "${trap_V}" == "TRUE" ]] ; then 
+    # trap 12
+    echo "Trap due to overflow"
+  fi
+}
+
 function reset_status_bits() {
   STATUS_BITS[$_c_bit]=0
   STATUS_BITS[$_v_bit]=0
   STATUS_BITS[$_s_bit]=0
   STATUS_BITS[$_z_bit]=0
 }
+
+##  In Bash, our values are stored using 64-bit 2's complement encoding
+##  Hence, determining the status bits for values within the range -2^31 .. 2^31-1
+##  is defined by the following calculations.
+#
+#  Sign Calculation: (regardless of the size of representation)
+#
+#  Zero Calculation: (regardless of the size of representation)
+#
+#  Overflow Calculations: (regardless of size of representation)
+#    - Overflow is true if..  the sign of final value is flipped  
+#
+#  Carry Calculations:  Using unsigned representation of 32-bit values
+#    - Carry is true if..  rs + rt > max_unsigned_word 
+#      * i.e., mask the values of rs and rt first to get the 32-bit representation
+
 function assign_status_bits() {
   local _value="$1"
   local _rs_value="$2"
   local _rt_value="$3"
 
-  local _both_pos=$(( _rs_value >= 0 && _rt_value >= 0 ))
-  local _both_neg=$(( _rs_value <  0 && _rt_value  < 0 ))
-  local flipped_to_neg=$(( _value < 0 && _both_pos ))
-  local flipped_to_pos=$(( _value > 0 && _both_neg ))
-
-  STATUS_BITS[$_v_bit]=$(( flipped_to_neg | flipped_to_pos ))
-  STATUS_BITS[$_c_bit]=$(( _value > max_word_unsigned ? 1 : 0))
   STATUS_BITS[$_s_bit]=$(( _value < 0 ))
   STATUS_BITS[$_z_bit]=$(( _value == 0 ))
+
+  # Technically, the Carry and oVerflow bit is only relevant if it is an Add operation
+  # But since the class shows that the ALU computes all values always
+  # These bits are defined.
+  { 
+    local _both_pos=$(( _rs_value >= 0 && _rt_value >= 0 ))
+    local _both_neg=$(( _rs_value <  0 && _rt_value  < 0 ))
+  
+    local flipped_to_neg=$(( _value < 0 && _both_pos ))
+    local flipped_to_pos=$(( _value > 0 && _both_neg ))
+  
+    STATUS_BITS[$_v_bit]=$(( flipped_to_neg | flipped_to_pos ))
+  }
+
+  (( _rs_value = _rs_value & 0xFFFFFFFF ))
+  (( _rt_value = _rt_value & 0xFFFFFFFF ))
+  STATUS_BITS[$_c_bit]=$(( (_rs_value + _rt_value ) > max_word_unsigned ? 1 : 0))
+
 }
 
 function print_status_bits() {
@@ -46,15 +96,16 @@ function print_status_bits() {
       ${STATUS_BITS[$_v_bit]} \
       ${STATUS_BITS[$_s_bit]} \
       ${STATUS_BITS[$_z_bit]}
-
 }
 
-
-alias trap_on_C=":"
-alias trap_on_V=":"
-alias trap_on_S=":"
-alias trap_on_Z=":"
-
+function trap_on_status_bits () {
+  # If a trap_on_<bit> is set, echo out a message
+  [[ ${STATUS_BITS[$_c_bit]} == "1" ]]  && C_trap
+  [[ ${STATUS_BITS[$_v_bit]} == "1" ]]  && V_trap
+  [[ ${STATUS_BITS[$_s_bit]} == "1" ]]  && S_trap
+  [[ ${STATUS_BITS[$_z_bit]} == "1" ]]  && Z_trap
+  reset_trap_on
+}
 
 function print_ALU_state() {
   # Print values on the two input latches with the op and output register/s
@@ -74,6 +125,8 @@ function print_ALU_state() {
   [[ $_dst2 != "" ]]  && print_value $_dst2
   echo 
   print_status_bits
+  trap_on_status_bits
+  echo
 }
 
 function print_immediate() {
@@ -115,11 +168,11 @@ function print_value() {
   case ${#} in
       1) # print the current contents of the register
          _name=${_prefix}$(name ${_register})
-         _rval=$((${_prefix}$(rval ${_register}) ))
+         _rval=$(( ${_prefix}$(rval ${_register}) ))
          ;;
       2) # print the old value of the register
          _name=${_prefix}$(name ${_register})
-         _rval=$((${_prefix}${_value} ))
+         _rval=$(( ${_prefix}${_value} ))
          ;;
       3) # print the value as an immediate
          _name="$_register"    
@@ -127,16 +180,17 @@ function print_value() {
          ;;
   esac
 
-  if [[ -z "$_text" ]] ; then
-    _prefix=${_rval:0:1}
-  fi
-  if [[ $_prefix == '~' || $_prefix == '-' ]] ; then
-   _text=
-   _register=${_register:1}
+  # What does the following -- before the print_value_i do?
+  # if [[ -z "$_text" ]] ; then
+  #   _prefix=${_rval:0:1}
+  # fi
+  # if [[ $_prefix == '~' || $_prefix == '-' ]] ; then
+  #   _text=        #  "~ 0x$(to_hex 8 $(rval $_register))"
+  #   _register=${_register:1}
 
-  else
-   _prefix=""
-  fi
+  # else
+  #   _prefix=""
+  # fi
 
   print_value_i "$_name" "$_rval" "$_text"
 }
@@ -215,6 +269,7 @@ function print_NPCWB_stage () {
   else
     print_value_i "npc" "$_next"  
   fi
+  echo
 }
 
 

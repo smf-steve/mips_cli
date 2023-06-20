@@ -330,6 +330,7 @@ function execute_ArithLog() {
            _op="+"
            _carry_in=1
            _rt_prefix="~"
+           _rt_text="$(printf "~ %0x%X" $(rval $_rt) )"
          ;;
 
       *) unset_cin
@@ -338,8 +339,8 @@ function execute_ArithLog() {
 
   local _rs_value=$(rval $_rs)
   local _rt_value=${_rt_prefix}$(rval $_rt)
-  LATCH_A=($_rs $_rs_value )
-  LATCH_B=(${_rt_prefix}$_rt ${_rt_prefix}$_rt_value ) 
+  LATCH_A=( "$_rs" "$_rs_value" )
+  LATCH_B=( "${_rt_prefix}$_rt" "${_rt_prefix}$_rt_value" )  # "$_rt_text") 
 
   case $_name in
      slt*u) # Use 32-bits as unsigned
@@ -355,7 +356,7 @@ function execute_ArithLog() {
            ;;
   esac
 
-  alu_assign $_rd $_value $_rs_value $_rt_value
+  alu_assign "$_rd" "$_value" "$_rs_value" "$_rt_value"
   print_ALU_state "$_op" $_rd
   unset_cin
 }
@@ -383,8 +384,8 @@ function execute_ArithLogI () {
 
   _value=$(( _rs_value $_op _literal ))
 
-  alu_assign $_rt $_value $_rs_value $_literal
-  print_ALU_state "$_op" $_rt
+  alu_assign "$_rt" "$_value" "$_rs_value" "$_literal"
+  print_ALU_state "$_op" "$_rt"
   unset_cin
 }
 
@@ -418,7 +419,7 @@ function execute_Shift () {
     _value=$(( _value & 0xFFFFFFFF ))
   fi
 
-  alu_assign $_rd $_value $_rt_value $_shamt 
+  alu_assign "$_rd" "$_value" "$_rt_value" "$_shamt" 
   print_ALU_state "$_op" $_rd
 }
 
@@ -455,7 +456,7 @@ function execute_ShiftV () {
     _value=$(( _value & 0xFFFFFFFF ))
   fi
 
-  alu_assign $_rd $_value $_rt_value $_rs_value 
+  alu_assign "$_rd" "$_value" "$_rt_value" "$_rs_value" 
   print_ALU_state "$_op" $_rd
 }
 
@@ -570,7 +571,7 @@ function execute_LoadI () {
   esac
   LATCH_B=( imm "${_value}" "$_text" )
 
-  alu_assign $_rt $(( _rt_value $_op _value ))
+  alu_assign "$_rt" "$(( _rt_value $_op _value ))" "0"
   print_ALU_state "$_op" $_rt
 }
 
@@ -725,16 +726,16 @@ function execute_LoadStore () {
                 ;;
           esac     
 
-          alu_assign $_rt $_rt_value   # Operation is being run through the ALU
+          alu_assign "$_rt" "$_rt_value" "0"  # Operation is being run through the ALU
           ;;
       s*)
           _rt_value=$(rval $_rt)
 
-          alu_assign $_mbr $_rt_value
+          alu_assign "$_mbr" "$_rt_value" "0"
           data_memory_write $_size
           ;;
    esac
-   print_WB_stage "$_name" $_rt $_size
+   print_WB_stage "$_name" "$_rt" "$_size"
 
 }
 
@@ -748,6 +749,7 @@ function execute_Jump () {
   print_J_encoding $_name $_label
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
+  local _next=$(rval $_npc)
   local _addr=$(lookup_text_label $_label)
   local _resolved=$_addr
   if [[ -z "$_addr" ]] ; then
@@ -756,11 +758,15 @@ function execute_Jump () {
 
   case $_name in 
     jal) 
-         assign $ra $(( $(rval $_pc) + 4 ))
-         # Insert code to print out the output like the branch instruction
-        ;;
+         LATCH_A=( $_npc )
+         LATCH_B=( $zero )
+         alu_assign "$ra" "$(( $(rval $_npc) ))" "0"
+         print_ALU_state "|" "$ra"
+         ;;
   esac
   assign $_npc $_resolved
+  print_NPCWB_stage "1" "$_next" "$_addr" "$_label"
+
 }
 
 
@@ -775,6 +781,7 @@ function execute_JumpR () {
   ## print_R_encoding $_name $_rs "0" "0" "0"
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
+  local _next=$(rval $_npc)
   local _addr=$(lookup_text_label $_label)
   local _resolved=$_addr
   if [[ -z "$_addr" ]] ; then
@@ -783,10 +790,14 @@ function execute_JumpR () {
 
   case $_name in 
     jalr) 
-          assign $ra $(( $(rval $_pc) + 4 )) 
-          # Insert code to print out the output like the branch instruction
-          ;;
+         LATCH_A=( $_npc )
+         LATCH_B=( $zero )
+         alu_assign "$ra" "$(( $(rval $_npc) ))" "0"
+         print_ALU_state "|" $ra
+         ;;
   esac
 
   assign $_npc $_resolved
+  print_NPCWB_stage "1" "$_next" "$_addr" "$_label"
+
 }

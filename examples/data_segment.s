@@ -12,4 +12,4 @@
 .byte  0xAA
 .word  0xDEFACE00 
 
-print_data_memory
+print_memory

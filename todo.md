@@ -1,10 +1,5 @@
 # To Do List
 
-1. Jump/R instructions
-  - need to do the NPCWB and the 
-  - RA assignment
-  - is the Branch instruction a model for the output?
-
 1. For forward labels,
    - need to put in a message..
      ```
@@ -18,13 +13,12 @@
    -- or should there be a separate forward unit
       - forward might be cleaner, but the ALU can do the work
       - the wiring is similar to the extended sign
-      
+
 
 1. get rid of the _deferred_, change to unresolved or ??????
 
 1. execute a file...
    - should this force it to got into preload first, then execute no stop...
-1. newline after NPCWB_stage
 
 1. Debug Mode..
    - need some message to say comming out of debug mode.
@@ -54,28 +48,38 @@
     - update prefetch loop to ignore non-MIPS instructions
     - I.e., need a list of supported instructions
 
-
-1. Test forward loop
-1. Add test case of forward and backward loops
-
 # Testing: May 26
+  1. data_segment.s
+  1. load_stores.s
+  1. loadi.s
+
   1. set.s
   1. logical.s
   1. shifts.s
   1. mult-div.s
-  1. load_stores.s
-     - deferred
- 
+  
+  1. loops.s
+
   1. arithmetic.s
      - need more test exampls
+     - sub  when you do a ~t3, the comment should be the original HEX Number
+     ```
+     (mips) sub $t1, $t2, $t3
+     
+        | op   | rs  | rt  | rd  | sh  | func |
+        |------|-----|-----|-----|-----|------|
+        | REG  | $t2 | $t3 | $t1 |    0| sub  |
+        |000000|01010|01011|01001|00000|100010|
+     
+          cin:            1           1;             1;                                         1;
+           t2:            6           6; 0x00 00 00 06; 0b0000 0000 0000 0000 0000 0000 0000 0110;
+          ~t3:           -9  4294967287; 0xFF FF FF F7; 0b1111 1111 1111 1111 1111 1111 1111 0111; "~ 0x00 00 00 08
+               + ----------  ----------- -------------- ------------------------------------------
+           t1:           -2  4294967294; 0xFF FF FF FE; 0b1111 1111 1111 1111 1111 1111 1111 1110;
+     
+        C: 0; V: 0; S: 1; Z: 0
+     ```
 
-     - sub  when you do a ~t6, the comment should be the original signed Dec Number
-     - modify the unsigned to signal a trap on overflow  
-       - v-trap (on):  V=1  --> trap
-       - V-trap (off): V=1  --> off
-       - no trap:
-
-      1. Consider how to handle traps (on overflow)
 
 
 ## Traps Error Handling
@@ -102,44 +106,16 @@
 
 
 
-## Bugs
-1. implement
-   - Validate the Add/u addi/u and Sub/u functionality
-
-   1. High encodings for adding does not work correctlry
-       - carry bit, overflow bit
-         - assign $t1 0x7FFFFFFF # overflow
-         -  addi $t1, $t1, 1
-         - assign $t1 0x80000000 # overflow
-         -  addi $t1, $t1, -1
-       - double check the subu, addu
-
-
-
-
 # Notes:
   1. build  routines to print out memory and the like
-       print_text_memory  <-- this has different output
 
-       print_data_memory
-       print_heap_memory
-       print_stack_memory
-
-(mips) print_data_memory 
-address   :     4       3       2       1
-0x10010000:  0x73    0x69    0x68    0x74
-0x10010004:  0x20    0x73    0x69    0x20
-0x10010008:  0x20    0x65    0x68    0x74
-0x1001000c:  0x69    0x67    0x65    0x62
-0x10010010:  0x6e    0x69    0x6e    0x6e
-0x10010014:  0x66    0x6f    0x20    0x67
-0x10010018:  0x65    0x68    0x74    0x20
-0x1001001c:  0x69    0x72    0x73    0x20
-0x10010020:  0x00    0x00    0x67    0x6e
+print_data  
+print_text : provides the encoding for each
+   [address]:  encoding ; { labels }: instructions
 
 verses
 
-(mips) print_data_memory 
+(mips) print_data
 address   :                   2       1
 0x10010000:  0x73    's' ;   0x6973 (26995);  0x74686973 (1952999795)
 0x10010000:  0x69    'i' ;  
@@ -161,9 +137,6 @@ C escape of interest:  \t \n \r \f \a \b \e
 Special characes \0
 
 
-  1. Read notes.txt to deal with Jump and JumpR instructions
-  1. Execution for the branch, BranZ, Jump must be completed
-
   1. create a list of functions exposed to the user
   1. Revise the approach to convering to hex, binary... 
      - leave the formating for the print routines.
@@ -178,23 +151,7 @@ Special characes \0
 
 1. 
 
-Here the value of the register t3 should be presented in the comment
-(mips) sub $t1, $t2, $t3
-
-   | op   | rs  | rt  | rd  | sh  | func |
-   |------|-----|-----|-----|-----|------|
-   | REG  | $t2 | $t3 | $t1 |    0| sub  |
-   |000000|01010|01011|01001|00000|100010|
-
-     cin:            1           1;             1;                                         1;
-      t2:            6           6; 0x00 00 00 06; 0b0000 0000 0000 0000 0000 0000 0000 0110;
-     ~t3:           -9  4294967287; 0xFF FF FF F7; 0b1111 1111 1111 1111 1111 1111 1111 0111;  t3: 8
-          + ----------  ----------- -------------- ------------------------------------------
-      t1:           -2  4294967294; 0xFF FF FF FE; 0b1111 1111 1111 1111 1111 1111 1111 1110;
-
-   C: 0; V: 0; S: 1; Z: 0
-
-
+H
    - loadStore
      - validate the use of imm and literal
        * it appears I should be using the literal value, but am using the immediate
@@ -451,7 +408,9 @@ Here the value of the register t3 should be presented in the comment
      ```
 
 
-
+1. ALU Latches
+   print_ALU uses the latches, but assign_bits don't
+   this is inconsistent
 
 
 

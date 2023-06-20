@@ -92,25 +92,23 @@ function assign () {
 }
 
 
-
+# Perhaps alu_assign, should be rename ALU_WB, etc.
 function alu_assign() {
-  # The value computed is 
-
-  # Place a number that can be represented as a 
-  #   32-bit value into a register.
-  # Recall that the shell has 64 bits.
-
   local _index="$1"
   local _value="$2"
   local _src1="$3"
   local _src2="$4"
 
+  # Allow the ALU to project its final values.
+  # Ensure the output _value is represented as a 32-bit quanitity using 64 bits.
   if (( _value > max_word )) ; then
     # we need to extend the sign for a 64-bit value
     _value=$(( _value | 0xFFFFFFFF00000000 ))
   fi
 
-  assign_status_bits $_value $_src1 $_src2
+  assign_status_bits "$_value" "$_src1" "$_src2"
+  trap_on_status_bits
+
   REGISTER[$_index]="$_value"
 }
 

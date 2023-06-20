@@ -18,41 +18,60 @@ function allocate_data_memory() {
    (( DATA_NEXT = DATA_NEXT + _size ))
 }
 
-function print_data_memory() {
-   # Lets assume
-   #  1. we print out each segment separately
-   #  1. we have the first and last for each segement
-   # For now, just print the data segment.
-   #    (mips) echo "${!REGISTER[@]}"
-
-   local allocated
-   local _cols
-   local _rows
-   local _item_count
-   local _current
-
-   (( allocated = DATA_NEXT - DATA_START ))
-   _rows=$((  allocated / 4 ))
-   _cols=$((  allocated % 4 ))
-   if (( _cols != 0 )) ; then
-      (( _rows ++ ))
-   fi
-   _item_count=$(( _rows * 4 ))
-  
-   _current=$DATA_START
-   if [[ "$ENDIANNESS" == "BIG" ]] ; then
-     printf "%-10s:\t %4d\t %4d\t %4d\t %4d\n" address 1 2 3 4
-     for (( i=0; i < _item_count && _current < DATA_NEXT; i+=4, _current+=4 )) ; do
-       printf "0x%08x:\t 0x%02x\t 0x%02x\t 0x%02x\t 0x%02x\n"  $_current \
-       "${MEM[$_current]}" "${MEM[$_current+1]}" "${MEM[$_current+2]}" "${MEM[$_current+3]}"
-     done
-  else
-    printf "%-10s:\t %4d\t %4d\t %4d\t %4d\n" address 4 3 2 1
-    for (( i=0; i < _item_count && _current < DATA_NEXT; i+=4, _current+=4 )) ; do
-      printf "0x%08x:\t 0x%02x\t 0x%02x\t 0x%02x\t 0x%02x\n"  $_current \
-      "${MEM[$_current+3]}" "${MEM[$_current+2]}" "${MEM[$_current+1]}" "${MEM[$_current]}"
-    done
+function print_memory() {
+  local segment="$1"
+  if [[ -z ${segment} ]] ; then
+    segment=DATA
   fi
+  case "$segment" in 
+    TEXT  ) start=$TEXT_START
+            last=$TEXT_NEXT
+            ;;
+    DATA  ) start=$DATA_START
+            last=$DATA_NEXT
+            #
+            ;;
+    HEAP  ) start=$HEAP_START
+            last=$HEAP_NEXT
+            ;;
+    STACK ) start=$STACK_START
+           last=$STACK_NEXT
+             # Perhaps the stack should be presented in reverse
+  esac
+
+  if [[ "$ENDIANNESS" == "BIG" ]] ; then
+    printf "${segment}:\t\t  +3\t  +2\t+  1\t  +0\n"
+  else
+    printf "${segment}:\t\t  +0\t  +1\t  +2\t  +3\n"
+  fi
+
+  for (( i = $start ; i < $last ; i+=4 )) ; do
+    printf  "[0x%x]\t" ${i}
+    if [[ "$ENDIANNESS" == "BIG" ]] ; then
+      for (( j=0; j<4 ; j++ )) ; do
+        (( index = i + j ))
+        eval value="\${${segment}[${index}]}"
+        if [[ -n "${value}" ]] ; then
+           printf "0x%02x\t" ${value}
+        else
+           printf -- " --\t"
+        fi
+      done
+      echo
+    else
+      for (( j=3; j>=0 ; j-- )) ; do
+        (( index = i + j ))
+        eval value="\${${segment}[${index}]}"
+        if [[ -n "${value}" ]] ; then
+           printf "0x%02x\t" ${value}
+        else
+           printf -- " --\t"
+        fi
+      done
+      echo
+    fi
+  done
+  echo
 
 }
 

@@ -56,7 +56,7 @@ function dump_segment  () {
 
 	[[ "$raw" == "TRUE" ]] ||  echo  "declare -a ${segment}=("
 	for key in $( eval echo \${!${segment}[@]} ) ; do
-		 [[ "$raw" == "TRUE" ]] || printf " [${key}]="
+		 [[ "$raw" == "TRUE" ]] || printf " [0x%x]=" "${key}"
 		 eval echo \\\"\${${segment}[${key}]}\\\" 
 	done
 	[[ "$raw" == "TRUE" ]] || echo ")"
