@@ -30,6 +30,7 @@ instruction_warning () {
 }
 
 
+
 # Inclue the support files:
 source libexec/settings.bash
 source libexec/library.bash
@@ -45,12 +46,6 @@ source libexec/instructions/instructions.bash
 
 
 
-
-function error () {
-
-  echo "$1"
-
-}
 
 function reinitialize () {
 

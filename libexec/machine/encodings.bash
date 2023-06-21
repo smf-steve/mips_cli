@@ -11,7 +11,7 @@ function lookup_opcode () {
     if [[ $? == 0 ]] ; then 
       echo $num
     else
-      error "Undefined \"op\""
+      instruction_error "Undefined \"op\""
     fi
 }
 
@@ -23,7 +23,7 @@ function lookup_func () {
     if [[ $? == 0 ]] ; then
       echo $num
     else
-      error "Undefined \"func\""
+      instruction_error "Undefined \"func\""
     fi 
 }
 
