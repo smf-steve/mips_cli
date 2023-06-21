@@ -1,10 +1,5 @@
 #!/bin/bash
 
-declare -a MEM
-declare -a DATA
-declare -a HEAP
-declare -a STACK
-
 function allocate_data_memory() {
    local _size="$1"
    local _value="$2"
