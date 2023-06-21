@@ -1,3 +1,9 @@
+#! /bin/bash
+
+declare -a MEM
+declare -a DATA
+declare -a HEAP
+declare -a STACK
 
 ENDIANNESS="LITTLE"
 
