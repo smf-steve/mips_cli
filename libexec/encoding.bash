@@ -20,7 +20,7 @@ function encode_offset () {
    local _address=$(lookup_text_label $_label)
 
    if [[ -z "$_address" ]] ; then 
-     echo "_deferred_"
+     echo "_unresolved_"
    else
      local _offset=$((  _address - $(rval $_pc) ))
 
@@ -47,7 +47,7 @@ function encode_address () {
   local _address=$(lookup_text_label $_label)
 
   if [[ -z "$_address" ]] ; then 
-    echo "_deferred_"
+    echo "_unresolved_"
   else
     local _code=$(to_binary "$(to_hex 7 $(( _address  >> 2 )) )" )
     local _code=$(sed -e 's/ //g'  <<< "${_code}" )
@@ -136,7 +136,7 @@ function print_I_encoding () {
       printf "\t|%-6s|%-5s|%-5s|%16s|\n" \
               " ${_op:0:5}" " \$$_rs_name" " \$$_rt_name" "$_imm"
     fi
-    if [[ $_imm_code == "_deferred_" ]] ; then 
+    if [[ $_imm_code == "_unresolved_" ]] ; then 
         _imm_code="????????????????"   # To center it
     fi
 
@@ -156,7 +156,7 @@ function print_J_encoding () {
     local _op_code=$(lookup_opcode $_op) 
     local _addr_code=$(encode_address $_label)
 
-    # If the _addr_code is _deferred, perhaps
+    # If the _addr_code is _unresolved_, perhaps
     # REGISTER[$_ir]="${_op_code}\$(encode_address ${_label})"
 
     local encoding="${_op_code}${_addr_code}"
@@ -169,7 +169,7 @@ function print_J_encoding () {
     printf "\t|------|--------------------------|\n"
     printf "\t| %-5s| %-25s|\n" " ${_op:0:5}" "${_label:0:24}"
 
-    if [[ $_addr_code == "_deferred_" ]] ; then 
+    if [[ $_addr_code == "_unresolved_" ]] ; then 
         _addr_code="??????????????????????????"   # To center it
     fi
 

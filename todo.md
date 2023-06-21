@@ -1,5 +1,6 @@
 # To Do List
 
+### Modes
 1. For forward labels,
    - need to put in a message..
      ```
@@ -9,20 +10,29 @@
       (debug) s
       Ready to execute: "next: nop"
      ```
+
+1. Debug Mode..
+   - need some message to say comming out of debug mode.
+   - yes the prompt changes but...
+
+1. reveiw all of the promps.
+   - e.g., the execute prompt should not be $
+
+
+### ALU Extension or Forward Unit
+
 1. should the LoadI be use the ALU for the operation
    -- or should there be a separate forward unit
       - forward might be cleaner, but the ALU can do the work
       - the wiring is similar to the extended sign
 
 
-1. get rid of the _deferred_, change to unresolved or ??????
-
+### General Execution
 1. execute a file...
    - should this force it to got into preload first, then execute no stop...
 
-1. Debug Mode..
-   - need some message to say comming out of debug mode.
-   - yes the prompt changes but...
+
+### Debugging mode
 
 1. add a l list to debug mode to proint out current lines.
 
@@ -30,8 +40,6 @@
   - interactive mode= abort instructions
   - batch mode -> aborts program and dump core
 
-1. reveiw all of the promps.
-   - e.g., the execute prompt should not be $
 
 1.  Currently recording non MIPS instructions
     ```
@@ -48,7 +56,9 @@
     - update prefetch loop to ignore non-MIPS instructions
     - I.e., need a list of supported instructions
 
-# Testing: May 26
+
+
+#### Testing: May 26
   1. data_segment.s
   1. load_stores.s
   1. loadi.s

@@ -66,8 +66,8 @@ alias       jr='execute_JumpR jr   --'
 alias     jalr='execute_JumpR jalr --'
 
 ## Jump 
-alias  syscall='echo To be implemented'
-
+alias  syscall='echo execute_Trap syscall --'
+alias     trap='echo execute_Trap trap --' 
 
 ## Branch and BranchZ
 alias      beq='execute_Branch beq --'
@@ -79,10 +79,8 @@ alias     bgtz='execute_BranchZ bgtz --'
 ## 
 
 ## This is soley a WB operation 
-alias     movz='echo To be implemented'
-alias     movn='echo To be implemented'
-
-
-
+alias     movz='echo execute_Test movn -n'
+alias     movn='echo execute_Test movz -z'
+   #  movn $8, $11, $4  ;  copies the contents of register 11 into register 8  if $4 == 0
 
 

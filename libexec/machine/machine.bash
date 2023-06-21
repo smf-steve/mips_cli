@@ -201,7 +201,7 @@ function print_value_i () {
   local _text="$3"
 
   if [[ -z "$_rval" ]] ; then 
-    # its a deferred value
+    # its an _unresolved_ value
     local _dec="?"
     local _unsigned="?"
     local _hex="?? ?? ?? ??"
