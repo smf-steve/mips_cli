@@ -40,10 +40,8 @@ source libexec/labels.bash
 source libexec/execute.bash
 source libexec/dump.bash
 source libexec/encoding.bash
-source libexec/instructions/directives.bash
-source libexec/instructions/native_instructions.bash
-source libexec/instructions/pseudo_instructions.bash
-source libexec/instructions/synonym_instructions.bash
+
+source libexec/instructions/instructions.bash
 
 
 
