@@ -54,7 +54,7 @@ function dump_segment  () {
 	local segment="$1" 
 	local raw="$2"
 
-	[[ "$raw" == "TRUE" ]] ||  echo  "declare -a ${segment}=("
+	[[ "$raw" == "TRUE" ]] ||  echo  "${segment}=("
 	for key in $( eval echo \${!${segment}[@]} ) ; do
 		 [[ "$raw" == "TRUE" ]] || printf " [0x%x]=" "${key}"
 		 eval echo \\\"\${${segment}[${key}]}\\\" 
@@ -70,7 +70,7 @@ function dump_registers () {
 	local segment="$1" 
 	local raw="$2"
 
-	[[ "$raw" == "TRUE" ]] ||  echo  "declare -a REGISTER=("
+	[[ "$raw" == "TRUE" ]] ||  echo  "REGISTER=("
 	for key in ${!REGISTER[@]} ; do
 		 [[ "$raw" == "TRUE" ]] || printf " [\$$(name ${key})]="
 		 echo \"${REGISTER[${key}]}\"
