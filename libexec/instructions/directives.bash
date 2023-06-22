@@ -1,6 +1,8 @@
 alias .text=":"
 alias .data=":"
 
+alias .include="include"
+
 alias .ktext="echo Not Implemented:"
 alias .kdata="echo Not Implemented:"
 
@@ -12,6 +14,7 @@ alias .extern="echo Not Implemented."
 
 alias .macro="echo Not Implemented."
 alias .end_macro="echo Not Implemented."
+
 alias .eqv="echo Not Implemented."
 alias .set="echo Not Implemented."
 
