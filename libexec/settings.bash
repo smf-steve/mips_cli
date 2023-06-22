@@ -1,6 +1,7 @@
 #! /bin/bash
 
-declare -a MEM
+declare -a INSTRUCTION
+declare -a TEXT
 declare -a DATA
 declare -a HEAP
 declare -a STACK
