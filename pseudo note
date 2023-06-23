@@ -1,0 +1,22 @@
+li $
+
+
+# Instruction Table
+declare -a INSTRUCTION=(
+ [4194304]="la $t1 a"
+
+ [4194312]="la $t1 b"
+)
+# ------------
+
+# Text Segment
+declare -a TEXT=(
+ [4194304]="00111100000000010001000000000001"
+ [4194308]="00110100001010010000000000000000"
+
+ [4194312]="00111100000000010001000000000001"
+ [4194316]="00110100001010010000000000000100"
+)
+
+any jump...   would not occur in the middle of the code
+The TEXt is just documenation
