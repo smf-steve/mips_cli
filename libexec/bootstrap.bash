@@ -40,7 +40,7 @@ trap "break 1" SIGUSR1  # when an error occurs, go to the next line
 #      1. if debug mode entered due to a backward reference, then return doe snot have to be success
 #   3. does not record any extra instructions, i.e., must use @for known mips instructions
 #
-#
+# interactive
 # manual (this is manual or on the fly mode)  this will become the default mode.
 #   0. sets manual mode
 #   1. prompt = "(mips) "
@@ -106,37 +106,79 @@ source libexec/instructions/instructions.bash
 #     --  for i in "$@" ;  assign $a0 $i
 #     --  jal subroutine
 #
+function load_args () {
+   (( $# != 0 )) || return;
+   (( $# <= 4 )) || { instruction_error "to many args" ; return; }
 
+   i=0
+   for arg in "$@" ; do
+    eval assign \$a$i "$arg"
+    (( i = i + 1 ))
+   done
+}
 
-alias execute_batch="execute batch"
-alias execute_debug="execute debug"
-function execute () {
+alias execute="run batch"
+alias debug="run debug"
+function run () {
   local mode="$1"
   local label="$2"
   shift ; shift
-  local args="$@"
-
-  # Batch mode... currently execute what I have, but go into debug mode when I go into the base
-  # Debug Mode..  go into debug mode ASAP
-  [[ $mode == "batch" ]] 
-  [[ $mode == "batch" ]] 
-
-  INTERACTIVE=FALSE
 
   if [[ -z "$label" ]] ; then
-    assign $_pc "$label"
+    instruction_warning "Usage: must provide a label"
   fi
 
-  ## load the $aX registers
+  # Here we assume that label is good.
+  load_args "$@"
 
-  [[ -n $_filename ]] || { _filename="/dev/tty" ; INTERACTIVE=TRUE ; }
-  [[ -e $_filename ]] || { echo "$_filename not found" ; return 1; }
+  case $mode in 
+    DEBUG )
+       DEBUG_MODE=TRUE
+       INTERACTIVE=TRUE
+       EXECUTE_INSTRUCTIONS=TRUE
+       EMIT_ENCODINGS=TRUE
+       EMIT_EXECUTION_SUMMARY=TRUE
+       assign $_pc "$(lookup_text_label $label)"
+             ;;
+    BATCH )
+       DEBUG_MODE=FALSE
+       INTERACTIVE=FALSE
+       EXECUTE_INSTRUCTIONS=TRUE
+       EMIT_ENCODINGS=TRUE
+       EMIT_EXECUTION_SUMMARY=TRUE
+       assign $_pc "$(lookup_text_label $label)"
+       ;;
+
+    ENCODING )
+       INTERACTIVE=FALSE
+       DEBUG_MODE=FALSE
+       EMIT_ENCODINGS=TRUE
+       EXECUTE_INSTRUCTIONS=FALSE
+       EMIT_EXECUTION_SUMMARY=FALSE
+       assign $_pc "${TEXT_START}"
+       ;;
+
+    INTERACTIVE )
+       INTERACTIVE=TRUE
+       DEBUG_MODE=TRUE
+       EMIT_ENCODINGS=TRUE
+       EXECUTE_INSTRUCTIONS=TRUE
+       EMIT_EXECUTION_SUMMARY=FALSE
+       assign $_pc "${TEXT_NEXT}"
+  esac
 
   # boot
   while cycle ; do
     :
-  done < $_filename
-  PS1="post "
+    # Break from the loop at the end of the stored program, unless we are in interactive mode
+    if [[ $INTERACTIVE == FALSE ]] ; then 
+      if (( $(rval $_pc) == ${TEXT_NEXT} )) ; then
+        break;
+      fi
+    fi
+  done
+  print_register $v0
+  print_register $v1
 }
 
 
@@ -184,9 +226,8 @@ function load_file () {
   if [[ "$file_type" == "core" ]] ; then
     source ${file_name}
   else
-    prefetch "$(rval $_pc)"  '!unresolvabe_label'  < "${file_name}"
+    prefetch "${TEXT_NEXT}"  '!unresolvabe_label'  < "${file_name}"
   fi
-  declare -p INSTRUCTION
 }
 
 
