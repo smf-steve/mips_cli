@@ -77,7 +77,8 @@ declare -a INSTRUCTION   # List of Instructions index by Address
 
 function cycle () {
 
-  # IR <- Mem[PC]    
+  # IR <- Mem[PC]   
+
   #    The potential PC is stored in 'local {potential_pc}'
   #  
   #    1. Determine if the value of PC is an address or a label
@@ -97,15 +98,22 @@ function cycle () {
   #    Then we can read it from memory
 
   local next_pc=${TEXT_NEXT}  #  This is the next available address
+                              #  Is this just an alias for readability
   local target_label
-
+  
   local potential_pc=$(rval $_pc)  
+
+  # If the PC is a label, so search for that label
   if [[ ${potential_pc:0:1} =~ [[:alpha:]] ]] ; then 
-    # The provided PC is a label, so search for that label
     target_label=${potential_pc}
     potential_pc=${TEXT_END}   
   fi
 
+  #################################################
+  #  preload   -- loads a number of instructions into memory
+  #  interactive-load:
+
+  #  PC == text_next -- 1 prefetch is needed
   if (( potential_pc == next_pc )) ; then 
      # The next instruction has not been read into memory. So read it!
      PS1="(mips) "
@@ -114,6 +122,9 @@ function cycle () {
        return 1
      fi
   fi
+
+  #  PC > text_next -- N prefetches are needed
+  #  If there is a target label, then it has not been resolved... N prefetchs
   if [[ -n "${target_label}" ]] ; then        ## (( potential_pc > next_pc )) 
      # We need to search the future for the right instruction.
      PS1="(prefetch: ${target_label}) "
@@ -124,8 +135,10 @@ function cycle () {
      potential_pc=$(( next_pc - 4 ))
   fi
 
-  #################################################
   assign $_pc $potential_pc
+  # end: interactive-load
+  #################################################
+
 
   fetch $_ir "${INSTRUCTION[ $(rval $_pc) ]}"       #  Fetch
   local instruction="$(remove_label $(rval $_ir) )"
@@ -139,24 +152,30 @@ function cycle () {
 
   ###############################################
 
-  if (( $(rval _pc) < next_pc )) ; then 
-    echo "Ready to execute: \"$(rval $_ir)\""
+  if [[ DEBUG_MODE == "TRUE" ]] ; then
+  {  
+     if (( $(rval _pc) < next_pc )) ; then 
+       echo "Ready to execute: \"$(rval $_ir)\""
 
-    # Here we antipate debugger command.
-    while true ; do
-      read -p "(debug) " _command
-      if [[ $? != 0 ]] ; then 
-         return 1
-      fi
-      case $_command in 
-        step | s ) 
-                   break
-                   ;;
-               *)
-                   echo "Only s[tep] is implemented in DEBUG mode"
-      esac
-    done
+       # Here we antipate debugger command.
+       while true ; do
+         read -p "(debug) " _command
+         if [[ $? != 0 ]] ; then 
+            return 1
+         fi
+         case $_command in 
+           step | s ) 
+                      break
+                      ;;
+                  *)
+                      echo "Only s[tep] is implemented in DEBUG mode"
+         esac
+       done
+     fi
+  }
   fi
+  ###############################################
+
 
 
   # Here is where we might want to change the syntax of the LoadStore instructions
@@ -189,7 +208,7 @@ function prefetch () {
     local labels=()
 
     # If target_label is null, then we just return the next line
-    # otherwise, we cantion to get the next line until the label is found
+    # otherwise, we continue to get the next line until the label is found
 
     while true ; do 
       (( LINE_NUM ++ ))
