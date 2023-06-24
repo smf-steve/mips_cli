@@ -1,0 +1,168 @@
+Question... how does this operate in interactive mode..
+
+If we prefetch, we load memory... 
+if we cycle, each instruction is executed as it goes
+
+|  if [[ $INTERACTIVE == "TRUE" ]] ; then
+     while cycle ; do
+       :
+     done
+   else
+     prefetch $_pc "!unresolvable_label"
+   fi 
+
+
+
+Definition:
+
+.macro average ( %some, %two, %his)
+   add  %some, %two, %his
+   srl  %some, $s0, 1
+.end_macro
+
+function macro_average_3 () { 
+
+   # issue if there are arguements like %s, %so, %som, %some
+   # So the longest of these should be applied first
+   cat <<EOF  | sed -e "s/%some/$1" \
+                    -e "s/%two/$2"  \
+                    -e "s/%his/$3"  
+   add  %some, %two, %his
+   srl  %some, \$s0, 1
+   # within the here is document, you need to protect each of the current $ stuff
+
+EOF    
+
+
+}
+
+alias average="apply_macro average"
+
+apply_macro () {
+  # how do we handle LINE_NUM and Labels
+  local name=$1
+  shift;
+
+  local count=$#
+  local macro="macro_$name_$count"
+
+  local current_pc=$(rval $_pc)
+
+   if (( PC == TEXT_NEXT  )) ; then 
+     instruction=$(rval $ir)
+     ENCODING[pc]="000000000000000000000000000000000"
+     assign $_pc $(( current_pc + 4 ))
+
+     {
+        echo "macro_start ${name}_${count} ${current_pc}" 
+        $macro "$@"
+        echo "macro_end ${name}_${count} ${current_pc}"
+
+     } |  while cycle ; do 
+        :
+     done
+
+   else
+     :
+   fi
+}
+Usage:
+
+average $s0, $t2, $fp
+
+Data: storage
+INSTRUCTION[PC+0]="average $s0, $t2, $fp"    TEXT[PC+0]="00000000000000000000000000000000"
+INSTRUCTION[PC+1]="macro_start average_3 PC" TEXT[PC+1]= nil
+INSTRUCTION[PC+2]="add $s0, $t2, $fp"        TEXT[PC+2]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+INSTRUCTION[PC+3]="srl $s0, $s0, $s0"        TEXT[PC+3]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+INSTRUCTION[PC+4]="macro_end average_3 PC"   TEXT[PC+4]= nil
+
+
+
+Psuedo Instruction
+
+
+function pseudo_la () {
+    rd=${1}
+    label=${2}
+
+    _address=$(eval echo "\$data_label_${2}")
+    _lower=$(lower $_address)
+    _upper=$(upper $_address)
+
+    # what we have int (rval $_ir) and what is passed in.
+    # what is below is okay
+    # if we use the value in $_ir then we need to map things
+    #read -a INPUT <<< $(rval $_ir)
+
+
+    if [[ $INTERACTIVE == "TRUE" && $SYPOSIS == "TRUE" ]] ; then 
+      printf "Address of %s is: 0x%x\n" ${2} $_address >/dev/tty
+    fi
+preferred:
+    echo lui \$at, $_upper
+    echo ori \$$(name $1), \$at, $_lower
+or
+    echo lui \$at, $_upper
+    echo ori $INPUT[1], \$at, $_lower
+}
+
+alias la="apply_pseudo la"
+
+apply_pseudo () {
+    local name="$1"
+    local pseudo="pseudo_$name"
+    shift;
+
+    if (( PC == TEXT_NEXT )) ; then 
+      {
+        ENCODING[$(rval $_pc)]="000000000000000"
+        assign $_pc $(( $(rval $_pc) + 4 ))
+
+        echo "pseudeo_start la PC" 
+        $pseudo "$@"
+        echo "pseudeo_end la PC" 
+      } | {cycle ; prefetch }
+    else
+       :
+    fi
+}
+
+Data: storage
+INSTRUCTION[PC+0]="la $s0, a"               TEXT[PC+0]="00000000000000000000000000000000"
+INSTRUCTION[PC+1]="psuedo_start la PC"      TEXT[PC+1]= nil
+INSTRUCTION[PC+2]="lui $at, upper"          TEXT[PC+2]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+INSTRUCTION[PC+3]="srl $s0, $s0, lower"     TEXT[PC+3]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+INSTRUCTION[PC+4]="pseudo_end la PC"        TEXT[PC+4]= nil
+
+
+
+
+Labels within Macros.
+==========
+
+Macros have to be named with both filename and macro/linenum 
+e.g., stdin_test_23_a
+
+MACRO=name_linenum
+FILE=
+
+
+# MACRO is set to allow for assignment of labels
+function macro_start () {
+  macro_name="$1"
+  macro_use="$2"
+
+  [[ $synopsis == FALSE ]] | { echo End of macro \"$macro_name\"; echo ; }
+  MACRO="$macro_name_$macro_use"
+
+}
+function macro_end () {
+   macro_name="$1"
+
+  [[ $synopsis == FALSE ]] | { echo End of macro \"$macro_name\"; echo ; }
+  MACRO=""
+}
+
+====
+

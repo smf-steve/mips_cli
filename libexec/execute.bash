@@ -151,6 +151,8 @@ function cycle () {
 
 
   ###############################################
+  ## IF WE ARE IN BATCH MODE... THEN SKIP THIS CONDITION
+  ## IF DEBUG MODE THEN CHECK THE FOLLOWING LOOP
 
   if [[ DEBUG_MODE == "TRUE" ]] ; then
   {  
@@ -184,6 +186,9 @@ function cycle () {
 
   # This is where we echo the instruction... if we are not interactive..
   [[ ${INTERACTIVE} == "TRUE" ]] || echo "\$ $(rval $_ir)"
+
+  ## IF ITERACTIVE MODE, SHOULD I SLEEP SOME AMOUNT OF TIME.
+
 
   # If the instruction is a MIPS instruction, it
   #   1. finish the Fetch step:  NPC <- PC + 4
@@ -271,7 +276,10 @@ function prefetch () {
             :  # this is a shell command
                # to be consistent with gdb
             (( LINE_NUM -- ))
+            CURRENT=$(LVAL $_PC)
             eval $instruction
+            ASSIGN $_PC $_current
+            
             prefetch "${next_pc}"  "${target_label}"
             ;;
         * ) 
