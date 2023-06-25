@@ -1,5 +1,14 @@
 # To Do List
 
+1. labels still use old memory model
+
+1. labels should be implemented via arrays and not via the alias method
+  - to keep it consistent with the other stuff put into the CORE file
+
+1. rewind needs to have a lable install called is the instruction
+   - "_exit: _exit "
+   - the label should be placed into kernel space...
+   
 ### Modes
 1. For forward labels,
    - need to put in a message..
@@ -424,5 +433,7 @@ H
 
 
 
-
+1. add some kernel code that..
+   1. prints out the banners
+   1. ra should be set to the code that perfroms "exit"
 

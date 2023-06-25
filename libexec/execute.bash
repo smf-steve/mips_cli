@@ -275,10 +275,11 @@ function prefetch () {
        "shell "* )
             :  # this is a shell command
                # to be consistent with gdb
+               # goal here is NOT to record this instruction in the final code
             (( LINE_NUM -- ))
-            CURRENT=$(LVAL $_PC)
+            #CURRENT=$(LVAL $_PC)
             eval $instruction
-            ASSIGN $_PC $_current
+            #ASSIGN $_PC $_current
             
             prefetch "${next_pc}"  "${target_label}"
             ;;
