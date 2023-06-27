@@ -16,7 +16,7 @@ DATA_LAST=0x00000000
 DATA_END=0x1003FFFF
 
 HEAP_START=$((DATA_END + 1))   ; HEAP_NEXT=$(( HEAP_START + 4 ))
-HEAP_END='HEAP[${heap_start}]' # Note: value has to be determined dynamically
+HEAP_END='HEAP[${HEAP_START}]' # Note: value has to be determined dynamically
 
 HEAP[${HEAP_START}]=${HEAP_NEXT}  
    # Free Pointer is positioned as the first element of the heap
@@ -35,6 +35,6 @@ EXECUTE_INSTRUCTIONS=TRUE
 EMIT_ENCODINGS=TRUE
 EMIT_EXECUTION_SUMMARY=TRUE
 
-INTERACTIVE=TRUE
-DEBUG_MODE=
-EXECUTE_MODE=
+INTERACTIVE=FALSE
+DEBUG_MODE=FALSE
+
