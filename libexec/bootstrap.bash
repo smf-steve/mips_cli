@@ -77,17 +77,20 @@ instruction_warning () {
 
 
 # Inclue the support files:
-source libexec/settings.bash
-source libexec/library.bash
-source libexec/parse_literal.bash
-source libexec/machine/machine.bash
+source ${MIPS_CLI_HOME}/libexec/settings.bash
+source ${MIPS_CLI_HOME}/libexec/library.bash
+source ${MIPS_CLI_HOME}/libexec/parse_literal.bash
+source ${MIPS_CLI_HOME}/libexec/machine/machine.bash
 
-source libexec/labels.bash
-source libexec/execute.bash
-source libexec/dump.bash
-source libexec/encoding.bash
+source ${MIPS_CLI_HOME}/libexec/labels.bash
+source ${MIPS_CLI_HOME}/libexec/execute.bash
+source ${MIPS_CLI_HOME}/libexec/dump.bash
+source ${MIPS_CLI_HOME}/libexec/encoding.bash
 
-source libexec/instructions/instructions.bash
+source ${MIPS_CLI_HOME}/libexec/instructions/instructions.bash
+source ${MIPS_CLI_HOME}/libexec/macros.bash
+
+source macro_test.bash
 
 
 
@@ -117,22 +120,22 @@ function load_args () {
    done
 }
 
-alias execute="run batch"
-alias debug="run debug"
+alias execute="run BATCH"
+alias debug="run DEBUG"
+alias step="run INTERACTIVE"
+alias encode="run ENCODE"
 function run () {
   local mode="$1"
   local label="$2"
   shift ; shift
-
-  if [[ -z "$label" ]] ; then
-    instruction_warning "Usage: must provide a label"
-  fi
 
   # Here we assume that label is good.
   load_args "$@"
 
   case $mode in 
     DEBUG )
+       [[ -n "$label" ]] || instruction_warning "Usage: must provide a label"
+       PS1="(debug) "
        DEBUG_MODE=TRUE
        INTERACTIVE=TRUE
        EXECUTE_INSTRUCTIONS=TRUE
@@ -141,6 +144,8 @@ function run () {
        assign $_pc "$(lookup_text_label $label)"
              ;;
     BATCH )
+       [[ -n "$label" ]] || instruction_warning "Usage: must provide a label"
+       PS1="(batch) "
        DEBUG_MODE=FALSE
        INTERACTIVE=FALSE
        EXECUTE_INSTRUCTIONS=TRUE
@@ -150,6 +155,7 @@ function run () {
        ;;
 
     ENCODING )
+       PS1="(encode) "
        INTERACTIVE=FALSE
        DEBUG_MODE=FALSE
        EMIT_ENCODINGS=TRUE
@@ -159,11 +165,12 @@ function run () {
        ;;
 
     INTERACTIVE )
+       PS1="(step) "
        INTERACTIVE=TRUE
        DEBUG_MODE=TRUE
        EMIT_ENCODINGS=TRUE
        EXECUTE_INSTRUCTIONS=TRUE
-       EMIT_EXECUTION_SUMMARY=FALSE
+       EMIT_EXECUTION_SUMMARY=TRUE
        assign $_pc "${TEXT_NEXT}"
   esac
 
@@ -177,6 +184,8 @@ function run () {
       fi
     fi
   done
+  PS1="(top) "
+  echo
   print_register $v0
   print_register $v1
 }
@@ -226,7 +235,10 @@ function load_file () {
   if [[ "$file_type" == "core" ]] ; then
     source ${file_name}
   else
-    prefetch "${TEXT_NEXT}"  '!unresolvabe_label'  < "${file_name}"
+      local temp=$INTERACTIVE
+      INTERACTIVE=FALSE
+      prefetch "${TEXT_NEXT}"  '!unresolvabe_label'  < "${file_name}"
+      INTERACTIVE=$temp
   fi
 }
 
@@ -253,5 +265,6 @@ function _exit () {
 
 
 crt0
+PS1="(top) "
 
 

@@ -140,7 +140,7 @@ function cycle () {
   #################################################
 
 
-  fetch $_ir "${INSTRUCTION[ $(rval $_pc) ]}"       #  Fetch
+  fetch #  Fetch the next instruction inot the _ir register
   local instruction="$(remove_label $(rval $_ir) )"
 
   # NPC <- PC + 4 ; Next Program Counter
@@ -186,16 +186,15 @@ function cycle () {
 
   # This is where we echo the instruction... if we are not interactive..
   [[ ${INTERACTIVE} == "TRUE" ]] || echo "\$ $(rval $_ir)"
+  history -s "$(rval $_ir)"   
 
-  ## IF ITERACTIVE MODE, SHOULD I SLEEP SOME AMOUNT OF TIME.
-
+  ## IF INTERACTIVE MODE, SHOULD I SLEEP SOME AMOUNT OF TIME.
 
   # If the instruction is a MIPS instruction, it
-  #   1. finish the Fetch step:  NPC <- PC + 4
   #   2. performs the Decode step:
   #   3. performs the Execute step:
   #   4. performs the WB step 
-  eval $instruction    
+  eval $instruction 
 
   assign $_pc $(rval $_npc)
   # Issue arises here if the value of pc is unsolved
@@ -212,6 +211,10 @@ function prefetch () {
     local rest
     local labels=()
 
+    # if next_pc is null, then we place the instuction at the end of the instruction stream
+    if [[ "${next_pc}" ]] ; then
+      next_pc=${TEXT_NEXT}
+    fi  
     # If target_label is null, then we just return the next line
     # otherwise, we continue to get the next line until the label is found
 
@@ -220,16 +223,9 @@ function prefetch () {
 
       # -p "(prefetch) "
       read -e  -p "$PS1" first rest
-      if [[ $? != 0 ]] ; then
-        # EOF found: All has been processed
-        return 1
-      fi
 
-      # Continue to read blank lines
-      if [[ -z  "${first}" ]] ; then 
-         # We have a blank line
-         continue;
-      fi
+      [[ $? == 0 ]] || return 1           # Test for EOF
+      [[ -n  "${first}" ]] ||  continue   # Skip over blank lines
 
       if [[ $(is_label "$first") == "TRUE" ]] ; then 
         label="${first}"
@@ -250,11 +246,7 @@ function prefetch () {
         instruction="${first} ${rest}"
       fi
  
-      if [[ -z "${instruction}" ]] ; then
-         continue;
-      fi
-
-      break;
+      [[ -z "${instruction}" ]]  || break   # Test for found instruction
     done 
 
     ## We know have a line is either a directive or is executable
@@ -301,6 +293,14 @@ function prefetch () {
     INSTRUCTION[${next_pc}]="${instruction}"
     (( next_pc = next_pc + 4))
     TEXT_NEXT=${next_pc}
+
+    ## Test to see if the Instruction is a MACRO
+    if [[ $INTERACTIVE == "FALSE" ]] ; then 
+      if [[ $(is_macro $instruction) == "TRUE" ]] ; then
+         prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro $instruction)
+      fi
+    fi
+
 
     ## But is it the right one.   
     if [[ -n "${target_label}" ]] ; then 

@@ -8,7 +8,21 @@
 1. rewind needs to have a lable install called is the instruction
    - "_exit: _exit "
    - the label should be placed into kernel space...
+
+1. output of special registers need to be updated
+   - "$(name $\_mar)""
+
+1. dumping of dump_symbol_table is broken 
+   1. ehn you try to load_core the attribute of "declare" makes the varibles local
+   1. hence you need to remove the declare in front of them.
+
+1. Endociding of .word, etc.
+   - need to deal with ENDIANNESS
    
+## Encoding of directives
+## Implementetion of .macro
+
+
 ### Modes
 1. For forward labels,
    - need to put in a message..
@@ -39,6 +53,30 @@
 ### General Execution
 1. execute a file...
    - should this force it to got into preload first, then execute no stop...
+
+### Command History
+
+1. history is being updated when we enter instructions
+   - validate that @instruction are inserted correctly in history
+     - the @ sign is removed
+     - they are not recorded
+     - which ???  (leaning towards the @ sign removed)
+1. The ! might be a good thing to execute
+   * alias !='fc -s'
+   * 
+
+### Top level errors
+
+1. might be nice to add in a post ech to determine if a command was not executed correct
+   ```
+
+   $ trap 'echo hello' ERR
+   bash-3.2$ !f
+   bash: !f: command not found
+   hello
+   bash-3.2$ !f 2>/dev/null
+   hello
+   ```
 
 
 ### Debugging mode

@@ -47,8 +47,9 @@ function .dword () {
 
   .align 3
   allocate_data_memory 8 "$value"
+
   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
-  print_memory_value $(( DATA_NEXT-2 )) $value 16
+  print_memory_value $(( DATA_NEXT-8 )) 8
 
 }
 
@@ -59,7 +60,7 @@ function .word () {
   allocate_data_memory 4 "$value"
 
   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
-  print_memory_value $(( DATA_NEXT-2 )) $value 8
+  print_memory_value $(( DATA_NEXT-4 )) 4
 
 }
 
@@ -70,7 +71,7 @@ function .half () {
    allocate_data_memory 2 "$value"
 
    [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
-   print_memory_value $(( DATA_NEXT-2 )) $value 4
+   print_memory_value $(( DATA_NEXT-2 )) 2
 
 }    
 
@@ -83,7 +84,7 @@ function .byte () {
    allocate_data_memory 1 "$value"
 
    [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
-   print_memory_value $(( DATA_NEXT-2 )) $value 2
+   print_memory_value $(( DATA_NEXT-1 )) 1
 
 }
 
@@ -111,16 +112,20 @@ function .align () {
 
 function print_memory_value () {
   local _address="$1"
-  local _rval="$2"
-  local _size="$3"   # measured in nibbles
+  local _size="$2"   
 
+  data_memory_read $_size $_address   #This ensure ENDIANESS is address
+
+  local _rval=$(rval $_mbr)
   local _dec=${_rval}
   local _unsigned=$(( _rval & 0xFFFFFFFF ))
-  local _hex=$(to_hex $_size $_unsigned )
+  local _hex=$(to_hex $(( _size << 1)) $_unsigned )
   local _bin=$(to_binary "${_hex}")
 
   local _dash="$( sed -e 's/./-/g' <<< $_bin )"
   local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< $_bin )"
+
+  # Need to deal with big versers Little Endian
   printf "| address    | %s |\n" "$_value"
   printf "|------------|-%s-|\n" "$_dash"
   printf "| 0x%8x | %s | \"0x%s\""  \
