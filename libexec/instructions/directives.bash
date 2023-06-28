@@ -115,8 +115,9 @@ function print_memory_value () {
   local _size="$2"   
 
   data_memory_read $_size $_address   #This ensure ENDIANESS is address
-
   local _rval=$(rval $_mbr)
+
+
   local _dec=${_rval}
   local _unsigned=$(( _rval & 0xFFFFFFFF ))
   local _hex=$(to_hex $(( _size << 1)) $_unsigned )

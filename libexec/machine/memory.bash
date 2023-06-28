@@ -172,6 +172,7 @@ function data_memory_read() {
   assign $_mbr $_value
 }
 
+
 function data_memory_write() {
   local _size="$1"
   local _address="$2"
