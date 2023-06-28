@@ -115,7 +115,12 @@ function print_memory_value () {
   local _unsigned=$(( _rval & 0xFFFFFFFF ))
   local _hex=$(to_hex $_size $_unsigned )
   local _bin=$(to_binary "${_hex}")
-  printf "  0x%6x:  %11s %11s; 0x%s; 0b%s;"  \
-        "${_address}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
+
+  local _dash="$( sed -e 's/./-/g' <<< $_bin )"
+  local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< $_bin )"
+  printf "| address    | %s |\n" "$_value"
+  printf "|------------|-%s-|\n" "$_dash"
+  printf "| 0x%8x | %s | \"0x%s\""  \
+        "${_address}" "${_bin}" "${_hex}"
   printf "\n"
 }
