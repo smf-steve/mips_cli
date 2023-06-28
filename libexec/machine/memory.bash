@@ -130,7 +130,7 @@ function check_alignment() {
 	local _size=$2
 
    case $_size in
-      1|2|4)
+      1|2|4|8)
         	if (( _address % _size != 0 )) ; then
             instruction_error "alignment error"
          fi

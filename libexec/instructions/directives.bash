@@ -44,6 +44,9 @@ function .dword () {
 
   .align 3
   allocate_data_memory 8 "$value"
+  [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
+  print_memory_value $(( DATA_NEXT-2 )) $value 16
+
 }
 
 function .word () {
@@ -51,6 +54,10 @@ function .word () {
 
   .align 2
   allocate_data_memory 4 "$value"
+
+  [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
+  print_memory_value $(( DATA_NEXT-2 )) $value 8
+
 }
 
 function .half () {
@@ -58,13 +65,23 @@ function .half () {
 
    .align 1
    allocate_data_memory 2 "$value"
-}
+
+   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
+   print_memory_value $(( DATA_NEXT-2 )) $value 4
+
+}    
+
+
 
 function .byte () {
    local value="$1"
 
    .align 0
    allocate_data_memory 1 "$value"
+
+   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
+   print_memory_value $(( DATA_NEXT-2 )) $value 2
+
 }
 
 function .align () {
@@ -87,3 +104,18 @@ function .align () {
    esac
 }
 
+
+
+function print_memory_value () {
+  local _address="$1"
+  local _rval="$2"
+  local _size="$3"   # measured in nibbles
+
+  local _dec=${_rval}
+  local _unsigned=$(( _rval & 0xFFFFFFFF ))
+  local _hex=$(to_hex $_size $_unsigned )
+  local _bin=$(to_binary "${_hex}")
+  printf "  0x%6x:  %11s %11s; 0x%s; 0b%s;"  \
+        "${_address}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
+  printf "\n"
+}
