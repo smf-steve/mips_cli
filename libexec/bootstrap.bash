@@ -90,9 +90,6 @@ source ${MIPS_CLI_HOME}/libexec/encoding.bash
 source ${MIPS_CLI_HOME}/libexec/instructions/instructions.bash
 source ${MIPS_CLI_HOME}/libexec/macros.bash
 
-source macro_test.bash
-
-
 
 
 ###  Interactive:  (and on the fly)
@@ -265,6 +262,9 @@ function _exit () {
 
 
 crt0
+echo "Warning: top mode is only for testing"
+echo "Macros and Labels do not work appropriately within this mode"
+echo
 PS1="(top) "
 
 
