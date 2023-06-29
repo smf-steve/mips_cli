@@ -97,41 +97,51 @@ function read_macro () {
   local func_name="macro_${name}_$((count-1))"
   { 
     cat <<-EOF
-    alias $name="apply_macro $name"
+alias $name="apply_macro $name"
 
-    function ${func_name}  () {
+function ${func_name}  () {
     
-      # remove optional commas
-      # quote arg that contains a space
+  # remove optional commas
+  # quote arg that contains a space
 EOF
     for (( i=1 ; i < ${count} ; i++ )) ; do 
-       echo  "  local arg$i=\"  \$(sed -e 's/,$//' -e 's/\(.* .*\)/"\1"/' <<< \$$i)\""
+       echo  "  local arg$i=\"\$(sed -e 's/,$//' -e 's/\(.* .*\)/"\1"/' <<< \$$i)\""
     done
 
     cat <<-EOF
 
-      # apply the parameter subsitution longest to shortest
-      # for now, just first to last
-    cat <<<-EOF |  \\
+  # apply the parameter subsitution longest to shortest
+  # for now, just first to last
 EOF
+  echo -n "  cat <<-EOF"
+  local pattern
+  local i
 
-    for (( i=1 ; i < ${count} - 1 ; i++ )) ; do 
-      local pattern="${patterns[$i]}"
-      echo "  sed -e \"s/${pattern}/\$$i/\" \\"
-    done
-    local pattern="${patterns[$i]}"
-    echo "  sed -e \"s/${pattern}/\$$i/\" "
+  if (( count == 0 )) ; then
+    echo
+  else
+    echo " |\\"
+      i=1
+      pattern="${patterns[$i]}"
+      echo "    sed -e \"s/${pattern}/\$arg$i/g\" \\"
+
+      for (( i=2 ; i < ${count} ; i++ )) ; do 
+        pattern="${patterns[$i]}"
+        echo "        -e \"s/${pattern}/\$arg$i/g\" \\"
+      done
+      echo
+    fi
 
     while read -e -p "(macro) " _command ; do 
       [[ "$_command" != ".end_macro" ]] || break
-      sed 's/\$/\\$/g' <<< $_command
+      sed -e 's/^/  /' -e 's/\$/\\$/g' <<< $_command
     done 
 
-    echo "EOF"
+    echo "EOF"  
     echo "}"
   } > ${MIPS_CLI_HOME}/tmp/${func_name}.bash
 
-  source /${MIPS_CLI_HOME}/tmp/${func_name}.bash
+  source ${MIPS_CLI_HOME}/tmp/${func_name}.bash
 
 }
 
