@@ -25,7 +25,7 @@ function is_macro () {
 
 function macro_start () {
   macro_name="$1"
-  macro_use="$2"
+  macro_count="$2"
   macro_use="$3"
 
   [[ $synopsis == FALSE ]] | { echo "Start of macro \"${macro_name}\" (${arg_count})" ; echo ; }
