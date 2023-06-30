@@ -16,11 +16,29 @@
    1. ehn you try to load_core the attribute of "declare" makes the varibles local
    1. hence you need to remove the declare in front of them.
 
-1. Endociding of .word, etc.
-   - need to deal with ENDIANNESS
-   
+1. Encoding of .word, w.r.t ENDIANNESS
+   - currently, the value is show without respect to ENDIANESS
+   - stored byte order is Big endian
+   - print byt 0, byte 1, byte 2, byte 3, byte 4
+   - maybe the prinout of it should be:
+   ```
+   | address    | value                                         |
+   |------------|-----------------------------------------------|
+   |            | byte: 0   | byte: 1   | byte: 2   | byte: 3   | "BIG ENDIAN"
+   | 0x10010010 | 0000 0000 | 0000 0000 | 1111 1111 | 1111 1111 | "0x00 00 FF FF"
+   ```
+
 ## Encoding of directives
+   1. double check .word, etc for final output
+   1. ensure that it is always presented with the correct endianess
+   1. determine the output for  .ascii 
+
 ## Implementetion of .macro
+   1. address labels
+   1. further testing
+   1. issue what if comments are added
+      should these be removed?
+
 
 
 ### Modes
@@ -41,6 +59,9 @@
 1. reveiw all of the promps.
    - e.g., the execute prompt should not be $
 
+1. when in the current top mode, what should be valid instrtions
+  - why: applications of macros don't work  (PC value is off)
+  - we also can't have labels
 
 ### ALU Extension or Forward Unit
 

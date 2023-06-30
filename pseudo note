@@ -1,88 +1,132 @@
-Question... how does this operate in interactive mode..
-
-If we prefetch, we load memory... 
-if we cycle, each instruction is executed as it goes
-
-|  if [[ $INTERACTIVE == "TRUE" ]] ; then
-     while cycle ; do
-       :
-     done
-   else
-     prefetch $_pc "!unresolvable_label"
-   fi 
-
-
-
-Definition:
-
-.macro average ( %some, %two, %his)
-   add  %some, %two, %his
-   srl  %some, $s0, 1
-.end_macro
-
-function macro_average_3 () { 
-
-   # issue if there are arguements like %s, %so, %som, %some
-   # So the longest of these should be applied first
-   cat <<EOF  | sed -e "s/%some/$1" \
-                    -e "s/%two/$2"  \
-                    -e "s/%his/$3"  
-   add  %some, %two, %his
-   srl  %some, \$s0, 1
-   # within the here is document, you need to protect each of the current $ stuff
-
-EOF    
-
-
-}
-
-alias average="apply_macro average"
-
-apply_macro () {
-  # how do we handle LINE_NUM and Labels
-  local name=$1
-  shift;
-
-  local count=$#
-  local macro="macro_$name_$count"
-
-  local current_pc=$(rval $_pc)
-
-   if (( PC == TEXT_NEXT  )) ; then 
-     instruction=$(rval $ir)
-     ENCODING[pc]="000000000000000000000000000000000"
-     assign $_pc $(( current_pc + 4 ))
-
-     {
-        echo "macro_start ${name}_${count} ${current_pc}" 
-        $macro "$@"
-        echo "macro_end ${name}_${count} ${current_pc}"
-
-     } |  while cycle ; do 
-        :
-     done
-
-   else
-     :
-   fi
-}
-Usage:
-
-average $s0, $t2, $fp
-
-Data: storage
-INSTRUCTION[PC+0]="average $s0, $t2, $fp"    TEXT[PC+0]="00000000000000000000000000000000"
-INSTRUCTION[PC+1]="macro_start average_3 PC" TEXT[PC+1]= nil
-INSTRUCTION[PC+2]="add $s0, $t2, $fp"        TEXT[PC+2]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-INSTRUCTION[PC+3]="srl $s0, $s0, $s0"        TEXT[PC+3]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-INSTRUCTION[PC+4]="macro_end average_3 PC"   TEXT[PC+4]= nil
-
-
 
 Psuedo Instruction
 
+there are two typos of pseudo instructions
+   1. a simple macro that does not require any assembler knowledge
+   2. a special macro that requires assember knowledge
 
-function pseudo_la () {
+for  2. 
+  ```mips
+  .pseudo la %rt, %label
+     lui $at, upper(%label)
+     ori %rt, lower(%label)
+  .end_pseudo
+  ```
+The key difference that inside of the block, we have access to a set of 
+assembler functions
+
+To follow the pattern of a macro, we would need to "eval" the special functions
+   steps
+      1. substitue the args into the instructions
+      2. apply the functions
+      3. replace the return value of the functions
+
+Method 1.
+
+  .pseudo la %rt, %label
+     lui $at, upper(%label)
+     ori %rt, lower(%label)
+  .end_pseudo
+
+  * la $t1, input
+  ==>
+  .pseudo la %rt, %label
+     lui $at, upper(input)
+     ori $t1, lower(input)
+  .end_pseudo
+
+  * eval  by not escaping the $ in use of  $( )
+  .pseudo la %rt, %label
+     lui \$at, $(upper %label)
+     ori \$t1, \$at (lowerZ %label)
+  .end_pseudo
+
+
+  .pseudo x
+     if (( 0xFF00f > 0xFFFF)) ; then echo ori \$at, \$t1, $(upper 0xFF00f ) ; fi
+     ori  \$t1, \$at, 0xff
+  .end_pseudo
+
+  
+Method 2..
+  - eval each line of code in the pseudo block
+  - unless it begins with an "@"
+
+  .pseudo la %rt, %label
+     rt=${1}
+     label=${2}
+
+     _address=$(eval echo "\$text_label_${2}")
+     _lower=$(lower $_address)
+     _upper=$(upper $_address)
+
+     @lui $at, _upper
+     @ori %rt, _lower
+  .end_pseudo
+
+
+## Via MARS there is a small number of functions that will be needed
+## they use a template notation
+###  E.g., LLHL == the lower order bits of the address
+###  E.g., LHPN == add the upper order bits of an immediate with the upper bits of an address
+###      - la $1, label + 0x XXXX XXXX 0000 0000
+## In a casual review, we can come up with a set of small needed functions as needed
+## The trick will be, which pattern is to be used based upon the input
+## The following are in order of what I think mips_cli will support
+
+upper: upper 16 bits of an address
+lowerS: lower 16 bits of an address sign exitezed
+lowerZ: upper 16 bits of an address zero extended
+
+other operations are:
+ adding and subtracting constansts from address
+ using the next register higher -- for doubles
+
+la $t1,label            
+            lui $1, LHL 
+            ori RG1, $1, LL2U       
+            COMPACT     addi RG1, $0, LL2       #Load Address : Set $t1 to label's address
+
+la $t1,label($t2)       
+            lui $1, LHL 
+            ori $1, $1, LL2U        
+            add RG1, RG4, $1        
+            COMPACT     addi RG1, RG4, LL2      #Load Address : Set $t1 to sum (of $t2 and label's address)
+
+la $t1,label+100000     
+            lui $1, LHPN            
+            ori RG1, $1, LLPU       #Load Address : Set $t1 to sum (of label's address and 32-bit immediate)
+
+la $t1,100000           
+            lui $1, VHL2            
+            ori RG1, $1, VL2U       #Load Address : Set $t1 to 32-bit immediate
+
+=========
+
+la $t1,($t2)            
+            addi RG1, RG3, 0        #Load Address : Set $t1 to contents of $t2
+la $t1,-100 
+            addiu RG1, $0, VL2      #Load Address : Set $t1 to 16-bit immediate (sign-extended) 
+la $t1,100  
+            ori RG1, $0, VL2U       #Load Address : Set $t1 to 16-bit immediate (zero-extended) 
+
+la $t1,100($t2)         
+            ori $1, $0, VL2U        
+            add RG1, RG4, $1        #Load Address : Set $t1 to sum (of $t2 and 16-bit immediate)
+la $t1,100000($t2)      
+            lui $1, VHL2            
+            ori $1, $1, VL2U        
+            add RG1, RG4, $1        #Load Address : Set $t1 to sum (of $t2 and 32-bit immediate)
+
+
+
+la $t1,label+100000($t2)            
+            lui $1, LHPN            
+            ori $1, $1, LLPU        
+            add RG1, RG6, $1        #Load Address : Set $t1 to sum (of label's address, 32-bit immediate, and $t2)
+
+
+function pseudo_la_n () {
     rd=${1}
     label=${2}
 
@@ -136,33 +180,4 @@ INSTRUCTION[PC+3]="srl $s0, $s0, lower"     TEXT[PC+3]="xxxxxxxxxxxxxxxxxxxxxxxx
 INSTRUCTION[PC+4]="pseudo_end la PC"        TEXT[PC+4]= nil
 
 
-
-
-Labels within Macros.
-==========
-
-Macros have to be named with both filename and macro/linenum 
-e.g., stdin_test_23_a
-
-MACRO=name_linenum
-FILE=
-
-
-# MACRO is set to allow for assignment of labels
-function macro_start () {
-  macro_name="$1"
-  macro_use="$2"
-
-  [[ $synopsis == FALSE ]] | { echo End of macro \"$macro_name\"; echo ; }
-  MACRO="$macro_name_$macro_use"
-
-}
-function macro_end () {
-   macro_name="$1"
-
-  [[ $synopsis == FALSE ]] | { echo End of macro \"$macro_name\"; echo ; }
-  MACRO=""
-}
-
-====
 

@@ -1,5 +1,15 @@
 #! /bin/bash
 
+function upper() {
+    _value=$1
+    printf "0x%04x\n" $((  (_value >> 16 ) & 0xFFFF ))
+}
+function lower() {
+    _value=$1
+    printf "0x%04x\n" $((  _value & 0xFFFF ))
+}
+
+
 function encode_register () {
    local _reg=$1
    local _code=$(to_binary $(to_hex 2 $_reg))

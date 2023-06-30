@@ -91,6 +91,8 @@ source ${MIPS_CLI_HOME}/libexec/instructions/instructions.bash
 source ${MIPS_CLI_HOME}/libexec/macros.bash
 
 
+mkdir -p ${MIPS_CLI_HOME}/tmp
+
 
 ###  Interactive:  (and on the fly)
 #  execute

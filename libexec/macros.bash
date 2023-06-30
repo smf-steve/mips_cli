@@ -8,6 +8,20 @@
 ##   the use of MACRO might be used to appropriate define labels
 
 
+# Labels within Macros.
+# ==========
+# 
+# Macros have to be named with both filename and macro/linenum 
+# e.g., stdin_test_23_a
+# 
+# MACRO=name_linenum
+# FILE=
+# Alternativelly, you can name the macro based upon number
+# in the code below, I have insert macro_use as the uniq id
+# This relates to the address in memory.
+#
+# i.e., labels within macros are NOT supported at this moment
+
 
 function is_macro () {
    name="$1"
@@ -81,7 +95,7 @@ function apply_macro () {
      # iteration of the loop... or at least identify the number of slots it needs
    else
      # The macro has already been expanded.
-     # Set up the environment for promper execution
+     # Set up the environment for proper execution
      macro_start "${name}" "${count}" "${current_pc}"
    fi
 }
