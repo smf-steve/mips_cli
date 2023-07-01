@@ -18,8 +18,11 @@ alias .end_macro="echo Not Implemented."
 alias .eqv="echo Not Implemented."
 alias .set="echo Not Implemented."
 
-alias .macro="read_macro"    # Note this fuction is in the macros.bash file
+alias .macro="read_macro macro"    # Note this fuction is in the macros.bash file
+alias .pseudo="read_macro pseudo"
+
 alias .end_macro="echo .end_macro improperly encountered."
+alias .end_pseudo="echo .end_macro improperly encountered."
 
 function .asciiz () {
    local str="$1"

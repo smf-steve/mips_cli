@@ -1,10 +1,14 @@
 #! /bin/bash
 
-source libexec/instructions/directives.bash
-source libexec/instructions/native_instructions.bash
-source libexec/instructions/pseudo_instructions.bash
-source libexec/instructions/synonym_instructions.bash
-source libexec/instructions/pseudo/*.bash
+source  ${MIPS_CLI_HOME}/libexec/instructions/directives.bash
+source  ${MIPS_CLI_HOME}/libexec/instructions/native_instructions.bash
+source  ${MIPS_CLI_HOME}/libexec/instructions/pseudo_instructions.bash
+source  ${MIPS_CLI_HOME}/libexec/instructions/synonym_instructions.bash
+
+
+
+# this needs to be figured out!
+#source  ${MIPS_CLI_HOME}/tmp/pseudo_*.bash
 
 
 # function lookup_opcode () {

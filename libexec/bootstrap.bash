@@ -212,7 +212,7 @@ function initialize () {
   STACK=()
   INSTRUCTION=()
   LABELS=()
-  source libexec/settings.bash
+  source ${MIPS_CLI_HOME}/libexec/settings.bash
   rewind
 
 }
