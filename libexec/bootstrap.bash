@@ -268,5 +268,9 @@ echo "Warning: top mode is only for testing"
 echo "Macros and Labels do not work appropriately within this mode"
 echo
 PS1="(top) "
-load ${MIPS_CLI_HOME}/libexec/instructions/pseudo_instructions.s
+
+while read _file ; do
+  echo $_file
+  source $_file
+done < <(ls ${MIPS_CLI_HOME}/tmp/pseudo*.bash) 
 
