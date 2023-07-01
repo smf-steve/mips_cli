@@ -1,4 +1,10 @@
 # To Do List
+1. reset_macros
+1. reset_labels
+
+1. directives
+   - should they be added to the history?
+   -  .include would be nice
 
 1. labels still use old memory model
 
