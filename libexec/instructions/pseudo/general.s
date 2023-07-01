@@ -8,11 +8,11 @@
     addiu %dst, $zero, %imm  
 .end_pseudo
 
-.pseudo nop %rdst, $rsrc            
+.pseudo nop 
     sll $zero, $zero, 0
 .end_pseudo
 
-.pseudo move %rdst, $rsrc           
+.pseudo move %rdst, %rsrc           
     sll %rdst, %rsrc, 0
 .end_pseudo
 
