@@ -296,8 +296,9 @@ function prefetch () {
 
     ## Test to see if the Instruction is a MACRO
     if [[ $INTERACTIVE == "FALSE" ]] ; then 
-      if [[ $(is_macro $instruction) == "TRUE" ]] ; then
-         prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro $instruction)
+      local type=$(macro_type $instruction)
+      if [[ ${type} != "FALSE" ]] ; then
+         prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro ${type} $instruction)
       fi
     fi
 

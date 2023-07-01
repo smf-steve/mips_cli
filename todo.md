@@ -38,7 +38,11 @@
    1. further testing
    1. issue what if comments are added
       should these be removed?
-
+   1. nested macro... support or not support?
+      - will need the ability to temporary change settings
+   1. macros can be redefined
+      - pseduo instructions take precedence
+      - the last define takes precence
 
 
 ### Modes
