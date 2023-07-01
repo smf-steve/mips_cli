@@ -268,5 +268,5 @@ echo "Warning: top mode is only for testing"
 echo "Macros and Labels do not work appropriately within this mode"
 echo
 PS1="(top) "
-
+load ${MIPS_CLI_HOME}/libexec/instructions/pseudo_instructions.s
 

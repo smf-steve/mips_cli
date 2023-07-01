@@ -18,7 +18,7 @@
 .end_pseudo
 
 
-.pseudeo divu %rdst, %rsrc1, %rsrc2   # Unsigned remainder
+.pseudo divu %rdst, %rsrc1, %rsrc2   # Unsigned remainder
      bne %src, $zero, 4    ## look no label
        break   
      divu %src1, %src2    
@@ -33,7 +33,7 @@
 .end_pseudo
 
 
-.pseudeo remu %rdst, %rsrc1, %rsrc2   # Unsigned remainder
+.pseudo remu %rdst, %rsrc1, %rsrc2   # Unsigned remainder
      bne %src, $zero, 4    ## look no label
        break   
      divu %src1, %src2    
