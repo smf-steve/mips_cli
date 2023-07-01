@@ -51,7 +51,7 @@
 
 #
 .pseudo not %rdst, %rsrc           # Not
-    nor %rdst, %rsrc, $0
+    nor %rdst, %rsrc, $zero
 .end_pseudo
 
 
@@ -76,13 +76,13 @@
 
 #
 .pseudo neg %rdst, %rsrc             # Negate value (with overflow)
-    sub %rdst, $0, %rsrc 
+    sub %rdst, $zero, %rsrc 
 .end_pseudo
 
 
 #
 .pseudo negu %rdst, %rsrc            # Negate value (without overflow)
-    subu %rdst, $0, %rsrc 
+    subu %rdst, $zero, %rsrc 
 .end_pseudo
 
 
