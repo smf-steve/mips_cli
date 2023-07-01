@@ -1,8 +1,8 @@
 #! /bin/bash
 
-source libexec/machine/registers.bash
-source libexec/machine/encodings.bash
-source libexec/machine/memory.bash
+source ${MIPS_CLI_HOME}/libexec/machine/registers.bash
+source ${MIPS_CLI_HOME}/libexec/machine/encodings.bash
+source ${MIPS_CLI_HOME}/libexec/machine/memory.bash
 
 declare -a LATCH_A=()   # whence registers, value
 declare -a LATCH_B=()   # whence register/imm, value, text
