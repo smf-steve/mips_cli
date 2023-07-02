@@ -1,6 +1,6 @@
 # To Do List
-1. reset_macros
-1. reset_labels
+1. reset_macros, list_macros  -- done
+1. reset_labels, list_labes
 
 1. directives
    - should they be added to the history?

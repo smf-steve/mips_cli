@@ -212,6 +212,7 @@ function initialize () {
   STACK=()
   INSTRUCTION=()
   LABELS=()
+  reset_macros
   source ${MIPS_CLI_HOME}/libexec/settings.bash
   rewind
 
