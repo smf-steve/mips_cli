@@ -5,9 +5,9 @@
 .end_pseudo
 
 
-.pseudo mul %rdst, %rsrc1, %src2
-   mult %rsrc1, %src2
-   mflo %rdst
+.pseudo mul %dst, %src1, %src2
+   mult %src1, %src2
+   mflo %dst
 .end_pseudo
 
 .pseudo div %dst, %src1, %src2   # Presume %src2 is not zero
@@ -18,7 +18,7 @@
 .end_pseudo
 
 
-.pseudo divu %rdst, %rsrc1, %rsrc2   # Unsigned remainder
+.pseudo divu %dst, %src1, %src2   # Unsigned remainder
      bne %src, $zero, 4    ## look no label
        break   
      divu %src1, %src2    
@@ -33,7 +33,7 @@
 .end_pseudo
 
 
-.pseudo remu %rdst, %rsrc1, %rsrc2   # Unsigned remainder
+.pseudo remu %dst, %src1, %src2   # Unsigned remainder
      bne %src, $zero, 4    ## look no label
        break   
      divu %src1, %src2    
@@ -42,47 +42,47 @@
 
 
 #
-.pseudo abs %rdst, %rsrc 
-     sra $at, %rsrc, 31        # $at is either 0, or -1
-     xor %rdst, $at, %rsrc     # %rdst is either x or x-1
-     subu %rdst, %rdst, $at    # either x + 0 or (x - 1) -1 
+.pseudo abs %dst, %src 
+     sra $at, %src, 31        # $at is either 0, or -1
+     xor %dst, $at, %src     # %dst is either x or x-1
+     subu %dst, %dst, $at    # either x + 0 or (x - 1) -1 
 .end_pseudo
 
 
 #
-.pseudo not %rdst, %rsrc           # Not
-    nor %rdst, %rsrc, $0
+.pseudo not %dst, %src           # Not
+    nor %dst, %src, $zero
 .end_pseudo
 
 
 
 #
-.pseudo mulo %rdst, %rsrc1, %src2     # Multiply (with overflow)
-    mult %rsrc1, %src2   
+.pseudo mulo %dst, %src1, %src2     # Multiply (with overflow)
+    mult %src1, %src2   
     mfhi $at 
-    mflo %rdst    
-    sra %rdst, %rdst, 31    
-    beq $at, %rdst, 4
+    mflo %dst    
+    sra %dst, %dst, 31    
+    beq $at, %dst, 4
       break   
-    mflo %rdst
+    mflo %dst
 .end_pseudo
 
 
 #
-.pseudo mulou %rdst, %rsrc1, %src2    # Divide (without overflow)
+.pseudo mulou %dst, %src1, %src2    # Divide (without overflow)
     echo Not Implemented
 .end_pseudo
 
 
 #
-.pseudo neg %rdst, %rsrc             # Negate value (with overflow)
-    sub %rdst, $0, %rsrc 
+.pseudo neg %dst, %src             # Negate value (with overflow)
+    sub %dst, $zero, %src 
 .end_pseudo
 
 
 #
-.pseudo negu %rdst, %rsrc            # Negate value (without overflow)
-    subu %rdst, $0, %rsrc 
+.pseudo negu %dst, %src            # Negate value (without overflow)
+    subu %dst, $zero, %src 
 .end_pseudo
 
 

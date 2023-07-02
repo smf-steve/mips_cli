@@ -48,21 +48,6 @@
 #   function execute_JumpR    
 
 
-_cmd_indent=" "
-
-function native_on () {
-  :
-}
-function pseudo_on () {
-  printf "$1 # is psuedo instruction:\n"
-  CMD_INDENT="${_cmd_indent}"
-
-}
-function pseudo_off () {
-  CMD_INDENT="  "
-}
-
-
 # Presume we have a front't that changes things.
 # Syntax:
 #   line:          [ label:] [instruction  #comment]   
@@ -184,8 +169,15 @@ function cycle () {
   #   from: "[label:]  op rt imm ( rs )"
   #   to: "[label:]  op rt rs imm"
 
-  # This is where we echo the instruction... if we are not interactive..
+  # Echo the instruction if the user did not type it in.
+  # I.e., if the preload was preload -- as a macro, psuedo instruction, or I
+  # Echo 
+  if [[ ${INTERACTIVE} == "TRUE"  && ${MACRO_EXECUTION} == "TRUE" ]] ; then 
+     echo "  --> $(rval $_ir)"
+  fi
   [[ ${INTERACTIVE} == "TRUE" ]] || echo "\$ $(rval $_ir)"
+
+
   history -s "$(rval $_ir)"   
 
   ## IF INTERACTIVE MODE, SHOULD I SLEEP SOME AMOUNT OF TIME.
@@ -296,7 +288,7 @@ function prefetch () {
 
     ## Test to see if the Instruction is a MACRO
     if [[ $INTERACTIVE == "FALSE" ]] ; then 
-      local type=$(macro_type $instruction)
+      local type=$(type_of_macro $instruction)
       if [[ ${type} != "FALSE" ]] ; then
          prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro ${type} $instruction)
       fi
