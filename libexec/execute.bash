@@ -248,6 +248,11 @@ function prefetch () {
             # For allocation directives, we have a bug since DATA_NEXT might move if
             # we have to align 
             eval ${instruction}
+            if [[ -z "${labels}" ]] ; then 
+               history -s "$instruction"
+            else
+               history -s "${labels[0]}: $instruction"
+            fi
             for i in ${labels[@]} ; do
               # labels only make sense on data allocation 
               # if the instruction is not an allocation, it can be deemed a bug

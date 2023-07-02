@@ -200,6 +200,8 @@ function rewind () {
 
 }
 
+alias    shell=""    # to allow shell commands to be executed without being recorded
+
 alias    init=" initialize"
 alias    reset="initialize"
 function initialize () {
