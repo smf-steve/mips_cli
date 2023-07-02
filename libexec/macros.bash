@@ -36,10 +36,12 @@
 #   is_macro ( instruction ): returns TRUE or FALSE, if the instruction uses a macro 
 #   type_of_macro( name, argc ): returns pseudo, macro, or FALSE
 #   list_macros
+#   list_pseudo
 #   start_macro: called when a macro is invoked
 #   end_macro: called when a macro is finished
 #   expand_macro
 #   read_macro
+#   reset_macros
 #  
 #
 # The functions "macro_prologue" and "macro_eplilogue" are used identify the execution
@@ -113,8 +115,7 @@ function type_of_macro () {
    echo "FALSE"
    return 1
 }
-
-function list_macros () {
+function list_pseudo () {
    local type
    local name
    local argc
@@ -122,9 +123,24 @@ function list_macros () {
    while IFS="_" read type name argc ; do
      echo $name: with $argc arguements
    done < <(compgen -A function | grep pseudo_ )
+}
+function list_macros () {
+   local type
+   local name
+   local argc
 
    while IFS="_" read type name argc ; do
      echo $name: with $argc arguements
+   done < <(compgen -A function | grep macro_ )
+}
+
+function reset_macros () {
+   local type
+   local name
+   local argc
+
+   while read macro ; do
+     unset $macro
    done < <(compgen -A function | grep macro_ )
 }
 
