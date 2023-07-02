@@ -22,7 +22,6 @@
 # function. It manipulates the address of the label (which is only)
 # known by the assembler.
 # 
-#
 #   .pseudo la %dst, %label
 #      lui $at, $(upper %label)
 #      ori %dst, $at, $(lower %label)
@@ -35,13 +34,16 @@
 
 # Functions
 #   is_macro ( instruction ): returns TRUE or FALSE, if the instruction uses a macro 
-#   macro_type( name, argc ): returns psuedo, macro, or FALSE
+#   macro_type( name, argc ): returns pseudo, macro, or FALSE
+#   list_macros
 #   macro_prologue: called when a macro is invoked
 #   macro_epilogue: called when a macro is finished
 #   expand_macro
 #   read_macro
+#  
 #
-# Use "macro_prologue" and "macro_eplilogue" to identify the execution boundaries of a macro
+# The functions "macro_prologue" and "macro_eplilogue" are used identify the execution
+# boundaries of a macro.
 
 # Current Limitations:
 #   1. labels are current not supported -- i.e., no control flow can be performed
@@ -121,6 +123,7 @@ function macro_prologue () {
 
   [[ "${EMIT_SYNOPSIS}" == "FALSE" ]] | { echo "Start of ${type} \"${name}\" (${argc})" ; echo ; }
   MACRO="${type}_${name}_${use}"
+  MACRO_EXECUTION=TRUE
 
 }
 alias pseudo_epilogue="macro_epilogue"
@@ -131,7 +134,7 @@ function macro_epilogue () {
   local use="$4"
 
   [[ "${EMIT_SYNOPSIS}" == "FALSE" ]] | { echo "End of ${type} \"${name}\" (${argc})"; echo ; }
-  MACRO=""
+  MACRO_EXECUTION=FALSE
 }
 
 function expand_macro () {
@@ -164,6 +167,7 @@ function apply_macro () {
      TEXT[${current_pc}]=nil
      assign $_pc $(( current_pc + 4 ))
 
+     MACRO_EXECUTION=TRUE
      while cycle ; do
        :
      done < <(expand_macro ${type} $instruction)
