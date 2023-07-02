@@ -34,10 +34,10 @@
 
 # Functions
 #   is_macro ( instruction ): returns TRUE or FALSE, if the instruction uses a macro 
-#   macro_type( name, argc ): returns pseudo, macro, or FALSE
+#   type_of_macro( name, argc ): returns pseudo, macro, or FALSE
 #   list_macros
-#   macro_prologue: called when a macro is invoked
-#   macro_epilogue: called when a macro is finished
+#   start_macro: called when a macro is invoked
+#   end_macro: called when a macro is finished
 #   expand_macro
 #   read_macro
 #  
@@ -94,7 +94,7 @@ function is_macro () {
    echo "$type"
 }
 
-function macro_type () {
+function type_of_macro () {
    local name="$1"
    local argc="$(( $# - 1 ))"
 
@@ -114,8 +114,21 @@ function macro_type () {
    return 1
 }
 
+function list_macros () {
+   local type
+   local name
+   local argc
 
-function macro_prologue () {
+   while IFS="_" read type name argc ; do
+     echo $name: with $argc arguements
+   done < <(compgen -A function | grep pseudo_ )
+
+   while IFS="_" read type name argc ; do
+     echo $name: with $argc arguements
+   done < <(compgen -A function | grep macro_ )
+}
+
+function start_macro () {
   local type="$1"
   local name="$2"
   local argc="$3"
@@ -126,8 +139,8 @@ function macro_prologue () {
   MACRO_EXECUTION=TRUE
 
 }
-alias pseudo_epilogue="macro_epilogue"
-function macro_epilogue () {
+alias end_pseudo="stop_macro"
+function end_macro () {
   local type="$1"
   local name="$2"
   local argc="$3"
@@ -148,7 +161,7 @@ function expand_macro () {
   # Protect the $ signs from being interpolated at this time
   args=$(sed -e 's/\$/\\$/g' <<< "$args" )
   eval ${macro} ${args}
-  echo "${type}_epilogue ${type} ${name} ${count} ${MACRO_COUNT}"
+  echo "stop_${type} ${type} ${name} ${count} ${MACRO_COUNT}"
   (( MACRO_COUNT ++ ))
 }
 
@@ -157,7 +170,7 @@ function apply_macro () {
   shift;
 
   local instruction="$(remove_label $(rval $_ir) )"
-  local type="$(macro_type ${instruction} )"
+  local type="$(type_of_macro ${instruction} )"
 
   local current_pc=$(rval $_pc)
 
@@ -175,7 +188,7 @@ function apply_macro () {
    else
      # The macro has already been expanded.
      # Set up the environment for proper execution
-     macro_prologue "${type}"  "${name}" "${count}"
+     start_macro "${type}"  "${name}" "${count}"
    fi
 }
 
