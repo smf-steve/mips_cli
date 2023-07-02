@@ -27,6 +27,27 @@
    |            | byte: 0   | byte: 1   | byte: 2   | byte: 3   | "BIG ENDIAN"
    | 0x10010010 | 0000 0000 | 0000 0000 | 1111 1111 | 1111 1111 | "0x00 00 FF FF"
    ```
+   - separate the notion of encoding various endiananss
+
+   ```
+   Encoding:
+   | address    | value                                   |
+   |------------|-----------------------------------------|
+   | 0x10010010 | 0000 0000 0000 0000 1111 1111 1111 1111 | "0x00 00 FF FF"
+   ```
+   ```
+   Memory: BIG ENDIAN"
+
+  | address    | value     |  ascii  |  half      | word
+  |------------|-----------|---------|------------|-----------
+  | 0x10010013 | 1111 1111 |         |            |
+  | 0x10010012 | 1111 1111 |         |  0xFF FF   |
+  | 0x10010011 | 0000 0000 |         |            |
+  | 0x10010010 | 0000 0000 |         |  0x00 00   |  0x00 00 FF FF |
+
+   ```
+
+   print_memory address address
 
 ## Encoding of directives
    1. double check .word, etc for final output
