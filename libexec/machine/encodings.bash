@@ -1,32 +1,5 @@
 #! /bin/bash
 
-
-################################################
-# Op Encodings
-# Special  00
-# Special2 1C
-function lookup_opcode () {
-    local num="" 
-    num=$(eval echo \$op_code_$1)  2>&1 >/dev/null
-    if [[ $? == 0 ]] ; then 
-      echo $num
-    else
-      instruction_error "Undefined \"op\""
-    fi
-}
-
-################################################
-# Func Encodings
-function lookup_func () {
-    local num="" 
-    num=$(eval echo \$func_code_$1)  2>&1 >/dev/null
-    if [[ $? == 0 ]] ; then
-      echo $num
-    else
-      instruction_error "Undefined \"func\""
-    fi 
-}
-
 # 000 Row
 declare -r        op_code_REG='000000'  # 0x00
 # declare -r       op_code_xx='000001'  

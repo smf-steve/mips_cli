@@ -1,25 +1,27 @@
 #! /bin/bash
 
-# CONSTANTS
-min_shamt=0
-max_shamt=$(( 2 ** 5 ))
 
-max_immediate_unsigned=$(( 2 ** 16 - 1))
-min_immediate=$(( - 2 ** 15  ))
-max_immediate=$(( - min_immediate - 1 ))
-
-max_word_unsigned=$(( 2 ** 32 - 1))
-min_word=$(( - 2 ** 31  ))
-max_word=$(( - min_word - 1 ))
-
-max_dword_unsigned=$(( 2 ** 64 - 1))
-min_dword=$(( - 2 ** 63 ))
-max_dword=$(( - max_dword -1  ))
-
-
+function upper () {
+    _value=$1
+    printf "0x%04x\n" $((  (_value >> 16 ) & 0xFFFF ))
+}
+function lower () {
+    _value=$1
+    printf "0x%04x\n" $((  _value & 0xFFFF ))
+}
 
 ##########################################################################
 ## Following are functions to convert output to more readable formats
+
+# Modify these to be formatinng
+# format_hex value -> 0x XX XX XX XX   (groups of nibbles)
+# format_bin value -> 0b 0000 0000 0000 0000
+
+# should be group string group len
+#  - take the string, pad it to length
+
+#  to_hex size value
+#  to_binary nibble...
 
 ## Convert a decimal number to hex with bytes separated
 #    - format "0x XX XX XX XX XX"
@@ -27,6 +29,8 @@ function to_hex () {
   local _size=${1}
   local _decimal=${2}
   local _hex=$(printf "%0${_size}X" "${_decimal}" )
+  
+  echo "${X:0:2} ${X:2:2} ${X:4:2} ${X:6:2}"
 
   # Make it a byte at a time:
   sed -e 's/\(..\)/ \1/g' -e 's/^ //' <<< "${_hex}"
