@@ -275,7 +275,6 @@ echo
 PS1="(top) "
 
 while read _file ; do
-  echo $_file
   source $_file
 done < <(ls ${MIPS_CLI_HOME}/tmp/pseudo*.bash) 
 
