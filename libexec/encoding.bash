@@ -1,15 +1,66 @@
 #! /bin/bash
 
-function upper() {
-    _value=$1
-    printf "0x%04x\n" $((  (_value >> 16 ) & 0xFFFF ))
-}
-function lower() {
-    _value=$1
-    printf "0x%04x\n" $((  _value & 0xFFFF ))
-}
+# This file contains the various functions required to 
+# encode an instruction or any of its subcomponents.
+#
+
+# lookup_opcode:
+# lookup_func:
+
+# encode_register: reg
+# decode_register: num
+# encode_shamt:  num
+# decode_shamt:  bnum
+
+# encode_immediate:
+# decode_immediate:
+# encode_offset: label [ PC ]
+# decode_offset:
+
+# encode_address:
+# decode_address:
 
 
+# print_R_encoding:
+# print_I_encoding:
+# print_J_encoding:
+
+
+################################################
+# Op Encodings
+# Special  00
+# Special2 1C
+function lookup_opcode () {
+    local num="" 
+    num=$(eval echo \$op_code_$1)  2>&1 >/dev/null
+    if [[ $? == 0 ]] ; then 
+      echo $num
+    else
+      instruction_error "Undefined \"op\""
+    fi
+}
+
+################################################
+# Func Encodings
+function lookup_func () {
+    local num="" 
+    num=$(eval echo \$func_code_$1)  2>&1 >/dev/null
+    if [[ $? == 0 ]] ; then
+      echo $num
+    else
+      instruction_error "Undefined \"func\""
+    fi 
+}
+
+################################################
+# Register Encodings
+#   - registers are presented as: ${mnemonic}
+function decode_register () {
+    _reg="$1"
+    [[ $_reg > 0 ]] || { input_error "unknown general purpose register" ; return ;  }
+    [[ $_reg < 32 ]] || { input_error "unknown general purpose register" ; return ;  }
+    echo $_reg
+}
 function encode_register () {
    local _reg=$1
    local _code=$(to_binary $(to_hex 2 $_reg))
@@ -17,6 +68,8 @@ function encode_register () {
    echo "${_code}"
 }
 alias encode_shamt=encode_register
+
+
 
 function encode_immediate () {
    local _value=$1
@@ -27,22 +80,30 @@ function encode_immediate () {
 
 function encode_offset () {
    local _label="$1"
-   local _address=$(lookup_text_label $_label)
+   local _offset="$1"
+   local _pc_value="$2"
+   local _address
 
-   if [[ -z "$_address" ]] ; then 
-     echo "_unresolved_"
-   else
-     local _offset=$((  _address - $(rval $_pc) ))
+   [[ -n _pc_value ]] || _pc_value=$(rval $_pc)
 
-     if (( _offset > max_immediate || min_immediate > _offset  )) ; then 
-       instruction_error "Branch out of reach."
+   if [[ ${_label:0:1} =~ [:alpha:] ]] ; then
+      _address=$(lookup_text_label $_label)
+     if [[ -n "$_address" ]] ; then 
+         echo "_unresolved_ $_address - \$_pc" 
+         return 
      fi
-  
-     local _code=$(to_binary "$(to_hex 2 $(( _offset >> 2 )) )" )
-     local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< "${_code}" )
+      _offset=$((  _address - _pc_value ))
+   fi
 
-     echo "${_code}"
-  fi
+   if (( _offset > max_immediate || min_immediate > _offset  )) ; then 
+     instruction_error "Branch out of reach."
+   fi
+  
+   local _code=$(to_binary "$(to_hex 2 $(( _offset >> 2 )) )" )
+   local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< "${_code}" )
+
+   echo "${_code}"
+   echo "Bug need to check which segment I'm in"
 }
 
 function decode_offset () {
@@ -105,6 +166,7 @@ function print_R_encoding () {
     printf "\n"
 }
 
+
 function print_I_encoding () {
     local _op="$1" 
     local _rs="$2" 
@@ -155,11 +217,6 @@ function print_I_encoding () {
     printf "\n"
 }
 
-
-# New format:  ?
-# encode_J_instruction
-# print_J_instruction
-
 function print_J_encoding () {
     local _op="$1"
     local _label="$2"
@@ -187,3 +244,28 @@ function print_J_encoding () {
     printf "\n"
 }
 
+
+
+function print_memory_value () {
+  local _address="$1"
+  local _size="$2"   
+
+  data_memory_read $_size $_address   #This ensure ENDIANESS is address
+  local _rval=$(rval $_mbr)
+
+
+  local _dec=${_rval}
+  local _unsigned=$(( _rval & 0xFFFFFFFF ))
+  local _hex=$(to_hex $(( _size << 1)) $_unsigned )
+  local _bin=$(to_binary "${_hex}")
+
+  local _dash="$( sed -e 's/./-/g' <<< $_bin )"
+  local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< $_bin )"
+
+  # Need to deal with big versers Little Endian
+  printf "| address    | %s |\n" "$_value"
+  printf "|------------|-%s-|\n" "$_dash"
+  printf "| 0x%8x | %s | \"0x%s\""  \
+        "${_address}" "${_bin}" "${_hex}"
+  printf "\n"
+}

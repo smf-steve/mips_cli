@@ -33,6 +33,27 @@
    |            | byte: 0   | byte: 1   | byte: 2   | byte: 3   | "BIG ENDIAN"
    | 0x10010010 | 0000 0000 | 0000 0000 | 1111 1111 | 1111 1111 | "0x00 00 FF FF"
    ```
+   - separate the notion of encoding various endiananss
+
+   ```
+   Encoding:
+   | address    | value                                   |
+   |------------|-----------------------------------------|
+   | 0x10010010 | 0000 0000 0000 0000 1111 1111 1111 1111 | "0x00 00 FF FF"
+   ```
+   ```
+   Memory: BIG ENDIAN"
+
+  | address    | value     |  ascii  |  half      | word
+  |------------|-----------|---------|------------|-----------
+  | 0x10010013 | 1111 1111 |         |            |
+  | 0x10010012 | 1111 1111 |         |  0xFF FF   |
+  | 0x10010011 | 0000 0000 |         |            |
+  | 0x10010010 | 0000 0000 |         |  0x00 00   |  0x00 00 FF FF |
+
+   ```
+
+   print_memory address address
 
 ## Encoding of directives
    1. double check .word, etc for final output
@@ -399,28 +420,20 @@ H
    - print J_encoding  op address/Label
    - print R_encoding  func rs rt rd sh
    - print I_encoding  op rs rt imm
-   - print addr_encoding    label
-   - print offset_encoding  label  [ PC ]   # 
-   - print register_encoding $reg
-   - print shamt_encoding    num
+
+   - print encode_address    label
+   - print encode_offset     label  [ PC ]   # 
+   - print encode_register   $reg
+
+   - print encode_shamt      num
+
+
    - print registers [ $t1 ]
    - print register $t1
    - print labels data|text
    - print memory [segment] [address [ ... [address] ]  # restricted to a segment?
 
-   - LB  Least Sign
-   - LH  Least Sign Half
-   - MH  Most Sign Half
-   - Byte {1,2,3,4} reg|value
-   - Flip-Endianness 
-   - SE  imm imm imm        # 16 -> 32 bits
-   - ZE                     # 16 -> 32 bits
-   - base2  
-   - base8
-   - base10
-   - base10
-   - ascii.index
-   - ascii.char
+
 
 
 
@@ -429,38 +442,6 @@ H
      - values are placed into the MAR / MBR
 
 
-
-
-## Extended Instructions
-   1. Implement Pseudo Instructions
-   1. Implement Synonym Instructions
-      - e.g., "nop" is a synonym for: sll $zero, $zero, 0     # "0"
-      - only provide a comment if the immediate value is a non decimal number
-   1. Review how this are done to see if we can simply to be small include file or other.
-
-      ```this
-      function rem () {
-         echo "Pseudo instruction for:"
-         sub_execute div \$$(name $2), \$$(name $3)
-         sub_execute mfhi \$$(name $1)
-         pseudo_off
-      }
-      ```
-
-      ```to
-      function rem () {
-         div $rs, $rt
-         mfhi $rd
-      }
-
-      echo "Pseudo instruction for:"
-      local rs=$2
-      local rt=$3
-      local rd=$1
-      rem
-      pseudo_off
-}
-      ```
 
 
 

@@ -112,27 +112,3 @@ function .align () {
 }
 
 
-
-function print_memory_value () {
-  local _address="$1"
-  local _size="$2"   
-
-  data_memory_read $_size $_address   #This ensure ENDIANESS is address
-  local _rval=$(rval $_mbr)
-
-
-  local _dec=${_rval}
-  local _unsigned=$(( _rval & 0xFFFFFFFF ))
-  local _hex=$(to_hex $(( _size << 1)) $_unsigned )
-  local _bin=$(to_binary "${_hex}")
-
-  local _dash="$( sed -e 's/./-/g' <<< $_bin )"
-  local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< $_bin )"
-
-  # Need to deal with big versers Little Endian
-  printf "| address    | %s |\n" "$_value"
-  printf "|------------|-%s-|\n" "$_dash"
-  printf "| 0x%8x | %s | \"0x%s\""  \
-        "${_address}" "${_bin}" "${_hex}"
-  printf "\n"
-}
