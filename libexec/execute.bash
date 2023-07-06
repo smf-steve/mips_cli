@@ -3,342 +3,34 @@
 
 ## "execute.bash"
 ## Purpose:
-##   - to contain all of the versious functions related to "execution" of an instruction.
+##   - to contain all of the various functions related to "execution" of an instruction.
 
-
-# Function list
-#   function cycle
-#     - using the current value of PC,
-#       - fetch, decode, execute, memory, and write-back operations
-#     - uses prefetch if the optional address has not been read yet
-#       - this allows for support of interactive operations
+# Each native instruction has been grouped based upon their syntax, and general operation.
+# See documentation/mips_encoding_reference.pdf for more information
 #
-#   function prefetch next_pc [label]
-#     - prefetches the next instruction, 
-#       - or all instructions until the we reach the provided label
-#       - a defined and unresolved label --- effecively reads all instructions
-#     - loads each instruction into INSTRUCTION[{next_pc}]="{instruction}"
-#     - additionaly 
-#       - records all labels encounted
-#         - into LABELS[{LINE_NUM}]={name}, and
-#         - into text_label_{name}={address} or data_label_{labels}={address}
-#           > The approach to use:  text_label_{name}={address}
-#           > was done due to not having hashed arrays
-#       - handles all assembler directives
-
-
-# The following are the functions that decode and execute 
-# the various instructions based upon their syntax.
-#   See:  documentation/mips_encoding_reference.pdf
-#
-#   function execute_ArithLog 
-#   function execute_ArithLogI
-#   function execute_Shift    
-#   function execute_ShiftV   
-#   function execute_MoveTo   
-#   function execute_MoveFro  
-#   function execute_DivMult  
-#   function execute_LoadI    
-#   function execute_Branch   
-#   function execute_BranchZ  
-#   function execute_LoadStore  
+#   execute_ArithLog 
+#   execute_ArithLogI
+#   execute_Shift    
+#   execute_ShiftV   
+#   execute_MoveTo   
+#   execute_MoveFro  
+#   execute_DivMult  
+#   execute_LoadI    
+#   execute_Branch   
+#   execute_BranchZ  
+#   execute_LoadStore  
 #      Note a secondary syntax is only support:  "[label:]  op rt rs imm"
 #      As apposed to:                            "[label:]  op rt imm ( rs )"
-#   function execute_Jump     
-#   function execute_JumpR    
+#   execute_Jump     
+#   execute_JumpR    
 
-
-# Presume we have a front't that changes things.
-# Syntax:
-#   line:          [ label:] [instruction  #comment]   
-#   instruction:   op one two three four
-#   instruction:   op one two (three)              <-- force
-#   instruction:   op ( one two three four .... )  <-- force  macro
-#      note commas are optional but must be part of the token
-#      allow the current engine deal with the immediates and comments
-
-declare -i LINE_NUM=0    # This is a global variable
-declare -a INSTRUCTION   # List of Instructions index by Address
-
-function cycle () {
-
-  # IR <- Mem[PC]   
-
-  #    The potential PC is stored in 'local {potential_pc}'
-  #  
-  #    1. Determine if the value of PC is an address or a label
-  #       If it is an addrsss, set PC to be text_end
-  #    1. Based upon the value of PC
-  #       1. PC <  text_next  -- no prefetch is needed
-  #       1. PC == text_next  -- 1 prefetch is needed
-  #       1. PC >  text_next  -- N prefetches are needed
-  #            i.e., its an unresolve label)
-  #
-  #       - if it is a label then
-  #         * the associated instruction has not read in yet
-  #       - hence we need to prefetch a bunch of instructions
-  #    
-  #    If it's a label or equal to text_next, we need to read the instruction.
-  #    When it is read, it is stored in Text Memory @ text_next
-  #    Then we can read it from memory
-
-  local next_pc=${TEXT_NEXT}  #  This is the next available address
-                              #  Is this just an alias for readability
-  local target_label
-  
-  local potential_pc=$(rval $_pc)  
-
-  # If the PC is a label, so search for that label
-  if [[ ${potential_pc:0:1} =~ [[:alpha:]] ]] ; then 
-    target_label=${potential_pc}
-    potential_pc=${TEXT_END}   
-  fi
-
-  #################################################
-  #  preload   -- loads a number of instructions into memory
-  #  interactive-load:
-
-  #  PC == text_next -- 1 prefetch is needed
-  if (( potential_pc == next_pc )) ; then 
-     # The next instruction has not been read into memory. So read it!
-     PS1="(mips) "
-     prefetch "${next_pc}" ""
-     if [[ $? != 0 ]] ; then 
-       return 1
-     fi
-  fi
-
-  #  PC > text_next -- N prefetches are needed
-  #  If there is a target label, then it has not been resolved... N prefetchs
-  if [[ -n "${target_label}" ]] ; then        ## (( potential_pc > next_pc )) 
-     # We need to search the future for the right instruction.
-     PS1="(prefetch: ${target_label}) "
-     prefetch "${next_pc}" "${target_label}"
-     if [[ $? != 0 ]] ; then 
-       return 1
-     fi
-     potential_pc=$(( next_pc - 4 ))
-  fi
-
-  assign $_pc $potential_pc
-  # end: interactive-load
-  #################################################
-
-
-  fetch #  Fetch the next instruction inot the _ir register
-  local instruction="$(remove_label $(rval $_ir) )"
-
-  # NPC <- PC + 4 ; Next Program Counter
-  #   Execute the instruction or the command
-  #      If it is an instruction the "npc" will be updated inside the instruction
-  #      If it is a command "npc" remains the same
-  assign $_npc $(( $(rval $_pc) + 4 )) 
-
-
-  ###############################################
-  ## IF WE ARE IN BATCH MODE... THEN SKIP THIS CONDITION
-  ## IF DEBUG MODE THEN CHECK THE FOLLOWING LOOP
-
-  if [[ DEBUG_MODE == "TRUE" ]] ; then
-  {  
-     if (( $(rval _pc) < next_pc )) ; then 
-       echo "Ready to execute: \"$(rval $_ir)\""
-
-       # Here we antipate debugger command.
-       while true ; do
-         read -p "(debug) " _command
-         if [[ $? != 0 ]] ; then 
-            return 1
-         fi
-         case $_command in 
-           step | s ) 
-                      break
-                      ;;
-                  *)
-                      echo "Only s[tep] is implemented in DEBUG mode"
-         esac
-       done
-     fi
-  }
-  fi
-  ###############################################
-
-
-
-  # Here is where we might want to change the syntax of the LoadStore instructions
-  #   from: "[label:]  op rt imm ( rs )"
-  #   to: "[label:]  op rt rs imm"
-
-  # Echo the instruction if the user did not type it in.
-  # I.e., if the preload was preload -- as a macro, psuedo instruction, or I
-  # Echo 
-  if [[ ${INTERACTIVE} == "TRUE"  && ${MACRO_EXECUTION} == "TRUE" ]] ; then 
-     echo "  --> $(rval $_ir)"
-  fi
-  [[ ${INTERACTIVE} == "TRUE" ]] || echo "\$ $(rval $_ir)"
-
-
-  history -s "$(rval $_ir)"   
-
-  ## IF INTERACTIVE MODE, SHOULD I SLEEP SOME AMOUNT OF TIME.
-
-  # If the instruction is a MIPS instruction, it
-  #   2. performs the Decode step:
-  #   3. performs the Execute step:
-  #   4. performs the WB step 
-  eval $instruction 
-
-  assign $_pc $(rval $_npc)
-  # Issue arises here if the value of pc is unsolved
-
-
-  return 0;
-}
-
-function prefetch () {
-    local next_pc="$1"
-    local target_label="$2"
-
-    local first
-    local rest
-    local labels=()
-
-    # if next_pc is null, then we place the instuction at the end of the instruction stream
-    if [[ "${next_pc}" ]] ; then
-      next_pc=${TEXT_NEXT}
-    fi  
-    # If target_label is null, then we just return the next line
-    # otherwise, we continue to get the next line until the label is found
-
-    while true ; do 
-      (( LINE_NUM ++ ))
-
-      # -p "(prefetch) "
-      read -e  -p "$PS1" first rest
-
-      [[ $? == 0 ]] || return 1           # Test for EOF
-      [[ -n  "${first}" ]] ||  continue   # Skip over blank lines
-
-      if [[ $(is_label "$first") == "TRUE" ]] ; then 
-        label="${first}"
-        instruction="${rest}"
-
-        name=$(label_name $label)
-        labels+=( "$name" )
-
-        ## Record the label in the database
-        LABELS[${LINE_NUM}]=${name}
-
-        if [[ ${target_label} == ${name} ]] ; then
-          # We have found the target_label so make it blank
-          target_label=""
-        fi
-      else
-        label=""
-        instruction="${first} ${rest}"
-      fi
- 
-      [[ -z "${instruction}" ]]  || break   # Test for found instruction
-    done 
-
-    ## We know have a line is either a directive or is executable
-    case "$instruction" in 
-       .* )
-
-            # For allocation directives, we have a bug since DATA_NEXT might move if
-            # we have to align 
-            eval ${instruction}
-            if [[ -z "${labels}" ]] ; then 
-               history -s "$instruction"
-            else
-               history -s "${labels[0]}: $instruction"
-            fi
-            for i in ${labels[@]} ; do
-              # labels only make sense on data allocation 
-              # if the instruction is not an allocation, it can be deemed a bug
-              assign_data_label "$i" "${DATA_LAST}"
-            done
-            prefetch "${next_pc}" "${target_label}"
-            ;;
-
-       "shell "* )
-            :  # this is a shell command
-               # to be consistent with gdb
-               # goal here is NOT to record this instruction in the final code
-            (( LINE_NUM -- ))
-            #CURRENT=$(LVAL $_PC)
-            eval $instruction
-            #ASSIGN $_PC $_current
-            
-            prefetch "${next_pc}"  "${target_label}"
-            ;;
-        * ) 
-            # 
-            for i in ${labels[@]} ; do
-              assign_text_label "$i" "${next_pc}"
-            done
-            ;;
-    esac
-
-    ## At this point, we should have a legal MIPS instruction
-    ## Record the instruction
-    if [[ $(is_label "$label" ) == TRUE ]] ; then 
-      instruction="$label $instruction"
-    fi
-
-    # Record the instruction, and advance the location of TEXT_NEXT
-    INSTRUCTION[${next_pc}]="${instruction}"
-    (( next_pc = next_pc + 4))
-    TEXT_NEXT=${next_pc}
-
-    ## Test to see if the Instruction is a MACRO
-    if [[ $INTERACTIVE == "FALSE" ]] ; then 
-      local type=$(type_of_macro $instruction)
-      if [[ ${type} != "FALSE" ]] ; then
-         prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro ${type} $instruction)
-      fi
-    fi
-
-
-    ## But is it the right one.   
-    if [[ -n "${target_label}" ]] ; then 
-      # i.e., we have not found the right one, so continue
-      prefetch "${next_pc}" "${target_label}"
-    fi
-
-    # The instruction to be executed has been stored in TEXT Memory.
-    return 0
-}
-
-
-
-
-################################################################################
-
-
-
-### Syntax
-##alias ArithLog
-##alias ArithLogI
-##alias Shift
-##alias ShiftV
-
-##alias MoveX
-##alias DivMult
-
-##alias LoadI
-##alias LoadStore
-##alias Branch
-##alias BranchZ
-##alias Jump
-##alias JumpR
 
 function execute_ArithLog() {
   local _name="$1"
   local _op="$2"
-  local _rd="$(sed -e 's/,$//' <<< $3 )"
-  local _rs="$(sed -e 's/,$//' <<< $4 )"
-  local _rt="$(sed -e 's/,$//' <<< $5 )"
+  local _rd="${3%,}"
+  local _rs="${4%,}"
+  local _rt="${5%,}"
   local _shamt="0"
 
   print_R_encoding $_name $_rs $_rt $_rd $_shamt
@@ -390,8 +82,8 @@ function execute_ArithLog() {
 function execute_ArithLogI () {
   local _name="$1"
   local _op="$2"
-  local _rt="$(sed -e 's/,$//' <<< $3)"
-  local _rs="$(sed -e 's/,$//' <<< $4)"
+  local _rt="${3%,}"
+  local _rs="${4%,}"
   local _text="$5"
   local _imm=$(parse_immediate "$_text")
   local _literal=$(sign_extension "$_imm")
@@ -420,9 +112,9 @@ function execute_Shift () {
   # but with a R format
   local _name="$1"
   local _op="$2"
-  local _func_op="$(sed -e 's/>>>/>>/' <<< $_op)"
-  local _rd="$(sed -e 's/,$//' <<< $3)"
-  local _rt="$(sed -e 's/,$//' <<< $4)"
+  local _func_op="${_op/>>>/>>}"
+  local _rd="${3%,}"
+  local _rt="${4%,}"
   local _text="$5"
   local _shamt=$(parse_shamt "$_text")
   local _value
@@ -453,9 +145,9 @@ function execute_ShiftV () {
   local _name="$1"
   local _op="$2"
   local _func_op="$(sed -e 's/>>>/>>/' <<< $_op)"
-  local _rd="$(sed -e 's/,$//' <<< $3)"
-  local _rt="$(sed -e 's/,$//' <<< $4)"
-  local _rs="$(sed -e 's/,$//' <<< $5)"
+  local _rd="${3%,}"
+  local _rt="${4%,}"
+  local _rs="${5}"
 
   print_R_encoding $_name "$_rs" $_rt $_rd "0"
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
@@ -491,7 +183,7 @@ function execute_MoveTo ()  {
 	# Example: mthi move _hi
   local _name="$1"
   local _op="$2"
-  local _dst="$(sed -e 's/,$//' <<< $3)"
+  local _dst="${3%,}"
   local _src="$4"
 
   case $_name in
@@ -517,7 +209,7 @@ function execute_MoveFrom() {
 function execute_DivMult () {
   local _name="$1"
   local _op="$2"
-  local _rs="$(sed -e 's/,$//' <<< $3)"
+  local _rs="${3%,}"
   local _rt="$4"
 
   print_R_encoding $_name $_rs $_rt "0" "0"
@@ -561,7 +253,7 @@ function execute_LoadI () {
 
   local _name="$1"
   local _op="$2"
-  local _rt="$(sed -e 's/,$//' <<< $3)"
+  local _rt="${3%,}"
   local _text="$4"
   local _imm=$(parse_immediate "$_text")
 
@@ -604,8 +296,8 @@ function execute_LoadI () {
 function execute_Branch () {
   local _name="$1"
   local _op="$2"
-  local _rs="$(sed -e 's/,$//' <<< $3)"
-  local _rt="$(sed -e 's/,$//' <<< $4)"
+  local _rs="${3%,}"
+  local _rt="${4%,}"
   local _label="$5"
   
   local _imm=$(encode_offset $_label)
@@ -652,7 +344,7 @@ function execute_Branch () {
 function execute_BranchZ () {
   local _name="$1"
   local _op="$2"
-  local _rs="$(sed -e 's/,$//' <<< $3)"
+  local _rs="${3%,}"
   local _label="$4"
 
   ## Print the Encoding
@@ -709,8 +401,8 @@ function execute_LoadStore () {
   # Usage:  name -- rt imm (rs)
   local _name="$1"
   local _op="$2"
-  local _rt="$(sed -e 's/,$//' <<< $3)"
-  local _rs="$(sed -e 's/,$//' <<< $4)"
+  local _rt="${3%,}"
+  local _rs="${4%,}"
   local _text="$5"
   local _imm=$(parse_immediate "$_text")
   local _literal=$(sign_extension "$_imm")

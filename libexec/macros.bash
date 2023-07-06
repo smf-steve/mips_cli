@@ -155,7 +155,7 @@ function start_macro () {
   MACRO_EXECUTION=TRUE
 
 }
-alias end_pseudo="stop_macro"
+alias end_pseudo="end_macro"
 function end_macro () {
   local type="$1"
   local name="$2"
