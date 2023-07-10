@@ -436,11 +436,9 @@ H
 
 
 
-
 ## Memory and Alignment
    - Should we have a memory module that shows how
      - values are placed into the MAR / MBR
-
 
 
 
@@ -449,32 +447,11 @@ H
 1. Consider completting the carry in ... operations..
    (It's for educational purposes..)
 
-1. READLINE:
-  - use of readline for file line completion
-
 
 1. Consider using digital gates for output symbols
    - & --> U+2227  ? 
    - nor --> U+22BD  (V with a bar)  or down arrow 
    - U+2213      MINUS-OR-PLUS SIGN      ∓
-
-
-  1. Labels:
-      - currently a label is only associated with a single location in memory
-      - for data labels, we have no notion of the size
-      - for text labels, we do know it is a size of four bytes
-      - Should we include a size with a label
-
-      ```
-      function lookup_data_size() {
-        eval echo \$data_size_${1}
-      }
-      ```
-
-     - size can be determined here as:  (( DATA_NEXT - DATA_LAST))
-     ```
-     assign_data_label "$i" "${DATA_LAST}"
-     ```
 
 
 1. ALU Latches

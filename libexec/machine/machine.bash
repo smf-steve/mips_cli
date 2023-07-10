@@ -132,7 +132,7 @@ function print_ALU_state() {
 
   [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
 
-  print_cin $cin
+  print_cin $cin  $(( LATCH_A[0] ^ LATCH_B[0] ^  $(rval $_dst1) ))
   [[ $LATCH_A != "" ]]  &&  print_value "${LATCH_A[@]}"
   [[ $LATCH_B != "" ]]  &&  print_value "${LATCH_B[@]}"
 
@@ -248,10 +248,16 @@ function print_op() {
 
 
 function print_cin() {
+   local cin="$1"
+   local carry_row="$2"
+
+    local _hex=$(to_hex 8 ${carry_row} )
+    local _bin=$(to_binary "${_hex}")
+
    [[ $cin == -1 ]]  && return
 
-   printf "     %5s         %4s        %4s;             %c;                                         %c;\n" \
-             "cin:" "${cin}" "${cin}" "${cin}" "${cin}"
+   printf "     %5s         %4s        %4s;             %s;              %s; \"%c\"\n" \
+             "cin:" "${cin}" "${cin}" "${_hex}" "${_bin}" "${cin}"
 }
 
 function print_Z() {
