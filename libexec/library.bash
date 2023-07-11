@@ -25,6 +25,20 @@ function lower () {
 
 ## Convert a decimal number to hex with bytes separated
 #    - format "0x XX XX XX XX XX"
+
+function group_4_2 () {
+   # Create four groups of 2
+
+   echo "${1:0:2} ${1:2:2} ${1:4:2} ${1:6:2}"
+
+}
+function group_8_4 () {
+   # create 8 groups of 4
+
+   echo "${1:0:4} ${1:4:4} ${1:8:4} ${1:12:4} ${1:16:4} ${1:20:4} ${1:24:4} ${1:28:4}"
+
+}
+
 function to_hex () {
   local _size=${1}
   local _decimal=${2}
@@ -131,6 +145,95 @@ function sign_extension() {
 }
 
 
+function base2_digits () {
+  local digits=0
+
+  [[ $# == 1 ]] || { digits="$(( $1 >> 2))"; shift; }
+  local value="$1"
+  local hex=$(printf "%0${digits}x" $(( $value )) )
+
+  local bin=
+  for (( i = 0 ; i < ${#hex} ; i++ )) ; do
+    case ${hex:$i:1} in 
+        0)   bin="${bin}0000" ;;
+        1)   bin="${bin}0001" ;;
+        2)   bin="${bin}0010" ;;
+        3)   bin="${bin}0011" ;;
+        4)   bin="${bin}0100" ;;
+        5)   bin="${bin}0101" ;;
+        6)   bin="${bin}0110" ;;
+        7)   bin="${bin}0111" ;;
+        8)   bin="${bin}1000" ;;
+        9)   bin="${bin}1001" ;;
+        a|A) bin="${bin}1010" ;;
+        b|B) bin="${bin}1011" ;;
+        c|C) bin="${bin}1100" ;;
+        d|D) bin="${bin}1101" ;;
+        e|E) bin="${bin}1110" ;;
+        f|F) bin="${bin}1111" ;;
+    esac
+  done
+  echo ${bin}
+}
+
+function base2 () {
+  for i in "$@" ; do 
+    local bin="$(base2_digits $i)"
+    printf "0b%s " $bin
+  done
+  printf "\n"
+}
+
+function base8_digits () {
+  local digits=0
+
+  [[ $# == 1 ]] || { digits="$1"; shift; }
+  local value="$1"
+
+  printf "%0${digits}o" $(( $value ))
+}
+function base8 () {
+
+  for i in $@ ; do 
+    # special case of just 0 --> 00
+    printf "0%s " "$(base8_digits $i )"
+  done
+  printf "\n"
+}
+
+function base10_digits () {
+  local digits=0
+
+  [[ $# == 1 ]] || { digits="$1"; shift; }
+  local value="$1"
+  
+  printf "% ${digits}d" $(( $value ))
+}
+function base10 () {
+
+  for i in $@ ; do 
+        printf "%s " "$(base10_digits $i )"
+  done
+  printf "\n"
+}
+
+function base16_digits () {
+  local value="$1"
+  local digits=0
+
+  [[ $# == 1 ]] || { digits="$1"; shift; }
+  local value="$1"
+
+  printf "%0${digits}x" $(( $value ))
+}
+function base16 () {
+
+  for i in $@ ; do 
+        printf "0x%s " "$(base16_digits $i )"
+  done
+  printf "\n"
+}
+
 
 function ascii.index () {
     str="$*"
@@ -142,8 +245,10 @@ function ascii.index () {
 
 function ascii.char () {
    for i in $@   ; do 
-       printf \\$(printf '%03o' "$(( $i ))" )
+       printf \\$(printf '%03o' $(( $i )) )
    done
    printf "\n"
 }
+
+
 

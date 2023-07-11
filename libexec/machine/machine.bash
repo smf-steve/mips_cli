@@ -132,7 +132,7 @@ function print_ALU_state() {
 
   [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
 
-  print_cin $cin  $(( LATCH_A[0] ^ LATCH_B[0] ^  $(rval $_dst1) ))
+  print_cin $cin  $(( LATCH_A[1] ^ LATCH_B[1] ^  $(rval $_dst1) ))
   [[ $LATCH_A != "" ]]  &&  print_value "${LATCH_A[@]}"
   [[ $LATCH_B != "" ]]  &&  print_value "${LATCH_B[@]}"
 
@@ -185,15 +185,15 @@ function print_value() {
   case ${#} in
       1) # print the current contents of the register
          _name=${_prefix}$(name ${_register})
-         _rval=$(( ${_prefix}$(rval ${_register}) ))
+         _rval=$(( $(rval ${_register}) ))
          ;;
       2) # print the old value of the register
          _name=${_prefix}$(name ${_register})
-         _rval=$(( ${_prefix}${_value} ))
+         _rval=$(( ${_value} ))
          ;;
-      3) # print the value as an immediate
+      3) # print as is since _text_ was provided
          _name="$_register"    
-         _rval=$(( ${_prefix}${_value} ))
+         _rval=$(( ${_value} ))
          ;;
   esac
 
@@ -208,7 +208,9 @@ function print_value() {
   # else
   #   _prefix=""
   # fi
-
+  if [[ -z "$_text" && ${_value:0:1} == "~"  ]] ; then
+    _text=$_value
+  fi
   print_value_i "$_name" "$_rval" "$_text"
 }
 
@@ -221,16 +223,16 @@ function print_value_i () {
     # its an _unresolved_ value
     local _dec="?"
     local _unsigned="?"
-    local _hex="?? ?? ?? ??"
-    local _bin="???? ???? ???? ???? ???? ???? ???? ????"
+    local _hex="????????"
+    local _bin="????????????????????????????????"
   else
     local _dec=${_rval}
     local _unsigned=$(( _rval & 0xFFFFFFFF ))
-    local _hex=$(to_hex 8 $_unsigned )
-    local _bin=$(to_binary "${_hex}")
+    local _hex=$(base16_digits 8 $_unsigned )
+    local _bin=$(base2_digits 32 $_unsigned )
   fi
   printf "   %6s:  %11s %11s; 0x%s; 0b%s;"  \
-        "${_name}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
+        "${_name}" "${_dec}" "${_unsigned}" "$(group_4_2 ${_hex})" "$(group_8_4 ${_bin})"
 
   if [[ "$_text" != "" ]] ; then
     printf " \"%s\"" "${_text}"
@@ -251,13 +253,13 @@ function print_cin() {
    local cin="$1"
    local carry_row="$2"
 
-    local _hex=$(to_hex 8 ${carry_row} )
-    local _bin=$(to_binary "${_hex}")
+    local _hex=$(base16_digits 8 ${carry_row} )
+    local _bin=$(base2_digits 32 ${carry_row} )
 
    [[ $cin == -1 ]]  && return
 
-   printf "     %5s         %4s        %4s;             %s;              %s; \"%c\"\n" \
-             "cin:" "${cin}" "${cin}" "${_hex}" "${_bin}" "${cin}"
+   printf "     %5s  %11s %11s; %13s;   %s; \"%s\"\n" \
+             "cin:" "${cin}" "${cin}" "${cin}" "$(group_8_4 ${_bin})" "cin=${cin}"
 }
 
 function print_Z() {
@@ -337,6 +339,7 @@ function print_MEMWB_stage() {
 }
 
 
+# how does print_mem_value differ from print_value_i
 function print_mem_value () {
   local _name="$1"
   local _rval="$2"
@@ -346,12 +349,12 @@ function print_mem_value () {
 
   local _dec=${_rval}
   local _unsigned=$(( _rval & 0xFFFFFFFF ))
-  local _hex=$(to_hex $(( _size * 2 )) $_unsigned )
+  local _hex=$(hex_digits $(( _size * 2 )) $_unsigned )
 
-  local _bin=$(to_binary "${_hex}")
+  local _bin=$(bin_digits "${_hex}")
 
   printf "   %6s:  %11d %11d; 0x%11s; 0b%39s;"  \
-        "${_name}" "${_dec}" "${_unsigned}" "${_hex}" "${_bin}"
+        "${_name}" "${_dec}" "${_unsigned}" "$(group_4_2 ${_hex})" "$(group_8_4 ${_bin})"
   printf "\n"
 }
 

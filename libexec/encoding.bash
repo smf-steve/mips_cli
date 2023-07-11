@@ -63,19 +63,16 @@ function decode_register () {
 }
 function encode_register () {
    local _reg=$1
-   local _code=$(to_binary $(to_hex 2 $_reg))
-   local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< "${_code}" )
-   echo "${_code}"
+   local _code=$(base2_digits 8 $_reg )
+   echo "${_code:3:5}"
 }
 alias encode_shamt=encode_register
 
 
 
 function encode_immediate () {
-   local _value=$1
    local _value=$(( $1 & 0xFFFF ))
-   local _code=$(to_binary "$(to_hex 4 $_value)")
-   sed -e 's/ //g' <<< "${_code}"
+   echo $(binary_digits 16 $_value)
 }
 
 function encode_offset () {
@@ -99,8 +96,7 @@ function encode_offset () {
      instruction_error "Branch out of reach."
    fi
   
-   local _code=$(to_binary "$(to_hex 2 $(( _offset >> 2 )) )" )
-   local _code=$(sed -e 's/ //g' -e 's/.*\(.....\)$/\1/' <<< "${_code}" )
+   local _code=$(base2_digits 16 $(( _offset >> 2 )) )
 
    echo "${_code}"
    echo "Bug need to check which segment I'm in"
@@ -116,14 +112,18 @@ function encode_address () {
   # PC = PC&0xF0000000 | (addr0<< 2)
   local _label=$1
   local _address=$(lookup_text_label $_label)
+  local _code
 
   if [[ -z "$_address" ]] ; then 
     echo "_unresolved_"
   else
-    local _code=$(to_binary "$(to_hex 7 $(( _address  >> 2 )) )" )
-    local _code=$(sed -e 's/ //g'  <<< "${_code}" )
-    #ensure the code is no more than 26 bits
-    echo "${_code:2}"
+    if (( ( _address % 4) != 0 )) ; then
+      echo "Invaled address"
+    else 
+      _code=base2_digits 28 $(( _address  >> 2 )) 
+      # Only return 26 bits
+      echo ${_code:2}
+    fi
   fi
 }
 
@@ -256,8 +256,8 @@ function print_memory_value () {
 
   local _dec=${_rval}
   local _unsigned=$(( _rval & 0xFFFFFFFF ))
-  local _hex=$(to_hex $(( _size << 1)) $_unsigned )
-  local _bin=$(to_binary "${_hex}")
+  local _hex=$(base16_digits $(( _size << 1)) ${_unsigned} )
+  local _bin=$(base2_digits  $(( _size << 3)) ${_unsigned})
 
   local _dash="$( sed -e 's/./-/g' <<< $_bin )"
   local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< $_bin )"

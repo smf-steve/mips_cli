@@ -58,7 +58,7 @@ function execute_ArithLog() {
   local _rs_value=$(rval $_rs)
   local _rt_value=${_rt_prefix}$(rval $_rt)
   LATCH_A=( "$_rs" "$_rs_value" )
-  LATCH_B=( "${_rt_prefix}$_rt" "${_rt_prefix}$_rt_value" )  # "$_rt_text") 
+  LATCH_B=( "${_rt_prefix}$_rt" "$_rt_value" )  # "$_rt_text") 
 
   case $_name in
      slt*u) # Use 32-bits as unsigned
