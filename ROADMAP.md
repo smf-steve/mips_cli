@@ -32,7 +32,13 @@ This file contains the general road map for develop and the current Milestones t
   - refinement of pseudo instructions
   - dumping of the .core file
 
-## MVP 0.5"
+
+====== Here
+
+
+
+
+## MVP 0.5:
    - Commands: first draft of list to be supported, partial implementation
    - first cut of command line arguments
 

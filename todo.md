@@ -1,19 +1,17 @@
 # To Do List
 1. reset_macros, list_macros  -- done
-1. reset_labels, list_labes
 
-1. directives
-   - should they be added to the history?
-   -  .include would be nice
+## Labels
+1. reset_labels, list_labels
 
 1. labels still use old memory model
 
 1. labels should be implemented via arrays and not via the alias method
   - to keep it consistent with the other stuff put into the CORE file
 
-1. rewind needs to have a lable install called is the instruction
-   - "_exit: _exit "
-   - the label should be placed into kernel space...
+1. use of upper and lower with unresolved label?
+
+----
 
 1. output of special registers need to be updated
    - "$(name $\_mar)""
@@ -202,6 +200,20 @@
 1. Implement Traps
 
 
+## Kernel
+   1. rewind needs to have a lable install called is the instruction
+     - "\_exit: \_exit "
+     - the label should be placed into kernel space...
+   1. .ktext
+     - allows us to put things into the kernel space.
+     - need a flag so that 
+       ```
+       if [[ ${IN_KERNEL} == TRUE ]] ; then 
+         text_next ==
+       ```
+       * text_next  <-->  ktext_next
+       * data_next  <-->  kdata_next
+
 ## Syscalls
   1. Syscall and trap, break?
      - output would be the input and then the output variables
@@ -216,6 +228,19 @@
 
 
 # Notes:
+
+function print_mem_value () {
+    -- prints stuff from the MAR/MBR
+    -- rename based upn the unit?
+
+function print_memory() {
+    -- not called
+    -- pass inthe data segment
+
+function print_memory_value 
+    -- then encoding of .word, etc
+
+
   1. build  routines to print out memory and the like
 
 print_data  

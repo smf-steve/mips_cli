@@ -52,4 +52,4 @@ lw $t3, $s1, 0
 add $t4, $t2, $t3
 sw $t4, $s2, 0    #C = 12
 
-print_data_memory
+dump_segment DATA
