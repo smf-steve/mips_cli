@@ -340,6 +340,9 @@ function print_MEMWB_stage() {
 
 
 # how does print_mem_value differ from print_value_i
+#  size versus text for one...
+
+# rename: print_wb_value
 function print_mem_value () {
   local _name="$1"
   local _rval="$2"
