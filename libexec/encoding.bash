@@ -244,28 +244,34 @@ function print_J_encoding () {
     printf "\n"
 }
 
+function print_memory_encoding_multiple () {
+   :
+}
+function print_align_encoding () {
+  :
+}
 
-
-function print_memory_value () {
+function print_memory_encoding () {
   local _address="$1"
-  local _size="$2"   
+  local _size="$2" 
+  local _value="$3"  
+  local _text="$4"
 
-  data_memory_read $_size $_address   #This ensure ENDIANESS is address
-  local _rval=$(rval $_mbr)
-
-
-  local _dec=${_rval}
-  local _unsigned=$(( _rval & 0xFFFFFFFF ))
+  local _dec=${_value}
+  local _unsigned=$(( _value & 0xFFFFFFFF ))
   local _hex=$(base16_digits $(( _size << 1)) ${_unsigned} )
   local _bin=$(base2_digits  $(( _size << 3)) ${_unsigned})
 
-  local _dash="$( sed -e 's/./-/g' <<< $_bin )"
-  local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< $_bin )"
+  _bin="$(sed -e 's/\(........\)/\1 /g' -e 's/ $//' <<< $_bin)"
+  local _dash="$( sed -e 's/./-/g' <<< "$_bin" )"
+  local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< "$_bin" )"
 
-  # Need to deal with big versers Little Endian
+  if [[ -z ${_text} ]] ; then 
+    _text="0x${_hex}"
+  fi
   printf "   | address    | %s |\n" "$_value"
   printf "   |------------|-%s-|\n" "$_dash"
-  printf "   | 0x%8x | %s | \"0x%s\""  \
-        "${_address}" "${_bin}" "${_hex}"
-  printf "\n"
+  printf "   | 0x%8x | %s | \"%s\"\n"  "${_address}" "${_bin}" "${_text}"
+  printf "   | 0x%8x |\n" ${DATA_NEXT}
+  echo
 }

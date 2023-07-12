@@ -46,70 +46,68 @@ function .space () {
 }
 
 function .dword () {
+   # 8 = 2*3
   local value="$1"
+  local address="${DATA_NEXT}"
 
   .align 3
   allocate_data_memory 8 "$value"
 
-  [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
-  print_memory_value $(( DATA_NEXT-8 )) 8
-  echo
+  print_memory_encoding_multiple $address $(upper $value) $(lower $value) ""
 
+  print_memory $address 1
 }
 
-function .word () {
+alias .word="allocate 2"
+alias .half="allocate 1"
+alias .byte="allocate 0"
+function allocate () {
+  local alignment="$1" ; shift
   local value="$1"
+  local bytes="$(( 2 ** alignment ))"
 
-  .align 2
-  allocate_data_memory 4 "$value"
+  .align $alignment
 
-  [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
-  print_memory_value $(( DATA_NEXT-4 )) 4
-  echo
+  # We can enhance this function to allow multiple values
+  # Generate a loop to process each $1, $2, ... in turn
+  allocate_data_memory $bytes "$value"
+  print_memory_encoding ${DATA_LAST} $bytes $value ""
+  print_memory ${DATA_LAST} $bytes
+
 }
 
-function .half () {
-   local value="$1"
-
-   .align 1
-   allocate_data_memory 2 "$value"
-
-   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
-   print_memory_value $(( DATA_NEXT-2 )) 2
-   echo
-}    
-
-
-
-function .byte () {
-   local value="$1"
-
-   .align 0
-   allocate_data_memory 1 "$value"
-
-   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
-   print_memory_value $(( DATA_NEXT-1 )) 1
-   echo
-}
 
 function .align () {
   # (0=byte, 1=half, 2=word, 3=double)
   local align="$1"
+  local text
 
-  local _offset
+  local _offset=0
   case ${align} in 
     0) # No adjustment is needed
+       bytes=1
+       text="byte"
        ;;
-    1) _offset=$((DATA_NEXT % 2))
-       [[ $_offset == 0 ]] || allocate_data_memory $(( 2 - $_offset ))
+    1) bytes=2
+       text="half"
        ;;
-    2) _offset=$((DATA_NEXT % 4))
-       [[ $_offset == 0 ]] || allocate_data_memory $(( 4 - $_offset ))
+    2) bytes=4
+       text="word"
        ;;
-    3) _offset=$((DATA_NEXT % 8))
-       [[ $_offset == 0 ]] || allocate_data_memory $(( 8 - $_offset ))
+    3) bytes=8
+       text="double"
        ;;
    esac
+   _offset=$((DATA_NEXT % bytes))
+   allocate=$(( bytes - $_offset ))
+   [[ $_offset == 0 ]] || allocate_data_memory $allocate
+
+   if (( _offset != 0 )) ; then 
+     text="$(printf "Aligning to %s boundary: 0x%0x %% %d == 0" "$text" ${DATA_NEXT} $bytes)"
+     print_memory_encoding $(( DATA_LAST )) $allocate "0" "$text"
+   fi
+
+   # Note: No need to print memory
 }
 
 
