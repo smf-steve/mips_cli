@@ -53,6 +53,7 @@ function .dword () {
 
   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
   print_memory_value $(( DATA_NEXT-8 )) 8
+  echo
 
 }
 
@@ -64,7 +65,7 @@ function .word () {
 
   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
   print_memory_value $(( DATA_NEXT-4 )) 4
-
+  echo
 }
 
 function .half () {
@@ -75,7 +76,7 @@ function .half () {
 
    [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
    print_memory_value $(( DATA_NEXT-2 )) 2
-
+   echo
 }    
 
 
@@ -88,7 +89,7 @@ function .byte () {
 
    [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
    print_memory_value $(( DATA_NEXT-1 )) 1
-
+   echo
 }
 
 function .align () {
