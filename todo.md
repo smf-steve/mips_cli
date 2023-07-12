@@ -271,17 +271,36 @@ C escape of interest:  \t \n \r \f \a \b \e
 Special characes \0
 
 
+(top) .word 36
+
+   | address    | value                            |
+   |------------|----------------------------------|
+   | 0x10010000 | 00000000000000000000000000100010 | "0x00000024"
+
+
+   Memory:
+   | address    | byte      | ASCII |  half         |   word          |         
+   |------------|-----------|-------|---------------|-----------------|
+   | 0x10010003 | 0x00 (0)  | \0    |               |                 |
+   | 0x10010002 | 0x00 (0)  | \0    |  0x0000 (0)   |                 |
+   | 0x10010001 | 0x00 (0)  | \0    |               |                 |
+   | 0x10010000 | 0x24 (36) | '$'   |  0x0024 (36)  | 0x00000024 (36) |
+
+
+
+
+
+
+# Bugs
+
   1. create a list of functions exposed to the user
-  1. Revise the approach to convering to hex, binary... 
-     - leave the formating for the print routines.
+
 
   1. Implement the functions
      * SE and ZE for sign_extension and zero_extension
   1. double check that the ArithLogI use zE for logical operations
 
 
-
-# Bugs
 
 1. 
 
