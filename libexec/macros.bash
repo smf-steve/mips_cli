@@ -177,7 +177,7 @@ function expand_macro () {
   # Protect the $ signs from being interpolated at this time
   args=$(sed -e 's/\$/\\$/g' <<< "$args" )
   eval ${macro} ${args}
-  echo "stop_${type} ${type} ${name} ${count} ${MACRO_COUNT}"
+  echo "end_${type} ${type} ${name} ${count} ${MACRO_COUNT}"
   (( MACRO_COUNT ++ ))
 }
 
