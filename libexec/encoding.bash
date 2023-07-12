@@ -72,7 +72,7 @@ alias encode_shamt=encode_register
 
 function encode_immediate () {
    local _value=$(( $1 & 0xFFFF ))
-   echo $(binary_digits 16 $_value)
+   echo $(base2_digits 16 $_value)
 }
 
 function encode_offset () {
@@ -83,7 +83,7 @@ function encode_offset () {
 
    [[ -n _pc_value ]] || _pc_value=$(rval $_pc)
 
-   if [[ ${_label:0:1} =~ [:alpha:] ]] ; then
+   if [[ ${_label:0:1} =~ [[:alpha:]] ]] ; then
       _address=$(lookup_text_label $_label)
      if [[ -n "$_address" ]] ; then 
          echo "_unresolved_ $_address - \$_pc" 
@@ -263,9 +263,9 @@ function print_memory_value () {
   local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< $_bin )"
 
   # Need to deal with big versers Little Endian
-  printf "| address    | %s |\n" "$_value"
-  printf "|------------|-%s-|\n" "$_dash"
-  printf "| 0x%8x | %s | \"0x%s\""  \
+  printf "   | address    | %s |\n" "$_value"
+  printf "   |------------|-%s-|\n" "$_dash"
+  printf "   | 0x%8x | %s | \"0x%s\""  \
         "${_address}" "${_bin}" "${_hex}"
   printf "\n"
 }

@@ -2,12 +2,20 @@
 
 
 function upper () {
-    _value=$1
-    printf "0x%04x\n" $((  (_value >> 16 ) & 0xFFFF ))
+  local _address=$1
+
+  if [[ ${_address:0:1} =~ [[:alpha:]] ]] ; then
+    _address=$(lookup_data_label $_address)
+  fi
+  printf "0x%04x\n" $((  (_address >> 16 ) & 0xFFFF ))
 }
 function lower () {
-    _value=$1
-    printf "0x%04x\n" $((  _value & 0xFFFF ))
+  local _address=$1
+
+  if [[ ${_address:0:1} =~ [[:alpha:]] ]] ; then
+    _address=$(lookup_data_label $_address)
+  fi
+  printf "0x%04x\n" $((  _address & 0xFFFF ))
 }
 
 ##########################################################################
