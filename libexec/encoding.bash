@@ -244,12 +244,52 @@ function print_J_encoding () {
     printf "\n"
 }
 
+
+function print_word_row () {
+   local _start="$1"
+   local _size="$2"
+   local _value="$3"
+   local _end="$4"
+   local _text="$5"
+
+   local _dec=${_value}
+   local _unsigned=$(( _value & 0xFFFFFFFF ))
+   local _hex=$(base16_digits $(( _size << 1)) ${_unsigned} )
+   local _bin=$(base2_digits  $(( _size << 3)) ${_unsigned} )
+  
+   _bin="$(sed -e 's/\(........\)/\1 /g' -e 's/ $//' <<< $_bin)"
+   if [[ -z ${_text} ]] ; then 
+     _hex=$(group_4_2 $_hex | sed 's/ *$//')
+     _text="0x${_hex}"
+   fi
+   printf "%s %s %s \"%s\"\n"  "${_start}" "${_bin}" "${_end}" "${_text}"
+
+}
 function print_memory_encoding_multiple () {
-   :
+  #_size is > 4
+
+  local _address="$1"
+  local _size="$2"  
+  local _value="$3" ; shift; shift ; shift
+
+  local _indent="                "
+
+  printf "   | address    | value                               |\n" 
+  printf "   |------------|-------------------------------------|\n"
+  printf "   | 0x%8x " $_address
+
+  print_word_row "|" 4 $_value "/" ""
+ 
+  local _values=( "${@}" )
+  for (( i=0; i < $# - 1 ; i++ )) ; do 
+     print_word_row "${_indent}/" 4 ${_values[$i]} "/" ""
+  done
+  print_word_row "${_indent}/" 4 ${_values[$#-1]} "|" ""   #< row size is what is left over
+
+  printf "   | 0x%8x |\n" ${DATA_NEXT}
+  echo
 }
-function print_align_encoding () {
-  :
-}
+
 
 function print_memory_encoding () {
   local _address="$1"
@@ -257,21 +297,17 @@ function print_memory_encoding () {
   local _value="$3"  
   local _text="$4"
 
-  local _dec=${_value}
-  local _unsigned=$(( _value & 0xFFFFFFFF ))
-  local _hex=$(base16_digits $(( _size << 1)) ${_unsigned} )
-  local _bin=$(base2_digits  $(( _size << 3)) ${_unsigned})
+  local _dashes="--------"   # Eight Dashes: 8 bits
+  for (( i = 2 ; i <= $_size ; i++ )) ; do 
+    _dashes="${_dashes}---------" # Nine Dashes: 1 space + 8 bits
+  done
+  local _title="$( sed -e 's/./ /g' -e 's/^...../value/' <<< "$_dashes" )"
 
-  _bin="$(sed -e 's/\(........\)/\1 /g' -e 's/ $//' <<< $_bin)"
-  local _dash="$( sed -e 's/./-/g' <<< "$_bin" )"
-  local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< "$_bin" )"
+  printf "   | address    | %s |\n" "$_title"
+  printf "   |------------|-%s-|\n" "$_dashes"
+  printf "   | 0x%8x " "${_address}"
 
-  if [[ -z ${_text} ]] ; then 
-    _text="0x${_hex}"
-  fi
-  printf "   | address    | %s |\n" "$_value"
-  printf "   |------------|-%s-|\n" "$_dash"
-  printf "   | 0x%8x | %s | \"%s\"\n"  "${_address}" "${_bin}" "${_text}"
-  printf "   | 0x%8x |\n" ${DATA_NEXT}
+  print_word_row "|" $_size $_value "|" "$_text"
+  printf "   | 0x%8x |\n" $(( _address + _size ))
   echo
 }

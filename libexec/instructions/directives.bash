@@ -45,17 +45,24 @@ function .space () {
    allocate_data_memory count
 }
 
+function upper_word () {
+
+   echo $(( $1 >> 32 ))
+}
+function lower_word () {
+   echo $(( $1 & 0x00000000FFFFFFFF ))
+}
 function .dword () {
-   # 8 = 2*3
+  local alignment="3" #  ; shift
   local value="$1"
-  local address="${DATA_NEXT}"
+  local bytes="$(( 2 ** alignment ))"    # 8 = 2*3
 
-  .align 3
-  allocate_data_memory 8 "$value"
+  .align $alignment
+  allocate_data_memory $bytes "$value"
 
-  print_memory_encoding_multiple $address $(upper $value) $(lower $value) ""
+  print_memory_encoding_multiple ${DATA_LAST} $bytes $(upper_word $value) $(lower_word $value)
 
-  print_memory $address 1
+  print_memory ${DATA_LAST} 1
 }
 
 alias .word="allocate 2"
@@ -63,8 +70,10 @@ alias .half="allocate 1"
 alias .byte="allocate 0"
 function allocate () {
   local alignment="$1" ; shift
-  local value="$1"
+  local value="$1" ; [[ -n $value ]] || value=0
   local bytes="$(( 2 ** alignment ))"
+
+   
 
   .align $alignment
 
