@@ -27,18 +27,20 @@ alias .end_pseudo="echo .end_macro improperly encountered."
 function .asciiz () {
    local str="$1"
 
-   .ascii "$str"
-   allocate_data_memory 1 0x00
+   .ascii "$str\0"
 }
 
 function .ascii () {
   local str="$1"
   local i
+  local j
 
   for i in $(ascii.index "$str") ; do
      allocate_data_memory 1  "$i"
   done
+  print_string_encoding "$str"
 }
+
 
 function .space () {
    local count="$1"
@@ -72,8 +74,6 @@ function allocate () {
   local alignment="$1" ; shift
   local value="$1" ; [[ -n $value ]] || value=0
   local bytes="$(( 2 ** alignment ))"
-
-   
 
   .align $alignment
 

@@ -245,6 +245,37 @@ function print_J_encoding () {
 }
 
 
+function print_string_encoding () {
+  local str="$1"
+
+  local dec_values=( $(ascii.index "$str") )
+  local _size=${#dec_values[@]}
+  local hex_values=()
+
+  local index=0
+  local hex_value="0"
+  for value in "${dec_values[@]}" ; do
+
+    (( hex_value = ( hex_value << 8 ) | value  ))
+    (( index ++ ))
+    if (( index == 4 )) ; then 
+      hex_values+=( $hex_value )
+      index=0
+      hex_value=0
+    fi
+  done
+  if (( index != 0 )) ; then 
+     hex_values+=( $hex_value )
+  fi
+
+  if  (( _size <= 4  )) ; then 
+    print_memory_encoding ${DATA_LAST} $_size "${hex_values[@]}"
+  else
+    print_memory_encoding_multiple ${DATA_LAST} $_size "${hex_values[@]}"
+  fi
+}
+
+
 function print_word_row () {
    local _start="$1"
    local _size="$2"
@@ -279,12 +310,18 @@ function print_memory_encoding_multiple () {
   printf "   | 0x%8x " $_address
 
   print_word_row "|" 4 $_value "/" ""
- 
+  (( _size -= 4 ))
+
   local _values=( "${@}" )
   for (( i=0; i < $# - 1 ; i++ )) ; do 
      print_word_row "${_indent}/" 4 ${_values[$i]} "/" ""
+     (( _size -= 4 ))
   done
-  print_word_row "${_indent}/" 4 ${_values[$#-1]} "|" ""   #< row size is what is left over
+  local end="|"
+  for (( i = _size; i < 4 ; i++ )) ; do
+    end="         "$end
+  done
+  print_word_row "${_indent}/" $(( _size )) ${_values[$#-1]} "$end" ""   #< row size is what is left over
 
   printf "   | 0x%8x |\n" ${DATA_NEXT}
   echo
