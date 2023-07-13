@@ -50,17 +50,17 @@ alias      lhi='execute_LoadI lhi --'       # Part of Hennessy&Pattrson
 alias      llo='execute_LoadI llo --'
 
 ## LoadStore
-alias       lb='execute_LoadStore lb --'
-alias       lh='execute_LoadStore lh --'
-alias       lw='execute_LoadStore lw --'
+alias       lb='execute_LoadStore lb  --'
+alias       lh='execute_LoadStore lh  --'
+alias       lw='execute_LoadStore lw  --'
 alias      lbu='execute_LoadStore lbu --'
 alias      lhu='execute_LoadStore lhu --'
-alias       sb='execute_LoadStore sb --'
-alias       sh='execute_LoadStore sh --'
-alias       sw='execute_LoadStore sw --'
+alias       sb='execute_LoadStore sb  --'
+alias       sh='execute_LoadStore sh  --'
+alias       sw='execute_LoadStore sw  --'
 
 ## Jump and JumpR
-alias        j='execute_Jump  j   --'
+alias        j='execute_Jump  j    --'
 alias      jal='execute_Jump  jal  --'
 alias       jr='execute_JumpR jr   --'
 alias     jalr='execute_JumpR jalr --'

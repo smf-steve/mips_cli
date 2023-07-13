@@ -1,7 +1,8 @@
 #! /bin/bash
 
-
-function upper () {
+alias upper="upper_half"
+alias lower="lower_half"
+function upper_half () {
   local _address=$1
 
   if [[ ${_address:0:1} =~ [[:alpha:]] ]] ; then
@@ -9,13 +10,21 @@ function upper () {
   fi
   printf "0x%04x\n" $((  (_address >> 16 ) & 0xFFFF ))
 }
-function lower () {
+function lower_half () {
   local _address=$1
 
   if [[ ${_address:0:1} =~ [[:alpha:]] ]] ; then
     _address=$(lookup_data_label $_address)
   fi
   printf "0x%04x\n" $((  _address & 0xFFFF ))
+}
+
+function upper_word () {
+
+   echo $(( $1 >> 32 ))
+}
+function lower_word () {
+   echo $(( $1 & 0x00000000FFFFFFFF ))
 }
 
 ##########################################################################

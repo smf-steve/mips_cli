@@ -248,6 +248,8 @@ function print_J_encoding () {
 function print_string_encoding () {
   local str="$1"
 
+  [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
+
   local dec_values=( $(ascii.index "$str") )
   local _size=${#dec_values[@]}
   local hex_values=()
@@ -297,11 +299,11 @@ function print_word_row () {
 
 }
 function print_memory_encoding_multiple () {
-  #_size is > 4
-
   local _address="$1"
   local _size="$2"  
   local _value="$3" ; shift; shift ; shift
+
+  [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
 
   local _indent="                "
 
@@ -327,12 +329,29 @@ function print_memory_encoding_multiple () {
   echo
 }
 
+function print_zero_encoding () {
+   local bytes="$1"
+
+   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
+   local ZEROS=()
+
+   for ((i=0; i < bytes ; i+=4)) ; do
+     ZEROS+=( 0x00 )
+   done
+   if (( bytes <= 4 )) ; then
+      print_memory_encoding ${DATA_LAST} $bytes "${ZEROS[@]}"   
+   else
+      print_memory_encoding_multiple ${DATA_LAST} $bytes "${ZEROS[@]}"
+   fi
+}
 
 function print_memory_encoding () {
   local _address="$1"
   local _size="$2" 
   local _value="$3"  
   local _text="$4"
+
+  [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
 
   local _dashes="--------"   # Eight Dashes: 8 bits
   for (( i = 2 ; i <= $_size ; i++ )) ; do 

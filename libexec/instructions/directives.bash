@@ -1,27 +1,24 @@
 alias .text=":"
+alias .ktext="echo Not Implemented."
+
 alias .data=":"
-
-alias .include="include"
-
-alias .ktext="echo Not Implemented:"
-alias .kdata="echo Not Implemented:"
+alias .kdata="echo Not Implemented."
 
 alias .float="echo Not Implemented."
-alias .double="echo Not Implemented"
+alias .double="echo Not Implemented."
 
 alias .globl="echo Not Implemented."
 alias .extern="echo Not Implemented."
 
-alias .macro="echo Not Implemented."
-alias .end_macro="echo Not Implemented."
-
 alias .eqv="echo Not Implemented."
 alias .set="echo Not Implemented."
 
-alias .macro="read_macro macro"    # Note this fuction is in the macros.bash file
-alias .pseudo="read_macro pseudo"
+alias .include="include"
 
+alias .macro="read_macro macro"
 alias .end_macro="echo .end_macro improperly encountered."
+
+alias .pseudo="read_macro pseudo"
 alias .end_pseudo="echo .end_macro improperly encountered."
 
 function .asciiz () {
@@ -36,37 +33,22 @@ function .ascii () {
   local j
 
   for i in $(ascii.index "$str") ; do
-     allocate_data_memory 1  "$i"
+     allocate_data_memory 1 "$i"
   done
   print_string_encoding "$str"
+  print_memory ${DATA_LAST} ${#str[@]}
 }
 
 
 function .space () {
-   local count="$1"
-   allocate_data_memory count
+   local bytes="$1"
+
+   allocate_data_memory $bytes
+   print_zero_encoding $bytes
 }
 
-function upper_word () {
 
-   echo $(( $1 >> 32 ))
-}
-function lower_word () {
-   echo $(( $1 & 0x00000000FFFFFFFF ))
-}
-function .dword () {
-  local alignment="3" #  ; shift
-  local value="$1"
-  local bytes="$(( 2 ** alignment ))"    # 8 = 2*3
-
-  .align $alignment
-  allocate_data_memory $bytes "$value"
-
-  print_memory_encoding_multiple ${DATA_LAST} $bytes $(upper_word $value) $(lower_word $value)
-
-  print_memory ${DATA_LAST} 1
-}
-
+alias .dword="allocate 3"
 alias .word="allocate 2"
 alias .half="allocate 1"
 alias .byte="allocate 0"
@@ -77,10 +59,13 @@ function allocate () {
 
   .align $alignment
 
-  # We can enhance this function to allow multiple values
-  # Generate a loop to process each $1, $2, ... in turn
   allocate_data_memory $bytes "$value"
-  print_memory_encoding ${DATA_LAST} $bytes $value ""
+
+  if (( bytes == 8 )) ; then 
+     print_memory_encoding_multiple ${DATA_LAST} $bytes $(upper_word $value) $(lower_word $value)
+  else
+    print_memory_encoding ${DATA_LAST} $bytes $value ""
+  fi
   print_memory ${DATA_LAST} $bytes
 
 }
@@ -91,29 +76,31 @@ function .align () {
   local align="$1"
   local text
 
-  local _offset=0
+  local offset=0
+  local bytes
   case ${align} in 
     0) # No adjustment is needed
-       bytes=1
+       size=1
        text="byte"
        ;;
-    1) bytes=2
+    1) size=2
        text="half"
        ;;
-    2) bytes=4
+    2) size=4
        text="word"
        ;;
-    3) bytes=8
+    3) size=8
        text="double"
        ;;
    esac
-   _offset=$((DATA_NEXT % bytes))
-   allocate=$(( bytes - $_offset ))
-   [[ $_offset == 0 ]] || allocate_data_memory $allocate
+   offset=$((DATA_NEXT % size))
+   bytes=$(( size - $_offset ))
+   [[ $offset == 0 ]] || allocate_data_memory $bytes
 
-   if (( _offset != 0 )) ; then 
-     text="$(printf "Aligning to %s boundary: 0x%0x %% %d == 0" "$text" ${DATA_NEXT} $bytes)"
-     print_memory_encoding $(( DATA_LAST )) $allocate "0" "$text"
+   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
+   if (( offset != 0 )) ; then 
+     text="$(printf "Aligning to %s boundary: 0x%0x %% %d == 0" "$text" ${DATA_NEXT} $size)"
+     print_memory_encoding ${DATA_LAST} $bytes "0" "$text"
    fi
 
    # Note: No need to print memory
