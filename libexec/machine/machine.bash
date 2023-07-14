@@ -352,9 +352,9 @@ function print_mem_value () {
 
   local _dec=${_rval}
   local _unsigned=$(( _rval & 0xFFFFFFFF ))
-  local _hex=$(hex_digits $(( _size * 2 )) $_unsigned )
+  local _hex=$(base16_digits $(( _size * 2 )) $_unsigned )
 
-  local _bin=$(bin_digits "${_hex}")
+  local _bin=$(base2_digits "${_hex}")
 
   printf "   %6s:  %11d %11d; 0x%11s; 0b%39s;"  \
         "${_name}" "${_dec}" "${_unsigned}" "$(group_4_2 ${_hex})" "$(group_8_4 ${_bin})"
