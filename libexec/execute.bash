@@ -86,7 +86,6 @@ function execute_ArithLogI () {
   local _rs="${4%,}"
   local _text="$5"
   local _imm=$(parse_immediate "$_text")
-  local _literal=$(sign_extension "$_imm")
   local _value
 
   print_I_encoding $_name $_rs $_rt $_imm
@@ -97,12 +96,22 @@ function execute_ArithLogI () {
   fi
 
   local _rs_value=$(rval $_rs)
+
+  case $_name in 
+    addi* | slti* )
+         _imm=$(sign_extension "$_imm")
+         ;;
+    andi* | ori* | xori* )
+         imm=$(zero_extentsion "$_imm")
+         ;;
+  esac
+
   LATCH_A=( $_rs $_rs_value )
-  LATCH_B=( imm ${_literal} "$_text" )
+  LATCH_B=( imm ${_imm} "$_text" )
 
-  _value=$(( _rs_value $_op _literal ))
+  _value=$(( _rs_value $_op _imm ))
 
-  alu_assign "$_rt" "$_value" "$_rs_value" "$_literal"
+  alu_assign "$_rt" "$_value" "$_rs_value" "$_imm"
   print_ALU_state "$_op" "$_rt"
   unset_cin
 }
@@ -183,23 +192,23 @@ function execute_MoveTo ()  {
 	# Example: mthi move _hi
   local _name="$1"
   local _op="$2"
-  local _dst="${3%,}"
-  local _src="$4"
+  local _rd="$3"
+  local _rs="$4"
 
   case $_name in
-     mt*)  print_R_encoding $_name $_src "0" "0" "0"
+     mt*)  print_R_encoding $_name $_rs "0" "0" "0"
            ;;
-     mf*)  print_R_encoding $_name "0" "0" $_dst "0"
+     mf*)  print_R_encoding $_name "0" "0" $_rd "0"
            ;;
   esac
 
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
-  LATCH_A=($_src $(rval $_src) )
+  LATCH_A=($_rs $(rval $_rs) )
   LATCH_B=()
 
-  assign "$_dst" "$(rval $_src)"
-  print_ALU_state "$_op" $_dst
+  assign "$_rd" "$(rval $_rs)"
+  print_ALU_state "$_op" $_rd
 }
 
 function execute_MoveFrom() {
@@ -405,7 +414,6 @@ function execute_LoadStore () {
   local _rs="${4%,}"
   local _text="$5"
   local _imm=$(parse_immediate "$_text")
-  local _literal=$(sign_extension "$_imm")
   local _value
 
   ## Print the Encoding
