@@ -93,8 +93,8 @@ function .align () {
        text="double"
        ;;
    esac
-   offset=$((DATA_NEXT % size))
-   bytes=$(( size - $_offset ))
+   offset=$(( DATA_NEXT % size))
+   bytes=$(( size - $offset ))
    [[ $offset == 0 ]] || allocate_data_memory $bytes
 
    [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
