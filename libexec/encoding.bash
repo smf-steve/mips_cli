@@ -245,27 +245,106 @@ function print_J_encoding () {
 }
 
 
+function print_string_encoding () {
+  local str="$1"
 
-function print_memory_value () {
+  local dec_values=( $(ascii.index "$str") )
+  local _size=${#dec_values[@]}
+  local hex_values=()
+
+  local index=0
+  local hex_value="0"
+  for value in "${dec_values[@]}" ; do
+
+    (( hex_value = ( hex_value << 8 ) | value  ))
+    (( index ++ ))
+    if (( index == 4 )) ; then 
+      hex_values+=( $hex_value )
+      index=0
+      hex_value=0
+    fi
+  done
+  if (( index != 0 )) ; then 
+     hex_values+=( $hex_value )
+  fi
+
+  if  (( _size <= 4  )) ; then 
+    print_memory_encoding ${DATA_LAST} $_size "${hex_values[@]}"
+  else
+    print_memory_encoding_multiple ${DATA_LAST} $_size "${hex_values[@]}"
+  fi
+}
+
+
+function print_word_row () {
+   local _start="$1"
+   local _size="$2"
+   local _value="$3"
+   local _end="$4"
+   local _text="$5"
+
+   local _dec=${_value}
+   local _unsigned=$(( _value & 0xFFFFFFFF ))
+   local _hex=$(base16_digits $(( _size << 1)) ${_unsigned} )
+   local _bin=$(base2_digits  $(( _size << 3)) ${_unsigned} )
+  
+   _bin="$(sed -e 's/\(........\)/\1 /g' -e 's/ $//' <<< $_bin)"
+   if [[ -z ${_text} ]] ; then 
+     _hex=$(group_4_2 $_hex | sed 's/ *$//')
+     _text="0x${_hex}"
+   fi
+   printf "%s %s %s \"%s\"\n"  "${_start}" "${_bin}" "${_end}" "${_text}"
+
+}
+function print_memory_encoding_multiple () {
+  #_size is > 4
+
   local _address="$1"
-  local _size="$2"   
+  local _size="$2"  
+  local _value="$3" ; shift; shift ; shift
 
-  data_memory_read $_size $_address   #This ensure ENDIANESS is address
-  local _rval=$(rval $_mbr)
+  local _indent="                "
+
+  printf "   | address    | value                               |\n" 
+  printf "   |------------|-------------------------------------|\n"
+  printf "   | 0x%8x " $_address
+
+  print_word_row "|" 4 $_value "/" ""
+  (( _size -= 4 ))
+
+  local _values=( "${@}" )
+  for (( i=0; i < $# - 1 ; i++ )) ; do 
+     print_word_row "${_indent}/" 4 ${_values[$i]} "/" ""
+     (( _size -= 4 ))
+  done
+  local end="|"
+  for (( i = _size; i < 4 ; i++ )) ; do
+    end="         "$end
+  done
+  print_word_row "${_indent}/" $(( _size )) ${_values[$#-1]} "$end" ""   #< row size is what is left over
+
+  printf "   | 0x%8x |\n" ${DATA_NEXT}
+  echo
+}
 
 
-  local _dec=${_rval}
-  local _unsigned=$(( _rval & 0xFFFFFFFF ))
-  local _hex=$(base16_digits $(( _size << 1)) ${_unsigned} )
-  local _bin=$(base2_digits  $(( _size << 3)) ${_unsigned})
+function print_memory_encoding () {
+  local _address="$1"
+  local _size="$2" 
+  local _value="$3"  
+  local _text="$4"
 
-  local _dash="$( sed -e 's/./-/g' <<< $_bin )"
-  local _value="$( sed -e 's/./ /g' -e 's/^...../value/' <<< $_bin )"
+  local _dashes="--------"   # Eight Dashes: 8 bits
+  for (( i = 2 ; i <= $_size ; i++ )) ; do 
+    _dashes="${_dashes}---------" # Nine Dashes: 1 space + 8 bits
+  done
+  local _title="$( sed -e 's/./ /g' -e 's/^...../value/' <<< "$_dashes" )"
 
-  # Need to deal with big versers Little Endian
-  printf "   | address    | %s |\n" "$_value"
-  printf "   |------------|-%s-|\n" "$_dash"
-  printf "   | 0x%8x | %s | \"0x%s\""  \
-        "${_address}" "${_bin}" "${_hex}"
-  printf "\n"
+  printf "   | address    | %s |\n" "$_title"
+  printf "   |------------|-%s-|\n" "$_dashes"
+  printf "   | 0x%8x " "${_address}"
+
+  print_word_row "|" $_size $_value "|" "$_text"
+  printf "   | 0x%8x |\n" $(( _address + _size ))
+  echo
 }

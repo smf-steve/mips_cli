@@ -11,7 +11,19 @@
 
 1. use of upper and lower with unresolved label?
 
+1. escape sequences in ascii...
+   -->  ascii.index
+
+
 ----
+
+## Status Bits Review
+ 1. Validate the following syntax don't or do make use of the ALU
+      * DivMult, LoadI, Move {From, To}, Trap, Syscall
+    - If the use the ALU (to pass values through), then make an appropriate call to the ALU
+    - Ensure the status bits are set
+
+---
 
 1. output of special registers need to be updated
    - "$(name $\_mar)""
@@ -19,6 +31,19 @@
 1. dumping of dump_symbol_table is broken 
    1. ehn you try to load_core the attribute of "declare" makes the varibles local
    1. hence you need to remove the declare in front of them.
+
+
+## Memory and Alignment
+   - Should we have a memory module that shows how
+     - values are placed into the MAR / MBR
+
+
+
+## Encoding of directives
+   1. double check .word, etc for final output
+   1. ensure that it is always presented with the correct endianess
+   1. determine the output for  .ascii 
+
 
 1. Encoding of .word, w.r.t ENDIANNESS
    - currently, the value is show without respect to ENDIANESS
@@ -53,10 +78,113 @@
 
    print_memory address address
 
-## Encoding of directives
-   1. double check .word, etc for final output
-   1. ensure that it is always presented with the correct endianess
-   1. determine the output for  .ascii 
+
+function print_mem_value () {
+    -- prints stuff from the MAR/MBR
+    -- rename based upn the unit?
+
+function print_memory() {
+    -- not called
+    -- pass inthe data segment
+
+function print_memory_value 
+    -- then encoding of .word, etc
+
+
+  1. build  routines to print out memory and the like
+
+print_data  
+print_text : provides the encoding for each
+   [address]:  encoding ; { labels }: instructions
+
+verses
+
+(mips) print_data
+address   :                   2       1
+0x10010000:  0x73    's' ;   0x6973 (26995);  0x74686973 (1952999795)
+0x10010000:  0x69    'i' ;  
+0x10010000:  0x68    'h' ;   0x7468 (29800);
+0x10010000:  0x74    't' ;
+0x10010004:  0x20    ' ' ; 
+0x10010005:  0x73    's' ;  
+0x10010006:  0x69    'i' ;  
+0x10010007:  0x20    ' ' ;
+0x10010008:  0x20    ' ' ; 
+0x10010009:  0x65    'e' ; 
+0x1001000a:  0x68    'h' ;
+0x1001000b:  0x74    't' ;
+0x1001000c:  0x69    'i' ;  
+
+"this' ' is ' 'the ' 'begi' 'nnin'  'g of'  ' the' ' sri' 'ng"
+
+C escape of interest:  \t \n \r \f \a \b \e
+Special characes \0
+
+
+(top) .word 36
+
+   | address    | value                               |
+   |------------|-------------------------------------|
+   | 0x10010000 | 00000000 00000000 00000000 00100010 | "0x00000024"
+   | 0x10010004 |
+
+   Memory: BIG ENDIAN
+   | address    | byte      | ASCII |  half         |   word          |         
+   |------------|-----------|-------|---------------|-----------------|
+   | 0x10010003 | 0x00 (0)  | \0    |               |                 |
+   | 0x10010002 | 0x00 (0)  | \0    |  0x0000 (0)   |                 |
+   | 0x10010001 | 0x00 (0)  | \0    |               |                 |
+   | 0x10010000 | 0x24 (36) | '$'   |  0x0024 (36)  | 0x00000024 (36) |
+
+
+(top) .dword "0x0000004800000024"
+
+   | address    | value                            |
+   |------------|----------------------------------|
+   | 0x10010000 | 00000000 00000000 00000000 00100010 / 
+                / 00000000 00000000 00000000 00100010 |  "0x0000004800000024"
+   | 0x10010008 |
+
+   Memory: BIG ENDIAN
+   | address    | byte      | ASCII |  half         |   word          |         
+   |------------|-----------|-------|---------------|-----------------|
+   | 0x10010007 | 0x00 (0)  | \0    |               |                 |
+   | 0x10010006 | 0x00 (0)  | \0    |  0x0000 (0)   |                 |
+   | 0x10010005 | 0x00 (0)  | \0    |               |                 |
+   | 0x10010004 | 0x48 (72) | 'H'   |  0x0048 (72)  | 0x00000048 (72) |
+   |------------|-----------|-------|---------------|-----------------|
+   | 0x10010003 | 0x00 (0)  | \0    |               |                 |
+   | 0x10010002 | 0x00 (0)  | \0    |  0x0000 (0)   |                 |
+   | 0x10010001 | 0x00 (0)  | \0    |               |                 |
+   | 0x10010000 | 0x24 (36) | '$'   |  0x0024 (36)  | 0x00000024 (36) |
+
+(top) .ascii "hello world!"
+    0x68 0x65 0x6c 0x6c 0x6f 0x20 0x77 0x6f 0x72 0x6c 0x64 0x21
+
+   | address    | value                               |
+   |------------|-------------------------------------|
+   | 0x10010000 | 01101000 01100101 01101100 01101100 /  "0x68 65 6c 6c"
+                / 01101111 00100000 01110111 01101111 /  "0x6f 20 77 6f"
+                / 01110010 01101100 01100100 00100001 |  "0x72 6c 64 21"
+   | 0x1001000C |
+
+   Memory: BIG ENDIAN
+
+   blah...
+
+(top) .align 4
+
+   | address    | value             |
+   |------------|-------------------|
+   | 0x10010002 | -------- -------- | "word align"
+   | 0x10010004 |
+
+   -- nothing written to memory
+
+
+========================
+
+
 
 ## Implementetion of .macro
    1. address labels
@@ -99,10 +227,6 @@
       - forward might be cleaner, but the ALU can do the work
       - the wiring is similar to the extended sign
 
-
-### General Execution
-1. execute a file...
-   - should this force it to got into preload first, then execute no stop...
 
 ### Command History
 
@@ -219,80 +343,9 @@
      - output would be the input and then the output variables
 
 
-## Status Bits Review
- 1. Validate the following syntax don't or do make use of the ALU
-      * DivMult, LoadI, Move {From, To}, Trap, Syscall
-    - If the use the ALU (to pass values through), then make an appropriate call to the ALU
-    - Ensure the status bits are set
-
 
 
 # Notes:
-
-function print_mem_value () {
-    -- prints stuff from the MAR/MBR
-    -- rename based upn the unit?
-
-function print_memory() {
-    -- not called
-    -- pass inthe data segment
-
-function print_memory_value 
-    -- then encoding of .word, etc
-
-
-  1. build  routines to print out memory and the like
-
-print_data  
-print_text : provides the encoding for each
-   [address]:  encoding ; { labels }: instructions
-
-verses
-
-(mips) print_data
-address   :                   2       1
-0x10010000:  0x73    's' ;   0x6973 (26995);  0x74686973 (1952999795)
-0x10010000:  0x69    'i' ;  
-0x10010000:  0x68    'h' ;   0x7468 (29800);
-0x10010000:  0x74    't' ;
-0x10010004:  0x20    ' ' ; 
-0x10010005:  0x73    's' ;  
-0x10010006:  0x69    'i' ;  
-0x10010007:  0x20    ' ' ;
-0x10010008:  0x20    ' ' ; 
-0x10010009:  0x65    'e' ; 
-0x1001000a:  0x68    'h' ;
-0x1001000b:  0x74    't' ;
-0x1001000c:  0x69    'i' ;  
-
-"this' ' is ' 'the ' 'begi' 'nnin'  'g of'  ' the' ' sri' 'ng"
-
-C escape of interest:  \t \n \r \f \a \b \e
-Special characes \0
-
-
-(top) .word 36
-
-print_memory_encoding address value
-   | address    | value                            |
-   |------------|----------------------------------|
-   | 0x10010000 | 00000000000000000000000000100010 | "0x00000024"
-
-
-print_memory address bytes
-
-   Memory:
-   | address    | byte      | ASCII |  half         |   word          |         
-   |------------|-----------|-------|---------------|-----------------|
-   | 0x10010003 | 0x00 (0)  | \0    |               |                 |
-   | 0x10010002 | 0x00 (0)  | \0    |  0x0000 (0)   |                 |
-   | 0x10010001 | 0x00 (0)  | \0    |               |                 |
-   | 0x10010000 | 0x24 (36) | '$'   |  0x0024 (36)  | 0x00000024 (36) |
-
-
-
-
-
 
 # Bugs
 
@@ -483,12 +536,6 @@ H
 
 
 
-## Memory and Alignment
-   - Should we have a memory module that shows how
-     - values are placed into the MAR / MBR
-
-
-
 
 ## Improvements
 1. Consider completting the carry in ... operations..
@@ -511,3 +558,12 @@ H
    1. prints out the banners
    1. ra should be set to the code that perfroms "exit"
 
+(mips) ascii.index 'hello world!' | base16
+
+
+1. Should .ascii print out a list of codes before the major emcoding
+   ```
+   (top) .ascii "hello world!"
+         0x68 0x65 0x6c 0x6c 0x6f 0x20 0x77 0x6f 0x72 0x6c 0x64 0x21
+   ```
+   
