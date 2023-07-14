@@ -6,7 +6,9 @@ function upper_half () {
   local _address=$1
 
   if [[ ${_address:0:1} =~ [[:alpha:]] ]] ; then
-    _address=$(lookup_data_label $_address)
+    local value=$(lookup_data_label $_address)
+    [[ -n "$value" ]] || instruction_error "Label \"$_address\" not defined"
+    _address=$value
   fi
   printf "0x%04x\n" $((  (_address >> 16 ) & 0xFFFF ))
 }
@@ -14,7 +16,9 @@ function lower_half () {
   local _address=$1
 
   if [[ ${_address:0:1} =~ [[:alpha:]] ]] ; then
-    _address=$(lookup_data_label $_address)
+    local value=$(lookup_data_label $_address)
+    [[ -n "$value" ]] || instruction_error "Label \"$_address\" not defined"
+    _address=$value
   fi
   printf "0x%04x\n" $((  _address & 0xFFFF ))
 }
@@ -123,19 +127,18 @@ function sign_contraction () {
     # exit
 }
 
-function sign_extension_byte() {
-  local _value="$1"
-  local _sign_bit
 
-   _sign_bit=$(( ${_value} & 0x80 ))
-  if [[ ${_sign_bit} != 0 ]] ; then 
-    # The sign bit is on... so extend it
-    ((_value = ( - 0x80 ) | _value ))
-  fi
-  echo "${_value}"
+alias ZE="base2_digits 32"
+function SE () {
+   # Perform Sign-exention and return bits
+   local value=$(sign_extension "$1")
+   echo $(base2_digits 32 $value)
 }
 
-function sign_extension() {
+
+alias zero_extension="echo"
+alias sign_extension="sign_extension_half"
+function sign_extension_half() {
   # The input value as a text value can be:
   #   -n, ~n, or a 16bit number
   # For the first two, leave the value alone
@@ -159,6 +162,18 @@ function sign_extension() {
   fi
   
   echo "${_prefix}${_value}"
+}
+
+function sign_extension_byte() {
+  local _value="$1"
+  local _sign_bit
+
+   _sign_bit=$(( ${_value} & 0x80 ))
+  if [[ ${_sign_bit} != 0 ]] ; then 
+    # The sign bit is on... so extend it
+    ((_value = ( - 0x80 ) | _value ))
+  fi
+  echo "${_value}"
 }
 
 
