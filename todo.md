@@ -273,10 +273,13 @@ Special characes \0
 
 (top) .word 36
 
+print_memory_encoding address value
    | address    | value                            |
    |------------|----------------------------------|
    | 0x10010000 | 00000000000000000000000000100010 | "0x00000024"
 
+
+print_memory address bytes
 
    Memory:
    | address    | byte      | ASCII |  half         |   word          |         
