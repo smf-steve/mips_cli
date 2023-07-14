@@ -4,7 +4,6 @@
 .end_pseudo
 
 
-
 .pseudo nop %rdst, $rsrc            
     sll $zero, $zero, 0
 .end_pseudo
@@ -14,4 +13,9 @@
 .end_pseudo
 
 
+a: .word 45
 
+nop
+li $t1, 10
+move $t2, $t1
+la $t3, a
