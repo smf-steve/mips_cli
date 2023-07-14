@@ -127,11 +127,11 @@ alias step="run INTERACTIVE"
 alias encode="run ENCODE"
 function run () {
   local mode="$1"
-  local label="$2"
+  local label="$2"  ## only makes sense for DEBUG and BATCH
   shift ; shift
 
   # Here we assume that label is good.
-  load_args "$@"
+  load_args "$@"    ## Does NOT make sense for Encodings
 
   case $mode in 
     DEBUG )
@@ -155,7 +155,7 @@ function run () {
        assign $_pc "$(lookup_text_label $label)"
        ;;
 
-    ENCODING )
+    ENCODE )
        PS1="(encode) "
        INTERACTIVE=FALSE
        DEBUG_MODE=FALSE
