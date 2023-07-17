@@ -20,7 +20,7 @@ sllv $t5, $t2, $at
 srlv $t1, $t3, $at
 srav $t5, $t2, $at
 
-li $at 35       # value is to low
+li $at 0       # value is to low -- but no error
 sllv $t5, $t2, $at
 srlv $t1, $t3, $at
 srav $t5, $t2, $at

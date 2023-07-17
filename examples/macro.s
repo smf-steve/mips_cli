@@ -1,7 +1,7 @@
 
 .macro average %some, %two, %his
     add  %some, %two, %his
-    srl  %some, $s0, 1
+    srl  %some, %some, 1
 .end_macro
 
 .macro double %one %two
@@ -9,7 +9,10 @@
 .end_macro
 
 li $t1, 10
-average $t3, $t1, 20
-addi $t1, $t1, -1
+li $s0, 20
+average $t3, $t1, $s0
+echo "$t3 == 15"
 
+li $s1, 20
 double $s0, $s1
+echo "$s0 = 40"

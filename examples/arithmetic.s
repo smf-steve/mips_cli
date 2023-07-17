@@ -1,4 +1,4 @@
-assign_registers_random
+assign_registers_random 20
 
 add $t1, $t2, $t3
 sub $t4, $t5, $t6
