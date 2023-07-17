@@ -136,7 +136,11 @@ function SE () {
 }
 
 
-alias zero_extension="echo"
+alias zero_extension="zero_extension_half"
+function zero_extension_half () {
+  local value="$1"
+  echo $((  value & 0xFFFF))
+}
 alias sign_extension="sign_extension_half"
 function sign_extension_half() {
   # The input value as a text value can be:

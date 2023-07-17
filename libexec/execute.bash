@@ -102,7 +102,7 @@ function execute_ArithLogI () {
          _imm=$(sign_extension "$_imm")
          ;;
     andi* | ori* | xori* )
-         imm=$(zero_extentsion "$_imm")
+         _imm=$(zero_extension "$_imm")
          ;;
   esac
 

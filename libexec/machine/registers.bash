@@ -141,18 +141,22 @@ function assign_registers() {
   assign $_lo "$_value"
 }
 function random_value() {
-  echo "$(( $RANDOM % 0xFFFF + 1))"
+  local max=0xFFFF
+  [[ -z "$1" ]] ||  max="$1"
+
+  echo "$(( RANDOM % max + 1))"
 }
 function assign_registers_random () {
+  local max="$1"
   local i 
 
   assign $zero "0"
   for ((i=1; i<32; i++)) ; do
-   assign $i "$(random_value)"
+   assign $i "$(random_value $max)"
   done
   # assign $_pc "0"
-  assign $_hi "$(random_value)"
-  assign $_lo "$(random_value)"
+  assign $_hi "$(random_value $max)"
+  assign $_lo "$(random_value $max)"
 }
 
 alias print_register="print_value"
