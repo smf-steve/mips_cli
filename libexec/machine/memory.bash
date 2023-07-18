@@ -13,6 +13,9 @@ function allocate_data_memory() {
    (( DATA_NEXT = DATA_NEXT + _size ))
 }
 
+
+
+
 function print_memory() {
   local segment="$1"
   if [[ -z ${segment} ]] ; then
