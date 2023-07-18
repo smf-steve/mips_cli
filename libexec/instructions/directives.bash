@@ -27,6 +27,11 @@ function .asciiz () {
    .ascii "$str\0"
 }
 
+# Issue exists with diglyphs, e.g., \n
+# what is the length --
+# need to do a for loop...
+
+
 function .ascii () {
   local str="$1"
   local i
@@ -36,7 +41,7 @@ function .ascii () {
      allocate_data_memory 1 "$i"
   done
   print_string_encoding "$str"
-  print_memory ${DATA_LAST} ${#str[@]}
+  print_data_memory ${DATA_LAST} ${#str}   ## Here datalast is wrong is I allocate data_memory one at a time.
 }
 
 
@@ -66,7 +71,7 @@ function allocate () {
   else
     print_memory_encoding ${DATA_LAST} $bytes $value ""
   fi
-  print_memory ${DATA_LAST} $bytes
+  print_data_memory ${DATA_LAST} $bytes
 
 }
 

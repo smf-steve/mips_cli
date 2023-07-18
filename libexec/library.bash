@@ -280,10 +280,26 @@ function ascii.index () {
 }
 
 function ascii.char () {
-   for i in $@   ; do 
-       printf \\$(printf '%03o' $(( $i )) )
-   done
-   printf "\n"
+  for i in $@   ; do 
+    if ((  0x20 <= $i && $i <= 0x7e )) ; then 
+      printf \\$(printf '%03o' $(( $i )) )
+    else
+      char=""
+      case $i in 
+          0) char="\\0" ;;
+          7) char="\\a" ;;
+          8) char="\\b" ;;
+          9) char="\\t" ;;
+         10) char="\\n" ;;
+         11) char="\\v" ;;
+         12) char="\\f" ;;
+         13) char="\\r" ;;
+         27) char="\\e" ;;
+      esac
+      echo -n "$char"
+    fi
+  done
+  printf "\n"
 }
 
 
