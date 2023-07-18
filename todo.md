@@ -1,5 +1,64 @@
-# To Do List
-1. reset_macros, list_macros  -- done
+#### Testing: Jul 14
+  1. data_segment.s
+     good, but need to revise print-memory for execution step
+
+  1. load_stores.s
+     * sb $t0, $s0, 0
+        -- output of MBR is off 
+        -- names of MBR and MAR needs to be fixed
+
+    ```
+    sb $t0, $s0, 0
+       t0:            4           4; 0x00 00 00 04; 0b                            0100       ;
+          sb   --------  ----------- -------------- ------------------------------------------
+     _mbr:            4           4; 0x      04   ; 0b                            0100       ;
+
+    sh $t0, $s0, 0
+      t0:            4           4; 0x00 00 00 04; 0b                            0100       ;
+          sh   --------  ----------- -------------- ------------------------------------------
+     _mbr:            4           4; 0x    00 04  ; 0b                            0100       ;
+
+
+     sw $t0, $s0, 0
+       t0:            4           4; 0x00 00 00 04; 0b                            0100       ;
+          sw   --------  ----------- -------------- ------------------------------------------
+     _mbr:            4           4; 0x00 00 00 04; 0b                            0100       ;
+
+
+    ```
+
+
+
+  1. loadi.s
+     (mips) li $t1, 0xAAAA    # Should be 0xFFFFAAAA
+     bash: FALSE_li_6: command not found
+
+     -- comments with macros/psuedo
+
+  1. set.s
+     -- good
+
+  1. logical.s
+     -- good
+
+  1. shifts.s
+     -- status bits are wonky
+
+  1. mult-div.s
+     -- status bits are wonky
+
+  1. loops.s
+     - deferred until cli being flushed out
+
+  1. arithmetic.s
+       (mips) assign $t1 0x80000000  # carry
+       (mips) addi $t1, $t1, -1
+       sign bit is wrong
+
+  1. macros.s
+     -- good
+     -- note, no warning on redefining macro
+
 
 ## Labels
 1. reset_labels, list_labels
@@ -9,10 +68,36 @@
 1. labels should be implemented via arrays and not via the alias method
   - to keep it consistent with the other stuff put into the CORE file
 
-1. use of upper and lower with unresolved label?
+1. macros dont work at the top level...
+   why?
 
 1. escape sequences in ascii...
    -->  ascii.index
+C escape of interest:  \t \n \r \f \a \b \e
+Special characes \0
+
+1. bug exist if you just call X, without a valid label
+   - debug
+   - run 
+
+
+1.  These define a macro
+    ```
+    .macro 
+    .end_macro
+    ```
+    add two directives that mark the start and end of a macro
+    ```
+    .macro_begin  <-- possible equiv to start_macro
+    .macro_end   <-- equivalent to end_macro macro average 3 0
+    ```
+    -- update the code to apply these this way.
+
+
+## Installation
+1. proper call anywhere where files are staged in ~/class/comp122/bin
+
+
 
 
 ----
@@ -33,156 +118,48 @@
    1. hence you need to remove the declare in front of them.
 
 
-## Memory and Alignment
+## Load Store:
    - Should we have a memory module that shows how
      - values are placed into the MAR / MBR
 
 
 
-## Encoding of directives
-   1. double check .word, etc for final output
-   1. ensure that it is always presented with the correct endianess
-   1. determine the output for  .ascii 
+## Big Versus Little Endian
+   1. Revised the routine to $(print_memory addresss bytes) to print out in either
+      - little endian or bit endian format
+      ```
+      Memory: BIG ENDIAN
+        | address    | ASCII | byte      |  half         |   word          |         
+        |------------|-------|-----------|---------------|-----------------|
+        | 0x10010007 | 'H'   | 0x48 (72) |               |                 |
+        | 0x10010006 | \0    | 0x00 (0)  |  0x0048 (72)  |                 |
+        | 0x10010005 | \0    | 0x00 (0)  |               |                 |
+        | 0x10010004 | \0    | 0x00 (0)  |  0x0000 (0)   | 0x00000048 (72) |
+        |------------|-------|-----------|---------------|-----------------|
+        | 0x10010003 | \0    | 0x24 (36) |               |                 |
+        | 0x10010002 | \0    | 0x00 (0)  |  0x0024 (36)  |                 |
+        | 0x10010001 | \0    | 0x00 (0)  |               |                 |
+        | 0x10010000 | '$'   | 0x00 (0)  |  0x0000 (0)   | 0x00000024 (36) |
 
 
-1. Encoding of .word, w.r.t ENDIANNESS
-   - currently, the value is show without respect to ENDIANESS
-   - stored byte order is Big endian
-   - print byt 0, byte 1, byte 2, byte 3, byte 4
-   - maybe the prinout of it should be:
-   ```
-   | address    | value                                         |
-   |------------|-----------------------------------------------|
-   |            | byte: 0   | byte: 1   | byte: 2   | byte: 3   | "BIG ENDIAN"
-   | 0x10010010 | 0000 0000 | 0000 0000 | 1111 1111 | 1111 1111 | "0x00 00 FF FF"
-   ```
-   - separate the notion of encoding various endiananss
+      Memory: Little ENDIAN
+        | address    |   word          |  half           byte      | ASCII |
+        |------------|-----------------|---------------|-----------|-------|
+        | 0x10010007 |                 |               | 0x00 (0)  | \0    |
+        | 0x10010006 |                 |  0x0000 (0)   | 0x00 (0)  | \0    |
+        | 0x10010005 |                 |               | 0x00 (0)  | \0    |
+        | 0x10010004 | 0x00000048 (72) |  0x0048 (72)  | 0x48 (72) | 'H'   |
+        |------------|-----------------|---------------|-----------|-------|
+        | 0x10010003 |                 |               | 0x00 (0)  | \0    |
+        | 0x10010002 |                 |  0x0000 (0)   | 0x00 (0)  | \0    |
+        | 0x10010001 |                 |               | 0x00 (0)  | \0    |
+        | 0x10010000 | 0x00000024 (36) |  0x0024 (36)  | 0x24 (36) | '$'   |
 
-   ```
-   Encoding:
-   | address    | value                                   |
-   |------------|-----------------------------------------|
-   | 0x10010010 | 0000 0000 0000 0000 1111 1111 1111 1111 | "0x00 00 FF FF"
-   ```
-   ```
-   Memory: BIG ENDIAN"
+     ```
+     
+     - C escape of interest:  \t \n \r \f \a \b \e
+     - Special characters \0
 
-  | address    | value     |  ascii  |  half      | word
-  |------------|-----------|---------|------------|-----------
-  | 0x10010013 | 1111 1111 |         |            |
-  | 0x10010012 | 1111 1111 |         |  0xFF FF   |
-  | 0x10010011 | 0000 0000 |         |            |
-  | 0x10010010 | 0000 0000 |         |  0x00 00   |  0x00 00 FF FF |
-
-   ```
-
-   print_memory address address
-
-
-function print_mem_value () {
-    -- prints stuff from the MAR/MBR
-    -- rename based upn the unit?
-
-function print_memory() {
-    -- not called
-    -- pass inthe data segment
-
-function print_memory_value 
-    -- then encoding of .word, etc
-
-
-  1. build  routines to print out memory and the like
-
-print_data  
-print_text : provides the encoding for each
-   [address]:  encoding ; { labels }: instructions
-
-verses
-
-(mips) print_data
-address   :                   2       1
-0x10010000:  0x73    's' ;   0x6973 (26995);  0x74686973 (1952999795)
-0x10010000:  0x69    'i' ;  
-0x10010000:  0x68    'h' ;   0x7468 (29800);
-0x10010000:  0x74    't' ;
-0x10010004:  0x20    ' ' ; 
-0x10010005:  0x73    's' ;  
-0x10010006:  0x69    'i' ;  
-0x10010007:  0x20    ' ' ;
-0x10010008:  0x20    ' ' ; 
-0x10010009:  0x65    'e' ; 
-0x1001000a:  0x68    'h' ;
-0x1001000b:  0x74    't' ;
-0x1001000c:  0x69    'i' ;  
-
-"this' ' is ' 'the ' 'begi' 'nnin'  'g of'  ' the' ' sri' 'ng"
-
-C escape of interest:  \t \n \r \f \a \b \e
-Special characes \0
-
-
-(top) .word 36
-
-   | address    | value                               |
-   |------------|-------------------------------------|
-   | 0x10010000 | 00000000 00000000 00000000 00100010 | "0x00000024"
-   | 0x10010004 |
-
-   Memory: BIG ENDIAN
-   | address    | byte      | ASCII |  half         |   word          |         
-   |------------|-----------|-------|---------------|-----------------|
-   | 0x10010003 | 0x00 (0)  | \0    |               |                 |
-   | 0x10010002 | 0x00 (0)  | \0    |  0x0000 (0)   |                 |
-   | 0x10010001 | 0x00 (0)  | \0    |               |                 |
-   | 0x10010000 | 0x24 (36) | '$'   |  0x0024 (36)  | 0x00000024 (36) |
-
-
-(top) .dword "0x0000004800000024"
-
-   | address    | value                            |
-   |------------|----------------------------------|
-   | 0x10010000 | 00000000 00000000 00000000 00100010 / 
-                / 00000000 00000000 00000000 00100010 |  "0x0000004800000024"
-   | 0x10010008 |
-
-   Memory: BIG ENDIAN
-   | address    | byte      | ASCII |  half         |   word          |         
-   |------------|-----------|-------|---------------|-----------------|
-   | 0x10010007 | 0x00 (0)  | \0    |               |                 |
-   | 0x10010006 | 0x00 (0)  | \0    |  0x0000 (0)   |                 |
-   | 0x10010005 | 0x00 (0)  | \0    |               |                 |
-   | 0x10010004 | 0x48 (72) | 'H'   |  0x0048 (72)  | 0x00000048 (72) |
-   |------------|-----------|-------|---------------|-----------------|
-   | 0x10010003 | 0x00 (0)  | \0    |               |                 |
-   | 0x10010002 | 0x00 (0)  | \0    |  0x0000 (0)   |                 |
-   | 0x10010001 | 0x00 (0)  | \0    |               |                 |
-   | 0x10010000 | 0x24 (36) | '$'   |  0x0024 (36)  | 0x00000024 (36) |
-
-(top) .ascii "hello world!"
-    0x68 0x65 0x6c 0x6c 0x6f 0x20 0x77 0x6f 0x72 0x6c 0x64 0x21
-
-   | address    | value                               |
-   |------------|-------------------------------------|
-   | 0x10010000 | 01101000 01100101 01101100 01101100 /  "0x68 65 6c 6c"
-                / 01101111 00100000 01110111 01101111 /  "0x6f 20 77 6f"
-                / 01110010 01101100 01100100 00100001 |  "0x72 6c 64 21"
-   | 0x1001000C |
-
-   Memory: BIG ENDIAN
-
-   blah...
-
-(top) .align 4
-
-   | address    | value             |
-   |------------|-------------------|
-   | 0x10010002 | -------- -------- | "word align"
-   | 0x10010004 |
-
-   -- nothing written to memory
-
-
-========================
 
 
 
@@ -196,6 +173,18 @@ Special characes \0
    1. macros can be redefined
       - pseduo instructions take precedence
       - the last define takes precence
+   1. macros that have quoted args
+      ```
+      (mips) li $t2, "2#101 1111 1111"
+      bash: FALSE_li_4: command not found
+      --> end_FALSE FALSE li 4 0
+      bash: end_FALSE: command not found
+      ```
+      might need a special step to normalize an instruction first
+      is this done before the "eval" step in cycle
+      but how do I know that it is 
+
+      reexame the output of these..
 
 
 ### Modes
@@ -279,37 +268,6 @@ Special characes \0
 
 
 
-#### Testing: May 26
-  1. data_segment.s
-  1. load_stores.s
-  1. loadi.s
-
-  1. set.s
-  1. logical.s
-  1. shifts.s
-  1. mult-div.s
-  
-  1. loops.s
-
-  1. arithmetic.s
-     - need more test exampls
-     - sub  when you do a ~t3, the comment should be the original HEX Number
-     ```
-     (mips) sub $t1, $t2, $t3
-     
-        | op   | rs  | rt  | rd  | sh  | func |
-        |------|-----|-----|-----|-----|------|
-        | REG  | $t2 | $t3 | $t1 |    0| sub  |
-        |000000|01010|01011|01001|00000|100010|
-     
-          cin:            1           1;             1;                                         1;
-           t2:            6           6; 0x00 00 00 06; 0b0000 0000 0000 0000 0000 0000 0000 0110;
-          ~t3:           -9  4294967287; 0xFF FF FF F7; 0b1111 1111 1111 1111 1111 1111 1111 0111; "~ 0x00 00 00 08
-               + ----------  ----------- -------------- ------------------------------------------
-           t1:           -2  4294967294; 0xFF FF FF FE; 0b1111 1111 1111 1111 1111 1111 1111 1110;
-     
-        C: 0; V: 0; S: 1; Z: 0
-     ```
 
 
 
@@ -346,50 +304,15 @@ Special characes \0
 
 
 # Notes:
+# Perhaps alu_assign, should be rename ALU_WB, etc.
+function alu_assign() {
+
+or maybe trigger_alu,  alu_execute, execute_alu
 
 # Bugs
 
   1. create a list of functions exposed to the user
 
-
-  1. Implement the functions
-     * SE and ZE for sign_extension and zero_extension
-  1. double check that the ArithLogI use zE for logical operations
-
-
-
-1. 
-
-H
-   - loadStore
-     - validate the use of imm and literal
-       * it appears I should be using the literal value, but am using the immediate
-         - an immediate is only 16 bits, where a literal is 32 bits
-         - the issue will be with sign extenion, i.e., if the offset is by a negative amount
-   - structure
-     1. look for code that uses dst  and transfor to rd format
-     1. validate the use of the A latch versus B latch
-        - should they match the architecture or be abastract
-        - if they match the architecture, should the A and B side be denoted in the ALU output?
-        * make the A latch always present...
-
-        ```
-        (mips) addi $t1, $t2, 4
-        | op   | rs  | rt  | imm            |
-        |------|-----|-----|----------------|
-        | addi | $t2 | $t1 |               4|
-        |001000|01010|01001|0000000000000100|
-
-      (cin)                0           0;             0;                                         0;
-      (A)   t2:            0           0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000;
-      (B)  imm:            4           4; 0x00 00 00 04; 0b0000 0000 0000 0000 0000 0000 0000 0100; "4"
-                 + ----------  ----------- -------------- ------------------------------------------
-            t1:            4           4; 0x00 00 00 04; 0b0000 0000 0000 0000 0000 0000 0000 0100;
-
-        ```
-
-## Installation
-1. proper call anywhere where files are staged in ~/class/comp122/bin
 
 
 ## Documenations
@@ -538,9 +461,6 @@ H
 
 
 ## Improvements
-1. Consider completting the carry in ... operations..
-   (It's for educational purposes..)
-
 
 1. Consider using digital gates for output symbols
    - & --> U+2227  ? 
@@ -548,11 +468,14 @@ H
    - U+2213      MINUS-OR-PLUS SIGN      ∓
 
 
-1. ALU Latches
-   print_ALU uses the latches, but assign_bits don't
-   this is inconsistent
-
-
+1. For the ALU operations, should the A and B latch be denoted
+   ```
+    (cin)                0   
+    (A)   t2:            0   
+    (B)  imm:            4   
+              + ----------  
+          t1:            4   
+   ```
 
 1. add some kernel code that..
    1. prints out the banners
@@ -566,4 +489,3 @@ H
    (top) .ascii "hello world!"
          0x68 0x65 0x6c 0x6c 0x6f 0x20 0x77 0x6f 0x72 0x6c 0x64 0x21
    ```
-   
