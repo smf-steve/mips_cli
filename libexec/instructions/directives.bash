@@ -35,13 +35,15 @@ function .asciiz () {
 function .ascii () {
   local str="$1"
   local i
-  local j
+  local address=${DATA_NEXT}
+  local count=0
 
   for i in $(ascii.index "$str") ; do
      allocate_data_memory 1 "$i"
+     (( count ++ ))
   done
   print_string_encoding "$str"
-  print_data_memory ${DATA_LAST} ${#str}   ## Here datalast is wrong is I allocate data_memory one at a time.
+  print_data_memory $address ${count}   ## Here datalast is wrong is I allocate data_memory one at a time.
 }
 
 

@@ -272,11 +272,31 @@ function base16 () {
 
 
 function ascii.index () {
-    str="$*"
-    for (( i = 0; i < ${#str}; i++ )) ; do 
-        printf "%d " "'${str:i:1}"
-    done
-    printf "\n"
+  str="$*"
+  for (( i = 0; i < ${#str}; i++ )) ; do 
+    local glyph=${str:i:1}
+    if [[ ${glyph} == '\' ]] ; then 
+      local next=${str:i+1:1}
+      ((i ++))
+      case $next in 
+         0 ) value="0" ;;
+         a ) value="7" ;;
+         b ) value="8" ;;
+         t ) value="9" ;;
+         n ) value="10" ;;
+         v ) value="11" ;;
+         f ) value="12" ;;
+         r ) value="13" ;;
+         e ) value="27" ;;
+         \\ ) value="92" ;;
+         * ) value=0xFF ; echo "$next" ;;  # an error
+      esac
+      printf "%d " "$value"
+    else
+      printf "%d " "'${glyph}"
+    fi
+  done
+  printf "\n"
 }
 
 function ascii.char () {
