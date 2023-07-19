@@ -290,3 +290,12 @@ function prefetch () {
 }
 
 
+function fetch  () {
+  # This is an _ir specific operation.
+
+  # It places a text string into the register
+  # Place a text string into the _ir register
+
+  REGISTER[$_ir]="${INSTRUCTION[ $(rval $_pc) ]}"
+}
+

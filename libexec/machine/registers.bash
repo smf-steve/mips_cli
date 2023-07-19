@@ -59,16 +59,6 @@ function rval() {
 
 
 
-function fetch  () {
-  # This is an _ir specific operation.
-
-  # It places a text string into the register
-  # Place a text string into the _ir register
-
-  REGISTER[$_ir]="${INSTRUCTION[ $(rval $_pc) ]}"
-}
-
-
 
 ## Can assign place a non-number in a register.
 ## For example an unresolved label
@@ -85,37 +75,6 @@ function assign () {
   REGISTER[$_index]="$(sign_extension_word $_value)"
 }
 
-
-# Perhaps alu_assign, should be rename ALU_WB, etc.
-function alu_assign() {
-  local _index="$1"
-  local _value="$2"
-
-  # Force the input parameters to be only 32-bit numbers.
-  # Negative numbers would have 1 values in bits 32-63
-  local _src1="$(( $3 & 0xFFFFFFFF ))"
-  local _src2="$(( $4 & 0xFFFFFFFF ))"
-
-  # Make adjustments to _value to represent a 32-bit quantity using 64 bits.  
-  local _value_32=$(( _value & 0xFFFFFFFF ))   # This final 32-bit number
-  local _carry_row=$(( _value_32 ^ _src1 ^ _src2))
-
-  local _carry_out=$(( ( (_src1 + _src2 ) & 0x1FFFFFFFF ) >> 32 ))
-  local _carry_in=$(( _carry_row >> 31))
-
-  local _sign_bit=$(( _value_32 >> 31 ))
-  local _zero_bit=$(( _value_32 == 0 ))
-  local _overflow_bit=$((  _carry_out ^ _carry_in ))
-
-  #assign_status_bits "$_value_32" "$_src1" "$_src2"
-  STATUS_BITS[$_s_bit]=$_sign_bit
-  STATUS_BITS[$_c_bit]=$_carry_out
-  STATUS_BITS[$_v_bit]=$_overflow_bit
-  STATUS_BITS[$_z_bit]=$_zero_bit
-
-  trap_on_status_bits
-  REGISTER[$_index]="$(sign_extension_word $_value)"
-}
 
 function reset_registers() {
   assign $zero "0"  
