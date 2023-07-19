@@ -1,6 +1,5 @@
 #! /bin/bash
 
-
 #################################################################################
 # This file contains the functions required to that relate to registers
 #

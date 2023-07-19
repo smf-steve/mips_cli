@@ -1,5 +1,45 @@
 #! /bin/bash
 
+#################################################################################
+# This file contains the declarations of all
+# supported MIPS op codes and function codes
+#
+# Functions:
+#  lookup_opcode
+#  lookup_func
+#
+################################################
+
+################################################
+# Op Encodings
+# Special  00 : func provided by lookup_func
+# Special2 1C : not supported
+
+function lookup_opcode () {
+    local num="" 
+    num=$(eval echo \$op_code_$1)  2>&1 >/dev/null
+    if [[ $? == 0 ]] ; then 
+      echo $num
+    else
+      instruction_error "Undefined \"op\""
+    fi
+}
+
+################################################
+# Func Encodings
+#   - for op_code_REG
+
+function lookup_func () {
+    local num="" 
+    num=$(eval echo \$func_code_$1)  2>&1 >/dev/null
+    if [[ $? == 0 ]] ; then
+      echo $num
+    else
+      instruction_error "Undefined \"func\""
+    fi 
+}
+#################################################################################
+
 # 000 Row
 declare -r        op_code_REG='000000'  # 0x00
 # declare -r       op_code_xx='000001'  
