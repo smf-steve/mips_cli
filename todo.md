@@ -1,3 +1,13 @@
+## Reframe internal numbes.
+  1. store all values as unsigned 32-bit quanties
+  1. print routines when presenting signed-qualties
+     - get sign-extension -- sign_extension-double (
+  1. ALU operation when dealing with addition gets
+      - signed extension
+  1. literals like -1 get stored as a unsigned 0xFFffFFFE
+
+
+
 #### Testing: Jul 14
   1. data_segment.s
      good, but need to revise print-memory for execution step
@@ -51,8 +61,8 @@
      - deferred until cli being flushed out
 
   1. arithmetic.s
-       (mips) assign $t1 0x80000000  # carry
-       (mips) addi $t1, $t1, -1
+       assign $t1 0x80000000  # carry
+       addi $t2, $t1, -1
        sign bit is wrong
 
   1. macros.s

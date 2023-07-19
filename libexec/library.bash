@@ -141,7 +141,26 @@ function zero_extension_half () {
   local value="$1"
   echo $((  value & 0xFFFF))
 }
+
+
+
 alias sign_extension="sign_extension_half"
+function sign_extension_word () {
+  # Take a word and perform sign-extension
+  # The function works for any size of integer representation
+  # Bash has 64-bits
+
+  local _value="$1"
+  local _sign_bit
+
+   _sign_bit=$(( ${_value} & 0x80000000 ))
+  if [[ ${_sign_bit} != 0 ]] ; then 
+    # The sign bit is on... so extend it
+    ((_value = ( - 0x80000000 ) | _value ))
+  fi
+  echo "${_value}"
+}
+
 function sign_extension_half() {
   # The input value as a text value can be:
   #   -n, ~n, or a 16bit number
@@ -168,7 +187,7 @@ function sign_extension_half() {
   echo "${_prefix}${_value}"
 }
 
-function sign_extension_byte() {
+function sign_extension_byte () {
   local _value="$1"
   local _sign_bit
 
