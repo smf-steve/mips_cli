@@ -1,7 +1,7 @@
 #! /bin/bash
 
 source ${MIPS_CLI_HOME}/libexec/machine/registers.bash
-source ${MIPS_CLI_HOME}/libexec/machine/encodings.bash
+source ${MIPS_CLI_HOME}/libexec/machine/codes.bash
 source ${MIPS_CLI_HOME}/libexec/machine/memory.bash
 
 # CONSTANTS

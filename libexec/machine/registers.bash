@@ -93,20 +93,36 @@ function assign () {
 function alu_assign() {
   local _index="$1"
   local _value="$2"
-  local _src1="$3"
-  local _src2="$4"
+  local _src1="$(( $3 & 0xFFFFFFFF ))"
+  local _src2="$(( $4 & 0xFFFFFFFF ))"
 
-  # Allow the ALU to project its final values.
-  # Ensure the output _value is represented as a 32-bit quanitity using 64 bits.
-  if (( _value > max_word )) ; then
-    # we need to extend the sign for a 64-bit value
-    _value=$(( _value | 0xFFFFFFFF00000000 ))
+  set -x
+  # Make adjustments to _value to represent a 32-bit quantity using 64 bits.  
+
+  local _value_32=$(( _value & 0xFFFFFFFF ))   # This final 32-bit number
+  local _carry_row=$(( _value_32 ^ _src1 ^ _src2))
+
+  local _carry_out=$(( _value & 0x1FFFFFFFF >> 32 ))
+  local _carry_in=$(( _carry_row >> 31))
+
+  local _sign_bit=$(( _value_32 >> 31 ))
+  local _zero_bit=$(( _value_32 == 0 ))
+  local _overflow_bit=$((  _carry_out ^ _carry_in ))
+
+  if (( _sign_bit == 1 )) ; then 
+    _value_32=$(( _value_32 | 0xFFFFFFFF00000000 ))
   fi
 
-  assign_status_bits "$_value" "$_src1" "$_src2"
+  #assign_status_bits "$_value_32" "$_src1" "$_src2"
+  STATUS_BITS[$_s_bit]=$_sign_bit
+  STATUS_BITS[$_c_bit]=$_carry_out
+  STATUS_BITS[$_v_bit]=$_overflow_bit
+  STATUS_BITS[$_z_bit]=$_zero_bit
+
   trap_on_status_bits
 
-  REGISTER[$_index]="$_value"
+  REGISTER[$_index]="$_value_32"
+  set +x
 }
 
 function reset_registers() {
