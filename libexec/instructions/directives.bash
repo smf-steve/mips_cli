@@ -48,7 +48,7 @@ function .ascii () {
 
 
 function .space () {
-   local bytes="$1"
+   local bytes=$(parse_literal "$1")
 
    allocate_data_memory $bytes
    print_zero_encoding $bytes
@@ -65,6 +65,9 @@ function allocate () {
   local bytes="$(( 2 ** alignment ))"
 
   .align $alignment
+
+  # Insert Santity Check for size of the value
+  value=$(parse_literal "$value")
 
   allocate_data_memory $bytes "$value"
 
