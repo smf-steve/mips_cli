@@ -197,7 +197,8 @@ function rewind () {
    assign $_npc 0x00400000
    assign $fp 0x00
    assign $gp 0x00
-   assign $ra _exit
+   # assign $ra _exit
+
    # registers and memory are left as is...
 
 }
