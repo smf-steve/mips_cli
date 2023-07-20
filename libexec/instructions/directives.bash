@@ -75,10 +75,11 @@ function .space () {
 function .align () {
   # (0=byte, 1=half, 2=word, 3=double)
   local align="$1"
-  local text
 
+  local text
   local offset=0
   local bytes
+
   case ${align} in 
     0) # No adjustment is needed
        size=1
