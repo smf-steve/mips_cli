@@ -1,105 +1,88 @@
 #! /bin/bash
 
-# This file contains the various functions required to 
+#################################################################################
 # encode an instruction or any of its subcomponents.
 #
-
-# lookup_opcode:
-# lookup_func:
-
 # encode_register: reg
-# decode_register: num
+# decode_register: reg
 # encode_shamt:  num
 # decode_shamt:  bnum
-
+#
 # encode_immediate:
-# decode_immediate:
+#
 # encode_offset: label [ PC ]
 # decode_offset:
-
+#
 # encode_address:
 # decode_address:
-
-
+#
 # print_R_encoding:
 # print_I_encoding:
 # print_J_encoding:
+#
+#################################################################################
 
 
-################################################
-# Op Encodings
-# Special  00
-# Special2 1C
-function lookup_opcode () {
-    local num="" 
-    num=$(eval echo \$op_code_$1)  2>&1 >/dev/null
-    if [[ $? == 0 ]] ; then 
-      echo $num
-    else
-      instruction_error "Undefined \"op\""
-    fi
-}
+##  
+##  function print_string_encoding () {
+##  function print_word_row () {
+##  function print_memory_encoding_multiple () {
+##  function print_zero_encoding () {
+##  function print_memory_encoding () {
+##  function print_data_memory () {
+##  function map.ascii () {
+##  function print_data_word_little () {
+##  function print_data_word_big () {
 
-################################################
-# Func Encodings
-function lookup_func () {
-    local num="" 
-    num=$(eval echo \$func_code_$1)  2>&1 >/dev/null
-    if [[ $? == 0 ]] ; then
-      echo $num
-    else
-      instruction_error "Undefined \"func\""
-    fi 
-}
 
-################################################
+#################################################################################
 # Register Encodings
 #   - registers are presented as: ${mnemonic}
 function decode_register () {
-    _reg="$1"
-    [[ $_reg > 0 ]] || { input_error "unknown general purpose register" ; return ;  }
-    [[ $_reg < 32 ]] || { input_error "unknown general purpose register" ; return ;  }
-    echo $_reg
+  local reg="$1"
+   [[ $reg >  0 ]] || { input_error "unknown general purpose register" ; return ;  }
+   [[ $reg < 32 ]] || { input_error "unknown general purpose register" ; return ;  }
+   echo $reg
 }
 function encode_register () {
-   local _reg=$1
-   local _code=$(base2_digits 8 $_reg )
-   echo "${_code:3:5}"
+  local reg=$1
+  local code=$(base2_digits 8 $reg )
+  echo "${code:3:5}"
 }
 alias encode_shamt=encode_register
 
 
-
 function encode_immediate () {
-   local _value=$(( $1 & 0xFFFF ))
-   echo $(base2_digits 16 $_value)
+  ## Presume that the value is valid.
+  local _value=$(( $1 & 0xFFFF ))
+  echo $(base2_digits 16 $_value)
 }
 
 function encode_offset () {
-   local _label="$1"
-   local _offset="$1"
-   local _pc_value="$2"
-   local _address
-
-   [[ -n _pc_value ]] || _pc_value=$(rval $_pc)
-
-   if [[ ${_label:0:1} =~ [[:alpha:]] ]] ; then
-      _address=$(lookup_text_label $_label)
-     if [[ -n "$_address" ]] ; then 
-         echo "_unresolved_ $_address - \$_pc" 
-         return 
-     fi
-      _offset=$((  _address - _pc_value ))
-   fi
-
-   if (( _offset > max_immediate || min_immediate > _offset  )) ; then 
-     instruction_error "Branch out of reach."
-   fi
+  local label="$1"
+  local offset="$1"
+  local pc="$2"
   
-   local _code=$(base2_digits 16 $(( _offset >> 2 )) )
+  [[ -n ${pc} ]] || pc=$(rval $_pc)
 
-   echo "${_code}"
-   echo "Bug need to check which segment I'm in"
+  local address
+  if [[ ${label:0:1} =~ [[:alpha:]] ]] ; then
+    address=$(lookup_text_label ${label})
+
+    [[ -n "${address}" ]] || { 
+            echo "_unresolved_ ${address} - \$_pc" 
+            return 
+          }
+    offset=$(( address - pc ))
+  fi
+
+  if (( offset > max_immediate || min_immediate > offset  )) ; then 
+   instruction_error "Branch out of reach."
+  fi
+  
+  offset=$(( (offset >> 2 ) & 0xFFFF ))
+  echo $(base2_digits 16 $offset)
+  echo "Bug need to check which segment I'm in"
 }
 
 function decode_offset () {
