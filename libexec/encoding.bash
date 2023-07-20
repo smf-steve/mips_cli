@@ -76,7 +76,7 @@ function encode_offset () {
     offset=$(( address - pc ))
   fi
 
-  if (( offset > max_immediate || min_immediate > offset  )) ; then 
+  if (( offset > MAX_IMMEDIATE || MIN_IMMEDIATE > offset  )) ; then 
    instruction_error "Branch out of reach."
   fi
   

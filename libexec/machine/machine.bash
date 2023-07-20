@@ -1,25 +1,9 @@
 #! /bin/bash
 
+source ${MIPS_CLI_HOME}/libexec/machine/constants.bash
 source ${MIPS_CLI_HOME}/libexec/machine/registers.bash
 source ${MIPS_CLI_HOME}/libexec/machine/codes.bash
 source ${MIPS_CLI_HOME}/libexec/machine/memory.bash
-
-# CONSTANTS
-min_shamt=0
-max_shamt=$(( 2 ** 5 ))
-
-max_immediate_unsigned=$(( 2 ** 16 - 1))
-min_immediate=$(( - 2 ** 15  ))
-max_immediate=$(( - min_immediate - 1 ))
-
-max_word_unsigned=$(( 2 ** 32 - 1))
-min_word=$(( - 2 ** 31  ))
-max_word=$(( - min_word - 1 ))
-
-max_dword_unsigned=$(( 2 ** 64 - 1))
-min_dword=$(( - 2 ** 63 ))
-max_dword=$(( - max_dword -1  ))
-
 
 declare -a LATCH_A=()   # whence registers, value
 declare -a LATCH_B=()   # whence register/imm, value, text
@@ -77,7 +61,7 @@ function reset_status_bits() {
 #    - Overflow is true if..  the sign of final value is flipped  
 #
 #  Carry Calculations:  Using unsigned representation of 32-bit values
-#    - Carry is true if..  rs + rt > max_unsigned_word 
+#    - Carry is true if..  rs + rt > MAX_UNSIGNED_WORD 
 #      * i.e., mask the values of rs and rt first to get the 32-bit representation
 
 function assign_status_bits() {
@@ -103,7 +87,7 @@ function assign_status_bits() {
 
   (( _rs_value = _rs_value & 0xFFFFFFFF ))
   (( _rt_value = _rt_value & 0xFFFFFFFF ))
-  STATUS_BITS[$_c_bit]=$(( (_rs_value + _rt_value ) > max_word_unsigned ? 1 : 0))
+  STATUS_BITS[$_c_bit]=$(( (_rs_value + _rt_value ) > MAX_UNSIGNED_WORDS ? 1 : 0))
 
 }
 
