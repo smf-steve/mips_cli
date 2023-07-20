@@ -323,7 +323,9 @@ or maybe trigger_alu,  alu_execute, execute_alu
 
   1. create a list of functions exposed to the user
 
-
+# todo 
+  implemente the set pseudo instructions
+  implemente the special2 instructions
 
 ## Documenations
    1. Presume that a syntax checker is placed in front of mini-mips

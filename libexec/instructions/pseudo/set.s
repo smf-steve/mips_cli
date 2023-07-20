@@ -1,24 +1,38 @@
-# 
-# Set equal
-# seq rdest, rsrc1, rsrc2 pseudoinstruction
-# Set register rdest to 1 if register rsrc1 equals rsrc2, and to 0 otherwise.
-# Set greater than equal
-# sge rdest, rsrc1, rsrc2 pseudoinstruction Set greater than equal unsigned
-# sgeu rdest, rsrc1, rsrc2 pseudoinstruction
-# Set register rdest to 1 if register rsrc1 is greater than or equal to rsrc2, and
-# to 0 otherwise.
-# Set greater than
-# sgt rdest, rsrc1, rsrc2 pseudoinstruction
-# 
-# 
-# Set greater than unsigned
-# sgtu rdest, rsrc1, rsrc2 pseudoinstruction
-# Set register rdest to 1 if register rsrc1 is greater than rsrc2, and to 0 otherwise.
-# Set less than equal
-# sle rdest, rsrc1, rsrc2 pseudoinstruction Set less than equal unsigned
-# sleu rdest, rsrc1, rsrc2 pseudoinstruction
-# Set register rdest to 1 if register rsrc1 is less than or equal to rsrc2, and to
-# 0 otherwise.
-# Set not equal
-# sne rdest, rsrc1, rsrc2 pseudoinstruction
-# 
+#################################################################################
+# This file contains the set-related pseudo instructions
+#
+#  seq  ==
+#  sne  !=
+#  sge  >=
+#  sgt  >
+#  sle  <=
+#  slt  <    (native instruction)
+#################################################################################
+
+
+.pseudo seq %dst, %src1, %src2        # %dst = (%src1 == %src2)? 1 : 0;
+.end_pseudo
+
+.pseudo sne %rdst, src1, %src2        # %dst = (%src1 != %src2)? 1 : 0;
+.end_pseudo
+
+.pseudo sge %dst, %src1, %src2        # %dst = (%src1 >= %src2)? 1 : 0;
+.end_pseudo
+
+.pseudo sgeu %dst, %src1, %src2       # %dst = (%src1 >= %src2)? 1 : 0;
+.end_pseudo
+
+.pseudo sgt %rdst, %src1, %src2       # %dst = (%src1 > %src2)? 1 : 0;
+.end_pseudo
+
+.pseudo sgtu %rdst, %src1, %src2      # %dst = (%src1 > %src2)? 1 : 0;
+.end_pseudo
+
+.pseudo sle %rdst, %src1, %src2       # %dst = (%src1 <= %src2)? 1 : 0;
+.end_pseudo
+
+.pseudo sleu %rdst, %src1, %src2      # %dst = (%src1 <= %src2)? 1 : 0;
+.end_pseudo
+
+#.native slt %rdst, %src1, %src2       # %dst = (%src1 < %src2)? 1 : 0;
+#.native sltu %rdst, %src1, %src2      # %dst = (%src1 < %src2)? 1 : 0;
