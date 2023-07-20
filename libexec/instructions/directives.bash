@@ -21,10 +21,10 @@
 #################################################################################
 
 
-alias .text=":"
+alias .text="SEGMENT=TEXT"
 alias .ktext="echo Not Implemented."
 
-alias .data=":"
+alias .data="SEGMENT=DATA"
 alias .kdata="echo Not Implemented."
 
 alias .float="echo Not Implemented."

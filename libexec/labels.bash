@@ -4,10 +4,50 @@ declare -a DATA_LABELS
 declare -a TEXT_LABELS
 
 
+# .label directive:  
+#    This is is an extension of the .lab directive.  It associates
+#    a label with the current address in the program text.  In our
+#    implementation, an address can be provided as part of the directive
+#    
+# .label name address
+
+alias .lab=".label"
+function .label () {
+  local name="$1"
+  local address="$2"
+
+  [[ -n "$address" ]] || address=$(( $(rval $_pc) - 4 ))
+
+  eval ${SEGMENT}_label_${name}="${address}"
+}
+
+
+# is_label name:
+
+# remove_label : remove label from an instruction
+# label_name 
+
+# lookup_text_label  : returns the address of a lable
+# lookup_data_label
+
+# apply_data_labels 
+#   assign_data_label
+# apply_text_labels 
+#   assign_text_label
+
+# use_text_label  :  create an unresolved label
+
+# list_labels
+
+
+
+
+
 function is_label () {
-  local _name="$1"
-  local _last_char=$(( ${#_name}-1))
-  if [[ "${_name:${_last_char}}" == ":" ]] ; then
+  local name="$1"
+
+  local last_char=$(( ${#name}-1))
+  if [[ "${name:${last_char}}" == ":" ]] ; then
     echo TRUE
   else
     echo FALSE
@@ -27,9 +67,10 @@ function remove_label () {
 }
 
 function label_name () {
-  local _name="$1"
-  local _last_char=$(( ${#_name}-1 ))
-  echo "${_name:0:$_last_char}"
+  local name="$1"
+
+  local last_char=$(( ${#name}-1 ))
+  echo "${name:0:$last_char}"
 }
 
 
