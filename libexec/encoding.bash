@@ -3,36 +3,36 @@
 #################################################################################
 # encode an instruction or any of its subcomponents.
 #
-# encode_register: reg
-# decode_register: reg
-# encode_shamt:  num
-# decode_shamt:  bnum
+# encode_register $t1
+# decode_register $t1
+# encode_shamt    num
+alias encode_shamt=encode_register
 #
-# encode_immediate:
 #
-# encode_offset: label [ PC ]
-# decode_offset:
+# encode_immediate imm
 #
-# encode_address:
-# decode_address:
+# encode_offset label [ PC ]
+# decode_offset imm
 #
-# print_R_encoding:
-# print_I_encoding:
-# print_J_encoding:
+# encode_address label 
+# decode_address address
 #
-#################################################################################
-
-
-##  
-##  function print_string_encoding () {
-##  function print_word_row () {
-##  function print_memory_encoding_multiple () {
-##  function print_zero_encoding () {
-##  function print_memory_encoding () {
-##  function print_data_memory () {
-##  function map.ascii () {
-##  function print_data_word_little () {
-##  function print_data_word_big () {
+# print_R_encoding fun rs rt rd shamt
+# print_I_encoding op rs rt imm [ label ]   
+# print_J_encoding op addr
+#
+# print_memory_encoding addr value 
+#      - encodings for .byte, .half, .word
+#   print_word_row: supporting function
+#
+# print_memory_encoding_multiple addr #num { value_1 ... value_n }
+#      - encoding for .dword, .space
+#
+# print_string_encoding "str"
+#      - encoding for .ascii, .asciiz
+#
+# print_zero_encoding #bytes
+#      - encoding for .space
 
 
 #################################################################################
@@ -86,34 +86,35 @@ function encode_offset () {
 }
 
 function decode_offset () {
-  local _imm="$1"
+  local imm="$1"
 
-  echo "$(( _imm + $(rval $_pc)  ))"
+  echo "$(( imm + $(rval $_pc)  ))"
 }
 
 function encode_address () {
-  # PC = PC&0xF0000000 | (addr0<< 2)
-  local _label=$1
-  local _address=$(lookup_text_label $_label)
-  local _code
+  local label=$1
+  local address=$(lookup_text_label $label)
+  local code
 
-  if [[ -z "$_address" ]] ; then 
+  if [[ -z "$address" ]] ; then 
     echo "_unresolved_"
   else
-    if (( ( _address % 4) != 0 )) ; then
-      echo "Invaled address"
+    if (( ( address % 4) != 0 )) ; then
+      echo "Invalid address"
     else 
-      _code=base2_digits 28 $(( _address  >> 2 )) 
+      code=$(base2_digits 28 $(( address  >> 2 )) )
+
       # Only return 26 bits
-      echo ${_code:2}
+      echo ${code:2}
     fi
   fi
 }
 
 function decode_address () {
-  local _addr="$1"
+  # PC = PC&0xF0000000 | (addr0<< 2)
+  local addr="$1"
 
-  echo "$(( _addr << 2 ))"
+  echo "$(( addr << 2 ))"
 }
 
 
@@ -260,7 +261,6 @@ function print_string_encoding () {
   fi
 }
 
-
 function print_word_row () {
    local _start="$1"
    local _size="$2"
@@ -350,102 +350,3 @@ function print_memory_encoding () {
   printf "   | 0x%8x |\n" $(( _address + _size ))
   echo
 }
-
-
-## Issues
-# 1. if the memory cell is empty -- because it was an aligment thing
-# 1. if the char is '
-# 1. if the char is [[ -z char]]
-
-       big_title="| address    | char | byte | half   | word        |\n"
-   big_separator="|------------|------|------|--------|-------------|\n"
-     big_pattern="| 0x%08x | %4s | 0x%02x | %6s | %10s |\n"
-    little_title="| address    | word        | half   | byte | char |\n"
-little_separator="|------------|-------------|--------|------|------|\n"
-  little_pattern="| 0x%08x |  %10s | %6s | 0x%02x | %4s |\n"
-
-function print_data_memory () {
-  local address="$1"
-  local count="$2"
-   
-  local offset=$(( address % 4 ))
-  local end=$(( address - offset ))        # Adjust to ensure a complete word is provided
-  local count=$(( count + offset ))        # Revise to accommodate 'end' calculation
-
-  local start=$(( end + count - 1))
-  if (( start >= DATA_NEXT )) ; then 
-     start=$(( DATA_NEXT - 1 ))
-  fi
-  local offset=$(( start % 4 ))            # Adjust to ensure a complete word is provided
-  start=$(( start +  (3 - offset ) ))
-
-  printf "Memory: $ENDIANNESS Endian\n"
-  if [[ "$ENDIANNESS" == "LITTLE" ]] ; then 
-    printf "$little_title"
-    printf "$little_separator"
-
-    for (( i = start ; i >= end ; i -= 4 )) ; do 
-      print_data_word_little $i
-      printf "$little_separator"
-    done
-  else
-    printf "$big_title"
-    printf "$big_separator"
-
-    for (( i = start ; i >= end ; i -= 4 )) ; do 
-      print_data_word_big $i
-      printf "$big_separator"
-    done
-  fi
-}
-
-function map.ascii () {
-
-  local sequence=$(ascii.char $1)
-
-   if [[ -z "$sequence" ]] ; then 
-      sequence="'\0'"
-   else
-     case "$sequence" in
-        \' ) sequence="\"'\"" ;;
-        \" ) sequence="'\"'" ;;
-        *)   sequence="'${sequence}'"
-     esac
-   fi
-   echo "$sequence"
-}
-function print_data_word_little () {
-    local address="$1"
-    local byte_0=${DATA[ address ]}
-    local byte_1=${DATA[ (( address - 1 )) ]}
-    local byte_2=${DATA[ (( address - 2 )) ]}
-    local byte_3=${DATA[ (( address - 3 )) ]}
-
-    local half_0=$( printf "0x%04x" $(( byte_0 <<  8 | byte_1 )) )
-    local half_1=$( printf "0x%04x" $(( byte_2 <<  8 | byte_3 )) )
-    local   word=$( printf "0x%08x" $(( half_0 << 16 | half_1 )) )
-
-    printf "$little_pattern" $(( address ))     ""      ""          "${byte_0}" "$(map.ascii ${byte_0})"
-    printf "$little_pattern" $(( address - 1 )) ""      "${half_0}" "${byte_1}" "$(map.ascii ${byte_1})"
-    printf "$little_pattern" $(( address - 2 )) ""      ""          "${byte_2}" "$(map.ascii ${byte_2})"
-    printf "$little_pattern" $(( address - 3 )) ${word} "${half_1}" "${byte_3}" "$(map.ascii ${byte_3})"
-}
-
-
-function print_data_word_big () {
-    local address="$1"
-    local byte_0=${DATA[address ]}
-    local byte_1=${DATA[ (( address - 1 )) ]}
-    local byte_2=${DATA[ (( address - 2 )) ]}
-    local byte_3=${DATA[ (( address - 3 )) ]}
-
-    local half_0=$( printf "0x%04x" $(( byte_1 <<  8 | byte_0 )) )
-    local half_1=$( printf "0x%04x" $(( byte_3 <<  8 | byte_2 )) )
-    local   word=$( printf "0x%08x" $(( half_1 << 16 | half_0 )) )
-
-    printf "$big_pattern" $(( address ))     "$(map.ascii ${byte_0})" "${byte_0}" ""          ""      
-    printf "$big_pattern" $(( address - 1 )) "$(map.ascii ${byte_1})" "${byte_1}" "${half_0}" ""      
-    printf "$big_pattern" $(( address - 2 )) "$(map.ascii ${byte_2})" "${byte_2}" ""          ""      
-    printf "$big_pattern" $(( address - 3 )) "$(map.ascii ${byte_3})" "${byte_3}" "${half_1}" ${word} 
-}
-
