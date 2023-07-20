@@ -326,6 +326,13 @@ or maybe trigger_alu,  alu_execute, execute_alu
 # todo 
   implemente the set pseudo instructions
   implemente the special2 instructions
+  implemente value list to data directives
+
+for readability consider
+   instead of $(( offset = DATA_NEXT % size ))
+
+   let "offset = DATA_NEXT % size"
+
 
 ## Documenations
    1. Presume that a syntax checker is placed in front of mini-mips

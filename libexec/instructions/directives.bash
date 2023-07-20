@@ -1,3 +1,26 @@
+#! /bin/bash
+
+#################################################################################
+# This file contains the declarations of all supported MIPS directives.
+#
+# The directives supported are:
+#
+#   .align
+#   .dword
+#   .word
+#   .half
+#   .byte
+#   .asciiz
+#   .ascii
+#   .space
+#
+# Note that data directives may only provide a single optional data. E.g.,
+#   .word             # valid
+#   .word 42          # valid
+#   .word 42, 0, 42   # invalid
+#################################################################################
+
+
 alias .text=":"
 alias .ktext="echo Not Implemented."
 
@@ -16,21 +39,16 @@ alias .set="echo Not Implemented."
 alias .include="include"
 
 alias .macro="read_macro macro"
-alias .end_macro="echo .end_macro improperly encountered."
+alias .end_macro="instruction_error \".end_macro improperly encountered.\""
 
 alias .pseudo="read_macro pseudo"
-alias .end_pseudo="echo .end_macro improperly encountered."
+alias .end_pseudo="instruction_error \".end_pseudo improperly encountered.\""
 
 function .asciiz () {
    local str="$1"
 
    .ascii "$str\0"
 }
-
-# Issue exists with diglyphs, e.g., \n
-# what is the length --
-# need to do a for loop...
-
 
 function .ascii () {
   local str="$1"
@@ -43,41 +61,14 @@ function .ascii () {
      (( count ++ ))
   done
   print_string_encoding "$str"
-  print_data_memory $address ${count}   ## Here datalast is wrong is I allocate data_memory one at a time.
+  print_data_memory $address ${count} 
 }
-
 
 function .space () {
    local bytes=$(parse_literal "$1")
 
    allocate_data_memory $bytes
    print_zero_encoding $bytes
-}
-
-
-alias .dword="allocate 3"
-alias .word="allocate 2"
-alias .half="allocate 1"
-alias .byte="allocate 0"
-function allocate () {
-  local alignment="$1" ; shift
-  local value="$1" ; [[ -n $value ]] || value=0
-  local bytes="$(( 2 ** alignment ))"
-
-  .align $alignment
-
-  # Insert Santity Check for size of the value
-  value=$(parse_literal "$value")
-
-  allocate_data_memory $bytes "$value"
-
-  if (( bytes == 8 )) ; then 
-     print_memory_encoding_multiple ${DATA_LAST} $bytes $(upper_word $value) $(lower_word $value)
-  else
-    print_memory_encoding ${DATA_LAST} $bytes $value ""
-  fi
-  print_data_memory ${DATA_LAST} $bytes
-
 }
 
 
@@ -116,4 +107,27 @@ function .align () {
    # Note: No need to print memory
 }
 
+alias .dword="allocate 3"
+alias .word="allocate 2"
+alias .half="allocate 1"
+alias .byte="allocate 0"
+function allocate () {
+  local alignment="$1" ; shift
+  local value="$1" ; [[ -n $value ]] || value=0
+  local bytes="$(( 2 ** alignment ))"
 
+  .align $alignment
+
+  # Insert Santity Check for size of the value
+  value=$(parse_literal "$value")
+
+  allocate_data_memory $bytes "$value"
+
+  if (( bytes == 8 )) ; then 
+     print_memory_encoding_multiple ${DATA_LAST} $bytes $(upper_word $value) $(lower_word $value)
+  else
+    print_memory_encoding ${DATA_LAST} $bytes $value ""
+  fi
+  print_data_memory ${DATA_LAST} $bytes
+
+}
