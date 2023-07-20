@@ -13,7 +13,7 @@ This is a toy implementation for an encoder, simulator, and assembler for the MI
 
 The "mips_cli" utility provides three main purposes to students as a learning tool.  
 
-   1. View the encoding of the instruction.  
+   1. View the encoding of instructions and data.
       Three instruction types are supported:  R-encoding, I-encoding, J-encoding
 
    1. Observe the execution of these instructions via a summary output of:
@@ -23,11 +23,11 @@ The "mips_cli" utility provides three main purposes to students as a learning to
       - Branch and Jump operations via the depiction for ALU and PC-Update units
       - Syscall and Trap operations via the depiction of register modifications
 
-   1. Retain the encoding of the both text and data segment
+   1. Execute small MIPS subroutines
 
-This tool can be used either in either interactive mode or in batch mode.  While in interactive mode, students are prompted to enter one instruction at a time.  The instruction is encoded and executed.  Additional commands can be provided to examine or alter the state of the machine (a limited debugger in some ways).
+This tool can be used either in interactive mode or in batch mode.  While in interactive mode, students are prompted to enter one instruction at a time.  The instruction is encoded and then executed.  Additional commands can be provided to examine or alter the state of the machine (a limited debugger in some ways).
 
-While in batch mode, the tool executes a mips subroutine based upon command line arguements.  For example, the following depict hows to invoke the mips_cli tool execute a mips subroutine called "subroutine"  (It is presumed that the subroutine is located in file named "subroutine.s")
+While in batch mode, the tool executes a mips subroutine based upon command line arguements.  For example, the following depicts the execution of a mips subroutine called "subroutine"  (It is presumed that the subroutine is located in file named "subroutine.s")
 
    ```bash
    $ mips_cli subroutine  arg1 arg2 ... arg3
@@ -36,11 +36,11 @@ Command line options can also be provided to alter the operation of the program.
 
 ## Interactive Modes:
 
-1. cli:   any shell or mips instruction can be executed from the prompt
+1. cli:  any shell or mips instruction can be executed from the prompt
    - each mips instruction is added as the next instruction in the interactive program being created
 
 1. prefetch: any shell or mips instruction can be entered from the prompt
-   - cause: a branch instruction that has an unresolved target has been entered
+   - cause: a branch instruction references an unresolved label.
    - each MIPS instruction is added, but not executed to the interactive program
 
    - each shell command is executed
@@ -53,34 +53,37 @@ Command line options can also be provided to alter the operation of the program.
 
 
 
-
 ## MIPS Language Deviations
-   1. Only the main processor is executed. That is to say:
+   1. Co-processors:
       - floating point operations are not support
       - exception and trap handling is not supported
-   1. Directives
-      - the .text and .data directives are mute
-        - i.e., the supported data-directives may appear anywhere
-      - only a subset of directives are supported.  These include
-        : byte, half, word, align, ...
-      - NOTE, we anticipate the tool will be fronted by a parser
-   
-   1. Literal Values can be provided via based numbers, e.g., "2#1 0100 0001 0010"
-      - see below
-   1. There is limited syntax checking, it is presumed that
-      - Spaces are provided between tokens, and proper shell quoting is provided
-      - Commas placed legally are also supported 
-   1. Load and Store instructions have an alternative syntax, e.g., `lw $t1, 4($t2)` must be entered as:
-       ```
-       lw $t1, $t2, 4
-       ```  
-   1. Commands that more than one syntactic form
-      1. div :  div $t1, $t2  (native)
-      1. div :  div $t1, $t2, $t3 (pseudo)
-      * i.e. pseudo instructions that introduce ambiguity are not support.
 
-   1. Limited set of pseudo instructions are provided
-   1. Macro ares are not supported
+   1. Syntax Checking:
+      1. There is limited syntax checking, it is presumed that
+         - Spaces are provided between tokens, and proper shell quoting is provided
+         - Commas placed legally are also supported 
+         - NOTE, we anticipate the tool will be fronted by a parser
+
+      1. Literal Values can be provided via based numbers, e.g., "2#1 0100 0001 0010"
+
+      1. Load and Store instructions have an alternative syntax, e.g., `lw $t1, 4($t2)` must be entered as:
+         ```
+         lw $t1, $t2, 4
+         ```  
+
+   1. Data Directives:
+      - the .text and .data directives are moot
+        - i.e., the supported data-directives may appear anywhere
+      - all the data directives are support except .float and .double
+
+   1. Blah Directories:
+
+   1. Macros:
+      1. Pseudo instructions are supported as a special form of a macro directive
+      1. Commands that more than one syntactic form are not support
+         1. div :  div $t1, $t2  (native)
+         1. div :  div $t1, $t2, $t3 (pseudo)
+            * i.e. pseudo instructions that introduce ambiguity are not support.
 
 
 ## Usage Example
