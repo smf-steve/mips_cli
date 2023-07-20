@@ -1,3 +1,18 @@
+#! /bin/bash
+
+#################################################################################
+# This file contains the declarations of all supported MIPS native instructions
+#
+# Each instruction is implemented as an alias that calls the correct,
+#   based upon type and syntax, "execute" function. The function accepts two 
+#   additional parameters:
+#      1. the name of the instruction
+#      1. the corresponding bash ARITHMETIC EXPRESSION operator
+#
+# Reference: "documentation/mips_encoding_reference.pdf"
+#################################################################################
+
+
 ## ARITHMETIC
 alias      add="trap_on_V; execute_ArithLog  add   +"
 alias     addu="           execute_ArithLog  addu  +"
@@ -13,11 +28,9 @@ alias       or="execute_ArithLog  or   \|"
 alias      ori="execute_ArithLogI ori  \|"
 alias      xor="execute_ArithLog  xor  ^"
 alias     xori="execute_ArithLogI xori ^"
+alias      nor="execute_ArithLog  nor  \~\|"
 
-alias      nor="execute_ArithLog nor  \~\|"
-alias     nori="echo Instruction does not exist"    
-
-# Set Instructions
+# SET
 alias      slt='execute_ArithLog  slt   "<"'
 alias     sltu='execute_ArithLog  sltu  "<"'
 alias     slti='execute_ArithLogI slti  "<"'
@@ -43,13 +56,12 @@ alias     mtlo="execute_MoveTo   mtlo "=" _lo"       # mflo $t0
 alias     mfhi="execute_MoveFrom mfhi "=" _hi"       # mthi $t0
 alias     mflo="execute_MoveFrom mflo "=" _lo"       # mtlo $t0
 
-
-## LoadImmediate
+## LOAD IMMEDIATE
 alias      lui='execute_LoadI lui --'      
-alias      lhi='execute_LoadI lhi --'       # Part of Hennessy&Pattrson
+alias      lhi='execute_LoadI lhi --'               # Part of Hennessy & Patterson
 alias      llo='execute_LoadI llo --'
 
-## LoadStore
+## LOAD STORE
 alias       lb='execute_LoadStore lb  --'
 alias       lh='execute_LoadStore lh  --'
 alias       lw='execute_LoadStore lw  --'
@@ -59,24 +71,23 @@ alias       sb='execute_LoadStore sb  --'
 alias       sh='execute_LoadStore sh  --'
 alias       sw='execute_LoadStore sw  --'
 
-## Jump and JumpR
+## JUMP and JUMPR
 alias        j='execute_Jump  j    --'
 alias      jal='execute_Jump  jal  --'
 alias       jr='execute_JumpR jr   --'
 alias     jalr='execute_JumpR jalr --'
 
-## Jump 
-alias  syscall='echo execute_Trap syscall --'
-alias     trap='echo execute_Trap trap --' 
-
-## Branch and BranchZ
+## BRANCH and BRANCHZ
 alias      beq='execute_Branch beq --'
 alias      bne='execute_Branch bne --'
 alias     blez='execute_BranchZ blez --'
 alias     bgtz='execute_BranchZ bgtz --'
 
+## TRAP 
+alias  syscall='echo execute_Trap syscall --'
+alias     trap='echo execute_Trap trap --' 
 
-## 
+
 
 ## This is soley a WB operation 
 alias     movz='echo execute_Test movn -n'
