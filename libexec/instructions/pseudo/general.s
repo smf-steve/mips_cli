@@ -3,7 +3,6 @@
     ori %dst, $at, $(lower %label )
 .end_pseudo
 
-
 .pseudo li %dst, %imm
     addiu %dst, $zero, %imm  
 .end_pseudo

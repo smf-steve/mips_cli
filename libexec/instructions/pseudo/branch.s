@@ -1,8 +1,6 @@
-
 .pseudo b %label                    
     beq $zero, $zero, %label
 .end_pseudo
-
 
 .pseudo bge %src1, %src2, %label
     slt $at, %src1, %src2
@@ -23,7 +21,6 @@
     slt $at, %src1, %src2
     bne $at, $zero, %label     
 .end_pseudo
-
 
 .pseudo bgeu %src1, %src2, %label
     sltu $at, %src1 %src2  
