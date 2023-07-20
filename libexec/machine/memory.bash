@@ -1,6 +1,22 @@
 #!/bin/bash
 
-function allocate_data_memory() {
+
+# allocate_data_memory
+# data_memory_read
+# data_memory_write
+
+# print_memory
+# print_data_memory 
+#   print_data_word_little 
+#   print_data_word_big 
+# check_segment 
+# check_alignment
+# map.ascii 
+
+
+
+
+function allocate_data_memory () {
    local _size="$1"
    local _value="$2"
 
@@ -16,7 +32,7 @@ function allocate_data_memory() {
 
 
 
-function print_memory() {
+function print_memory () {
   local segment="$1"
   if [[ -z ${segment} ]] ; then
     segment=DATA
@@ -128,7 +144,7 @@ function check_segment () {
   echo "${segment}"
 }
 
-function check_alignment() {
+function check_alignment () {
 	local _address=$1
 	local _size=$2
 
@@ -150,7 +166,7 @@ function check_alignment() {
 #   2.   sw $t1, imm ($t2) --> data_memory_write 4
 #      - the value of the MAR and MBR are latched in
 
-function data_memory_read() {
+function data_memory_read () {
   local _size="$1"
   local _address="$2"
 
@@ -176,7 +192,7 @@ function data_memory_read() {
 }
 
 
-function data_memory_write() {
+function data_memory_write () {
   local _size="$1"
   local _address="$2"
   local _value="$3"
@@ -207,11 +223,6 @@ function data_memory_write() {
 
 
 
-
-## Issues
-# 1. if the memory cell is empty -- because it was an aligment thing
-# 1. if the char is '
-# 1. if the char is [[ -z char]]
 
        big_title="| address    | char | byte | half   | word        |\n"
    big_separator="|------------|------|------|--------|-------------|\n"
@@ -255,8 +266,43 @@ function print_data_memory () {
   fi
 }
 
-function map.ascii () {
+function print_data_word_little () {
+  local address="$1"
+  local byte_0=${DATA[ address ]}
+  local byte_1=${DATA[ (( address - 1 )) ]}
+  local byte_2=${DATA[ (( address - 2 )) ]}
+  local byte_3=${DATA[ (( address - 3 )) ]}
 
+  local half_0=$( printf "0x%04x" $(( byte_0 <<  8 | byte_1 )) )
+  local half_1=$( printf "0x%04x" $(( byte_2 <<  8 | byte_3 )) )
+  local   word=$( printf "0x%08x" $(( half_0 << 16 | half_1 )) )
+
+  printf "$little_pattern" $(( address ))     ""        ""          "${byte_0}" "$(map.ascii ${byte_0})"
+  printf "$little_pattern" $(( address - 1 )) ""        "${half_0}" "${byte_1}" "$(map.ascii ${byte_1})"
+  printf "$little_pattern" $(( address - 2 )) ""        ""          "${byte_2}" "$(map.ascii ${byte_2})"
+  printf "$little_pattern" $(( address - 3 )) "${word}" "${half_1}" "${byte_3}" "$(map.ascii ${byte_3})"
+}
+
+
+function print_data_word_big () {
+  local address="$1"
+  local byte_0=${DATA[address ]}
+  local byte_1=${DATA[ (( address - 1 )) ]}
+  local byte_2=${DATA[ (( address - 2 )) ]}
+  local byte_3=${DATA[ (( address - 3 )) ]}
+
+  local half_0=$( printf "0x%04x" $(( byte_1 <<  8 | byte_0 )) )
+  local half_1=$( printf "0x%04x" $(( byte_3 <<  8 | byte_2 )) )
+  local   word=$( printf "0x%08x" $(( half_1 << 16 | half_0 )) )
+
+  printf "$big_pattern" $(( address ))     "$(map.ascii ${byte_0})" "${byte_0}" ""          ""      
+  printf "$big_pattern" $(( address - 1 )) "$(map.ascii ${byte_1})" "${byte_1}" "${half_0}" ""      
+  printf "$big_pattern" $(( address - 2 )) "$(map.ascii ${byte_2})" "${byte_2}" ""          ""      
+  printf "$big_pattern" $(( address - 3 )) "$(map.ascii ${byte_3})" "${byte_3}" "${half_1}" "${word}" 
+}
+
+
+function map.ascii () {
   local sequence=$(ascii.char $1)
 
    if [[ -z "$sequence" ]] ; then 
@@ -270,39 +316,3 @@ function map.ascii () {
    fi
    echo "$sequence"
 }
-function print_data_word_little () {
-    local address="$1"
-    local byte_0=${DATA[ address ]}
-    local byte_1=${DATA[ (( address - 1 )) ]}
-    local byte_2=${DATA[ (( address - 2 )) ]}
-    local byte_3=${DATA[ (( address - 3 )) ]}
-
-    local half_0=$( printf "0x%04x" $(( byte_0 <<  8 | byte_1 )) )
-    local half_1=$( printf "0x%04x" $(( byte_2 <<  8 | byte_3 )) )
-    local   word=$( printf "0x%08x" $(( half_0 << 16 | half_1 )) )
-
-    printf "$little_pattern" $(( address ))     ""      ""          "${byte_0}" "$(map.ascii ${byte_0})"
-    printf "$little_pattern" $(( address - 1 )) ""      "${half_0}" "${byte_1}" "$(map.ascii ${byte_1})"
-    printf "$little_pattern" $(( address - 2 )) ""      ""          "${byte_2}" "$(map.ascii ${byte_2})"
-    printf "$little_pattern" $(( address - 3 )) ${word} "${half_1}" "${byte_3}" "$(map.ascii ${byte_3})"
-}
-
-
-function print_data_word_big () {
-    local address="$1"
-    local byte_0=${DATA[address ]}
-    local byte_1=${DATA[ (( address - 1 )) ]}
-    local byte_2=${DATA[ (( address - 2 )) ]}
-    local byte_3=${DATA[ (( address - 3 )) ]}
-
-    local half_0=$( printf "0x%04x" $(( byte_1 <<  8 | byte_0 )) )
-    local half_1=$( printf "0x%04x" $(( byte_3 <<  8 | byte_2 )) )
-    local   word=$( printf "0x%08x" $(( half_1 << 16 | half_0 )) )
-
-    printf "$big_pattern" $(( address ))     "$(map.ascii ${byte_0})" "${byte_0}" ""          ""      
-    printf "$big_pattern" $(( address - 1 )) "$(map.ascii ${byte_1})" "${byte_1}" "${half_0}" ""      
-    printf "$big_pattern" $(( address - 2 )) "$(map.ascii ${byte_2})" "${byte_2}" ""          ""      
-    printf "$big_pattern" $(( address - 3 )) "$(map.ascii ${byte_3})" "${byte_3}" "${half_1}" ${word} 
-}
-
-

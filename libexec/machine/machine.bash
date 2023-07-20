@@ -5,14 +5,44 @@ source ${MIPS_CLI_HOME}/libexec/machine/registers.bash
 source ${MIPS_CLI_HOME}/libexec/machine/codes.bash
 source ${MIPS_CLI_HOME}/libexec/machine/memory.bash
 
+#################################################################################
+#
+#
+# Functions:
+#   1. Trap support:
+#      - reset_trap_on             
+#      - trap_on_status_bits
+#   1. Status bits
+#      - reset_status_bits             
+#      - print_status_bits 
+#   1. ALU update
+#      - alu_assign            
+#      - print_ALU_state  
+#      -   print_cin 
+#      -   print_op  
+#   1. Print a line for a particular value/register, etc.
+#        * E.G.: 
+#           t1:   -559038737  3735928559; 0xde ad be ef; 0b1101 1110 1010 1101 1011 1110 1110 1111;
+#      - print_value     reg value text           
+#      - print_value_i   name value text         # Perhaps fold into ..print_value
+#      - print_immediate value            
+#      - print_Z                                 # Most likely defunct  
+
+
+# print_NPCWB_stage               
+# print_MEMWB_stage             
+# print_mem_value               
+
+
+
 declare -a LATCH_A=()   # whence registers, value
 declare -a LATCH_B=()   # whence register/imm, value, text
 
-declare -i cin 
- alias unset_cin="cin=-1"     # unset to prevent printing
- alias set_cin="cin=1"        # set to 1 for subraction
- alias reset_cin="cin=0"      # set to 0 for addition
- unset_cin
+declare -i CIN 
+  alias unset_cin="CIN=-1"     # unset to prevent printing
+  alias   set_cin="CIN=1"      # set to 1 for subraction
+  alias reset_cin="CIN=0"      # set to 0 for addition
+  unset_cin
 
 declare -r _c_bit=0 ;  STATUS_BITS[$_c_bit]="0" 
 declare -r _v_bit=1 ;  STATUS_BITS[$_v_bit]="0" 
@@ -49,47 +79,6 @@ function reset_status_bits() {
   STATUS_BITS[$_z_bit]=0
 }
 
-##  In Bash, our values are stored using 64-bit 2's complement encoding
-##  Hence, determining the status bits for values within the range -2^31 .. 2^31-1
-##  is defined by the following calculations.
-#
-#  Sign Calculation: (regardless of the size of representation)
-#
-#  Zero Calculation: (regardless of the size of representation)
-#
-#  Overflow Calculations: (regardless of size of representation)
-#    - Overflow is true if..  the sign of final value is flipped  
-#
-#  Carry Calculations:  Using unsigned representation of 32-bit values
-#    - Carry is true if..  rs + rt > MAX_UNSIGNED_WORD 
-#      * i.e., mask the values of rs and rt first to get the 32-bit representation
-
-function assign_status_bits() {
-  local _value="$1"
-  local _rs_value="$2"
-  local _rt_value="$3"
-
-  STATUS_BITS[$_s_bit]=$(( _value < 0 ))
-  STATUS_BITS[$_z_bit]=$(( _value == 0 ))
-
-  # Technically, the Carry and oVerflow bit is only relevant if it is an Add operation
-  # But since the class shows that the ALU computes all values always
-  # These bits are defined.
-  { 
-    local _both_pos=$(( _rs_value >= 0 && _rt_value >= 0 ))
-    local _both_neg=$(( _rs_value <  0 && _rt_value  < 0 ))
-  
-    local flipped_to_neg=$(( _value < 0 && _both_pos ))
-    local flipped_to_pos=$(( _value > 0 && _both_neg ))
-  
-    STATUS_BITS[$_v_bit]=$(( flipped_to_neg | flipped_to_pos ))
-  }
-
-  (( _rs_value = _rs_value & 0xFFFFFFFF ))
-  (( _rt_value = _rt_value & 0xFFFFFFFF ))
-  STATUS_BITS[$_c_bit]=$(( (_rs_value + _rt_value ) > MAX_UNSIGNED_WORDS ? 1 : 0))
-
-}
 
 function print_status_bits() {
   printf "\tC: %c;\tV: %c;\tS: %c;\tZ: %c\n\n" \
@@ -107,6 +96,10 @@ function trap_on_status_bits () {
   [[ ${STATUS_BITS[$_z_bit]} == "1" ]]  && Z_trap
   reset_trap_on
 }
+
+
+
+
 
 function print_ALU_state() {
   # Print values on the two input latches with the op and output register/s
@@ -130,12 +123,7 @@ function print_ALU_state() {
   echo
 }
 
-function print_immediate() {
-  local _text="$1"
-  local _value=$(parse_immediate "$_text")
 
-  print_value imm $_value "$_text"
-}
 
 
 # the value in the register is a string, which is one of the following
@@ -222,6 +210,14 @@ function print_value_i () {
     printf " \"%s\"" "${_text}"
   fi
   printf "\n"
+}
+
+
+function print_immediate() {
+  local _text="$1"
+  local _value=$(parse_immediate "$_text")
+
+  print_value imm $_value "$_text"
 }
 
 
