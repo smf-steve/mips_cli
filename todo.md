@@ -69,6 +69,17 @@
      -- good
      -- note, no warning on redefining macro
 
+## consistency
+should TEXT_LAST be defined ?
+
+# bug
+(top) base2_digits 16 6
+0000000000000110
+(top) wc <<< 0000000000000110
+       1       1      17
+(top) base2_digits 16 -6
+1111111111111111111111111111111111111111111111111111111111111010
+
 
 ## Labels
 1. reset_labels, list_labels
