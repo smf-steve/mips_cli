@@ -1,12 +1,3 @@
-## Reframe internal numbes.
-  1. store all values as unsigned 32-bit quanties
-  1. print routines when presenting signed-qualties
-     - get sign-extension -- sign_extension-double (
-  1. ALU operation when dealing with addition gets
-      - signed extension
-  1. literals like -1 get stored as a unsigned 0xFFffFFFE
-
-
 
 #### Testing: Jul 14
   1. data_segment.s
@@ -69,9 +60,6 @@
      -- good
      -- note, no warning on redefining macro
 
-## consistency
-should TEXT_LAST be defined ?
-
 # bug
 (top) base2_digits 16 6
 0000000000000110
@@ -92,10 +80,6 @@ should TEXT_LAST be defined ?
 1. macros dont work at the top level...
    why?
 
-1. escape sequences in ascii...
-   -->  ascii.index
-C escape of interest:  \t \n \r \f \a \b \e
-Special characes \0
 
 1. bug exist if you just call X, without a valid label
    - debug

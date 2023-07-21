@@ -267,6 +267,7 @@ function prefetch () {
 
     # Record the instruction, and advance the location of TEXT_NEXT
     INSTRUCTION[${next_pc}]="${instruction}"
+    TEXT_LAST=${next_pc}
     (( next_pc = next_pc + 4))
     TEXT_NEXT=${next_pc}
 
