@@ -1,23 +1,25 @@
-
-#
-.pseudo rol %dst, %src, %imm    # Rotate left
+.pseudo rol %dst, %src, %imm          # Rotate left
     srl $at, %src, $(( 32 - %imm))
     sll %dst, %src, %imm   
     or  %dst, %dst, $at
 .end_pseudo
 
-
-.pseudo rolv %rdst, %rsrc1, %rsrc2    # Rotate left
-    subu $at, $zero, %rsrc2
-    srlv $at, %rsrc1, $at    
-    sllv %rdst, %rsrc1, %rsrc2  
-    or %rdst, %rdst, $at
+.pseudo rolv %dst, %src1, %src2       # Rotate left with a registers
+    subu $at, $zero, %src2
+    srlv $at, %src1, $at    
+    sllv %dst, %src1, %src2  
+    or %dst, %rdst, $at
 .end_pseudo
 
-#
-.pseudo ror %dst, %src, %imm    # Rotate right
-    sll $at, %rsrc, $(( 32 - %imm))     
+.pseudo ror %dst, %src, %imm          # Rotate right
+    sll $at, %src, $(( 32 - %imm))     
     srl %dst, %src, %imm
     or  %dst, %dst, $at 
 .end_pseudo
 
+.pseudo ror %dst, %src1, %src2         # Rotate right with a register
+    subu $at, $zero, %src2
+    sllv $at, %src1, $at    
+    srlv %dst, %src1, %src2  
+    or %dst, %dst, $at
+.end_pseudo

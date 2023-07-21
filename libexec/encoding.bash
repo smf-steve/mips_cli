@@ -74,15 +74,14 @@ function encode_offset () {
             return 
           }
     offset=$(( address - pc ))
-  fi
-
-  if (( offset > max_immediate || min_immediate > offset  )) ; then 
-   instruction_error "Branch out of reach."
-  fi
+              
+    if (( offset > MAX_IMMEDIATE || MIN_IMMEDIATE > offset  )) ; then 
+      instruction_error "Branch out of reach."
+    fi
   
-  offset=$(( (offset >> 2 ) & 0xFFFF ))
+    offset=$(( (offset >> 2 ) & 0xFFFF ))
+  fi
   echo $(base2_digits 16 $offset)
-  echo "Bug need to check which segment I'm in"
 }
 
 function decode_offset () {

@@ -122,13 +122,13 @@ function parse_word() {
 
    local _value=$(parse_literal "$1")
 
-   if (( _value > 0 &&  _value <= max_word_unsigned && _value & 0x80000000 )) ; then
+   if (( _value > 0 &&  _value <= MAX_WORD_UNSIGNED && _value & 0x80000000 )) ; then
      # Its a unsigned number with the sign bit on
      _msg="Waring: the immediate value is being treated as a negative number."
      _value=$(( _value | 0xFFFFFFFFFFFF0000 ))
    fi
 
-   if (( _value > $max_word || _value < - $max_word )) ; then
+   if (( _value > MAX_WORD || _value < - MIN_WORD )) ; then
      _msg="Error: the word is in range: -2^31..2^31-1"
      instruction_error "$_msg"
    fi
@@ -140,12 +140,12 @@ function parse_immediate () {
    local _value=$(parse_literal "$1")
 
    # Check to see if the sign bits is set
-   if (( _value > 0 &&  _value <= max_immediate_unsigned && _value & 0x8000 )) ; then
+   if (( _value > 0 &&  _value <= MAX_IMMEDIATE_UNSIGNED && _value & 0x8000 )) ; then
      # Its a unsigned number with the sign bit on
      _msg="Waring: the immediate value is being treated as a negative number."
      _value=$(( _value | 0xFFFFFFFFFFFF0000 ))
    fi
-   if (( _value > max_immediate || _value < - max_immediate )) ; then
+   if (( _value > MAX_IMMEDIATE || _value < - MAX_IMMEDIATE )) ; then
      _msg="Error: the immediate value not in range: -2^15..2^15-1"
      instruction_error "$_msg"
      _value=0

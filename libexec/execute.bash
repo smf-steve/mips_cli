@@ -141,7 +141,7 @@ function execute_Shift () {
     _rt_value=$(( _rt_value & 0xFFFFFFFF ))
   fi
   _value=$(( _rt_value $_func_op _shamt ))
-  if (( _value > max_word )) ; then
+  if (( _value > MAX_WORD )) ; then
     # we need to drop off the shifted bits
     _value=$(( _value & 0xFFFFFFFF ))
   fi
@@ -178,7 +178,7 @@ function execute_ShiftV () {
     _rt_value=$(( _rt_value & 0xFFFFFFFF ))
   fi
   _value=$(( _rt_value $_func_op _rs_value ))
-  if (( _value > max_word  || _value < - max_word )) ; then
+  if (( _value > MAX_WORD  || _value < - MAX_WORD )) ; then
     # we need to drop off the shifted bits
     _value=$(( _value & 0xFFFFFFFF ))
   fi

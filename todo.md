@@ -334,6 +334,22 @@ or maybe trigger_alu,  alu_execute, execute_alu
 
   1. create a list of functions exposed to the user
 
+# todo 
+  implemente the set pseudo instructions
+  implemente the special2 instructions
+  implemente value list to data directives
+  reimplement offset to be provided with constants...
+     -  bne $zero, $zero, 4
+
+  1. need to double check .ascii  in presence of big/little endian
+     - do we allocate one char at a time or a group at a time.
+
+1. data_memory_write  little endian to write
+
+for readability consider
+   instead of $(( offset = DATA_NEXT % size ))
+
+   let "offset = DATA_NEXT % size"
 
 
 ## Documenations

@@ -89,7 +89,8 @@ source ${MIPS_CLI_HOME}/libexec/labels.bash
 source ${MIPS_CLI_HOME}/libexec/dump.bash
 source ${MIPS_CLI_HOME}/libexec/encoding.bash
 
-source ${MIPS_CLI_HOME}/libexec/instructions/instructions.bash
+source ${MIPS_CLI_HOME}/libexec/instructions/native_instructions.bash
+source ${MIPS_CLI_HOME}/libexec/instructions/directives.bash
 source ${MIPS_CLI_HOME}/libexec/macros.bash
 
 
