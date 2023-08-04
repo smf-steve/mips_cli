@@ -1,13 +1,11 @@
 #! /bin/bash
 
 #################################################################################
-# encode an instruction or any of its subcomponents.
+# encode an instruction or any of its sub-components.
 #
 # encode_register $t1
 # decode_register $t1
 # encode_shamt    num
-alias encode_shamt=encode_register
-#
 #
 # encode_immediate imm
 #
