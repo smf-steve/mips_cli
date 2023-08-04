@@ -1,10 +1,8 @@
 #! /bin/bash
 
-
 ## "execute.bash"
 ## Purpose:
-##   - to contain all of the versious functions related to "execution" of an instruction.
-
+##   - to contain all of the various functions related to "execution" of an instruction.
 
 # Function list
 #   function cycle
@@ -16,10 +14,10 @@
 #   function prefetch next_pc [label]
 #     - prefetches the next instruction, 
 #       - or all instructions until the we reach the provided label
-#       - a defined and unresolved label --- effecively reads all instructions
+#       - a defined and unresolved label --- effectively reads all instructions
 #     - loads each instruction into INSTRUCTION[{next_pc}]="{instruction}"
-#     - additionaly 
-#       - records all labels encounted
+#     - additionally 
+#       - records all labels encountered
 #         - into LABELS[{LINE_NUM}]={name}, and
 #         - into text_label_{name}={address} or data_label_{labels}={address}
 #           > The approach to use:  text_label_{name}={address}
@@ -27,14 +25,16 @@
 #       - handles all assembler directives
 
 
-# Presume we have a front't that changes things.
+# We presume we have a MIPS front-end that updates various instructions to use
+#    the  secondary syntax
+#
 # Syntax:
 #   line:          [ label:] [instruction  #comment]   
 #   instruction:   op one two three four
-#   instruction:   op one two (three)              <-- force
-#   instruction:   op ( one two three four .... )  <-- force  macro
+#   instruction:   op one two (three)              -->  op one two three
+#   instruction:   op ( one two three four ... )  -->  op one two ... )<-- force  macro
 #      note commas are optional but must be part of the token
-#      allow the current engine deal with the immediates and comments
+#      allows the current engine deal with the immediate and comments
 
 declare -i LINE_NUM=0    # This is a global variable
 declare -a INSTRUCTION   # List of Instructions index by Address
@@ -46,12 +46,12 @@ function cycle () {
   #    The potential PC is stored in 'local {potential_pc}'
   #  
   #    1. Determine if the value of PC is an address or a label
-  #       If it is an addrsss, set PC to be text_end
+  #       If it is an address, set PC to be text_end
   #    1. Based upon the value of PC
   #       1. PC <  text_next  -- no prefetch is needed
   #       1. PC == text_next  -- 1 prefetch is needed
   #       1. PC >  text_next  -- N prefetches are needed
-  #            i.e., its an unresolve label)
+  #            i.e., its an unresolved label)
   #
   #       - if it is a label then
   #         * the associated instruction has not read in yet
@@ -88,7 +88,7 @@ function cycle () {
   fi
 
   #  PC > text_next -- N prefetches are needed
-  #  If there is a target label, then it has not been resolved... N prefetchs
+  #  If there is a target label, then it has not been resolved... N prefetches
   if [[ -n "${target_label}" ]] ; then        ## (( potential_pc > next_pc )) 
      # We need to search the future for the right instruction.
      PS1="(prefetch: ${target_label}) "
@@ -104,7 +104,7 @@ function cycle () {
   #################################################
 
 
-  fetch #  Fetch the next instruction inot the _ir register
+  fetch #  Fetch the next instruction into the _ir register
   local instruction="$(remove_label $(rval $_ir) )"
 
   # NPC <- PC + 4 ; Next Program Counter
@@ -123,7 +123,7 @@ function cycle () {
      if (( $(rval _pc) < next_pc )) ; then 
        echo "Ready to execute: \"$(rval $_ir)\""
 
-       # Here we antipate debugger command.
+       # Here we anticipate debugger command.
        while true ; do
          read -p "(debug) " _command
          if [[ $? != 0 ]] ; then 
@@ -149,8 +149,6 @@ function cycle () {
   #   to: "[label:]  op rt rs imm"
 
   # Echo the instruction if the user did not type it in.
-  # I.e., if the preload was preload -- as a macro, psuedo instruction, or I
-  # Echo 
   if [[ ${INTERACTIVE} == "TRUE"  && ${MACRO_EXECUTION} == "TRUE" ]] ; then 
      echo "  --> $(rval $_ir)"
   fi
@@ -182,7 +180,7 @@ function prefetch () {
     local rest
     local labels=()
 
-    # if next_pc is null, then we place the instuction at the end of the instruction stream
+    # if next_pc is null, then we place the instruction at the end of the instruction stream
     if [[ "${next_pc}" ]] ; then
       next_pc=${TEXT_NEXT}
     fi  
