@@ -1,3 +1,16 @@
+#! /bin/bash
+
+## "parse_literal.bash"
+## Purpose:
+##   - to contain allow the user to type in literal values using various input syntax
+
+# Function list
+
+#  parse_literal   :  obtain a value of any size
+#  parse_word      :  ensure the size is in the range of - 2^31 .. (2^31 -1)
+#  parse_immediate :  ensure the size is in the range of - 2^15 .. (2^15 -1)
+#  parse_shamt     :  ensure the size is in the range of 0 .. 2^5
+
 function parse_literal() {
    # This function converts a number of various bases and notations
    # to a normal form.  This normal form a string representation of a 

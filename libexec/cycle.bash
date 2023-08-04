@@ -5,13 +5,13 @@
 ##   - to contain all of the various functions related to "execution" of an instruction.
 
 # Function list
-#   function cycle
+#   cycle
 #     - using the current value of PC,
 #       - fetch, decode, execute, memory, and write-back operations
 #     - uses prefetch if the optional address has not been read yet
 #       - this allows for support of interactive operations
 #
-#   function prefetch next_pc [label]
+#   prefetch next_pc [label]
 #     - prefetches the next instruction, 
 #       - or all instructions until the we reach the provided label
 #       - a defined and unresolved label --- effectively reads all instructions

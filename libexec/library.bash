@@ -1,5 +1,7 @@
 #! /bin/bash
 
+alias HH="upper_half"       # High Half
+alias LH="lower_half"       # Low Half
 alias upper="upper_half"
 alias lower="lower_half"
 function upper_half () {
