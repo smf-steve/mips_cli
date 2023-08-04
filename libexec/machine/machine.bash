@@ -109,7 +109,7 @@ function print_ALU_state() {
 
   [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
 
-  print_cin $cin  $(rval $_dst1) 
+  print_cin $CIN $(rval $_dst1) 
   [[ $LATCH_A != "" ]]  &&  print_value "${LATCH_A[@]}"
   [[ $LATCH_B != "" ]]  &&  print_value "${LATCH_B[@]}"
 
