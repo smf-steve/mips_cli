@@ -110,13 +110,14 @@ function print_ALU_state() {
   [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
 
   print_cin $CIN $(rval $_dst1) 
-  [[ $LATCH_A != "" ]]  &&  print_value "${LATCH_A[@]}"
-  [[ $LATCH_B != "" ]]  &&  print_value "${LATCH_B[@]}"
+  [[ "$LATCH_A" != "" ]]  &&  print_value "${LATCH_A[@]}"
+  [[ "$LATCH_B" != "" ]]  &&  print_value "${LATCH_B[@]}"
 
   print_op "$_op"
 
   print_value $_dst1
-  [[ $_dst2 != "" ]]  && print_value $_dst2
+  [[ "$_dst2" != "" ]]  && print_value $_dst2
+
   echo 
   print_status_bits
   trap_on_status_bits
@@ -262,27 +263,29 @@ function alu_assign() {
   local _index="$1"
   local _value="$2"
 
-  # Force the input parameters to be only 32-bit numbers.
-  # Negative numbers would have 1 values in bits 32-63
-  local _src1="$(( $3 & 0xFFFFFFFF ))"
-  local _src2="$(( $4 & 0xFFFFFFFF ))"
+  { # Compute the status bits, based upon the original input values...
+    # Force the input parameters to be only 32-bit numbers.
+    # Negative numbers would have 1 values in bits 32-63
+    local _src1="$(( ${LATCH_A[1]:-0} & 0xFFFFFFFF ))"
+    local _src2="$(( ${LATCH_B[1]:-0} & 0xFFFFFFFF ))"
 
-  # Make adjustments to _value to represent a 32-bit quantity using 64 bits.  
-  local _value_32=$(( _value & 0xFFFFFFFF ))   # This final 32-bit number
-  local _carry_row=$(( _value_32 ^ _src1 ^ _src2))
+    # Make adjustments to _value to represent a 32-bit quantity using 64 bits.  
+    local _value_32=$(( _value & 0xFFFFFFFF ))   # This final 32-bit number
+    local _carry_row=$(( _value_32 ^ _src1 ^ _src2))
 
-  local _carry_out=$(( ( (_src1 + _src2 ) & 0x1FFFFFFFF ) >> 32 ))
-  local _carry_in=$(( _carry_row >> 31))
+    local _carry_out=$(( ( (_src1 + _src2 ) & 0x1FFFFFFFF ) >> 32 ))
+    local _carry_in=$(( _carry_row >> 31))
 
-  local _sign_bit=$(( _value_32 >> 31 ))
-  local _zero_bit=$(( _value_32 == 0 ))
-  local _overflow_bit=$((  _carry_out ^ _carry_in ))
+    local _sign_bit=$(( _value_32 >> 31 ))
+    local _zero_bit=$(( _value_32 == 0 ))
+    local _overflow_bit=$((  _carry_out ^ _carry_in ))
 
-  #assign_status_bits "$_value_32" "$_src1" "$_src2"
-  STATUS_BITS[$_s_bit]=$_sign_bit
-  STATUS_BITS[$_c_bit]=$_carry_out
-  STATUS_BITS[$_v_bit]=$_overflow_bit
-  STATUS_BITS[$_z_bit]=$_zero_bit
+    #assign_status_bits "$_value_32" "$_src1" "$_src2"
+    STATUS_BITS[$_s_bit]=$_sign_bit
+    STATUS_BITS[$_c_bit]=$_carry_out
+    STATUS_BITS[$_v_bit]=$_overflow_bit
+    STATUS_BITS[$_z_bit]=$_zero_bit
+  }
 
   trap_on_status_bits
   REGISTER[$_index]="$(sign_extension_word $_value)"

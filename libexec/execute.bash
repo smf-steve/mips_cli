@@ -74,7 +74,7 @@ function execute_ArithLog() {
            ;;
   esac
 
-  alu_assign "$_rd" "$_value" "$_rs_value" "$_rt_value"
+  alu_assign "$_rd" "$_value"     #   "$_rs_value" "$_rt_value"   VALIDATE
   print_ALU_state "$_op" $_rd
   unset_cin
 }
@@ -111,7 +111,7 @@ function execute_ArithLogI () {
 
   _value=$(( _rs_value $_op _imm ))
 
-  alu_assign "$_rt" "$_value" "$_rs_value" "$_imm"
+  alu_assign "$_rt" "$_value"       # "$_rs_value" "$_imm"    VALIDATE
   print_ALU_state "$_op" "$_rt"
   unset_cin
 }
@@ -146,7 +146,7 @@ function execute_Shift () {
     _value=$(( _value & 0xFFFFFFFF ))
   fi
 
-  alu_assign "$_rd" "$_value" "$_rt_value" "$_shamt" 
+  alu_assign "$_rd" "$_value"     # "$_rt_value" "$_shamt"   VALIDATE
   print_ALU_state "$_op" $_rd
 }
 
@@ -183,7 +183,7 @@ function execute_ShiftV () {
     _value=$(( _value & 0xFFFFFFFF ))
   fi
 
-  alu_assign "$_rd" "$_value" "$_rt_value" "$_rs_value" 
+  alu_assign "$_rd" "$_value"     # "$_rt_value" "$_rs_value"    VALIDATE
   print_ALU_state "$_op" $_rd
 }
 
@@ -278,7 +278,7 @@ function execute_LoadI () {
     lui)
          (( _value= $_imm << 16 ))
          _text="$_text << 16"
-         LATCH_A=(  )
+         LATCH_A=( )
          _op="="
          ;;
 
@@ -286,19 +286,19 @@ function execute_LoadI () {
          (( _rt_value =  _rt_value &  0x0000FFFF ))
          (( _value = $_imm << 16 ))
          _text="$_text << 16"
-         LATCH_A=( "HH(${_rt_name})" $_rt_value "${_rt_name} & 0x0000FFFF")
+         LATCH_A=( "LH(${_rt_name})" $_rt_value "${_rt_name} & 0x0000FFFF")
          ;;
 
     llo)
          (( _rt_value =  _rt_value &  0xFFFF0000 ))
          (( _value= _imm & 0x0000FFFF ))
          _text="$_text"
-         LATCH_A=( "LH(${_rt_name})" $_rt_value "${_rt_name} & 0xFFFF0000" )
+         LATCH_A=( "HH(${_rt_name})" $_rt_value "${_rt_name} & 0xFFFF0000" )
          ;;
   esac
   LATCH_B=( imm "${_value}" "$_text" )
 
-  alu_assign "$_rt" "$(( _rt_value $_op _value ))" "0"
+  alu_assign "$_rt" "$(( _rt_value $_op _value ))"
   print_ALU_state "$_op" $_rt
 }
 
@@ -452,12 +452,12 @@ function execute_LoadStore () {
                 ;;
           esac     
 
-          alu_assign "$_rt" "$_rt_value" "0"  # Operation is being run through the ALU
+          alu_assign "$_rt" "$_rt_value" "0"  # Operation is being run through the ALU  ValIDATE
           ;;
       s*)
           _rt_value=$(rval $_rt)
 
-          alu_assign "$_mbr" "$_rt_value" "0"
+          alu_assign "$_mbr" "$_rt_value" "0" # Operation is being run through the ALU  ValIDATE
           data_memory_write $_size
           ;;
    esac
@@ -486,7 +486,7 @@ function execute_Jump () {
     jal) 
          LATCH_A=( $_npc )
          LATCH_B=( $zero )
-         alu_assign "$ra" "$(( $(rval $_npc) ))" "0"
+         alu_assign "$ra" "$(( $(rval $_npc) ))" "0"   ## Validate
          print_ALU_state "|" "$ra"
          ;;
   esac
@@ -518,7 +518,7 @@ function execute_JumpR () {
     jalr) 
          LATCH_A=( $_npc )
          LATCH_B=( $zero )
-         alu_assign "$ra" "$(( $(rval $_npc) ))" "0"
+         alu_assign "$ra" "$(( $(rval $_npc) ))" "0"   # validate
          print_ALU_state "|" $ra
          ;;
   esac
