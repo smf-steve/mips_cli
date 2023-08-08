@@ -48,6 +48,25 @@ function lower_word () {
 
 ## Convert a decimal number to hex with bytes separated
 #    - format "0x XX XX XX XX XX"
+function group_2 () {
+   # Create N groups of 2
+
+   echo -n "${1:0:2}"
+   for (( i = 2; i < ${#1} ; i+=2 )) ; do 
+     echo -n " ${1:i:2}"
+   done
+   echo
+}
+
+function group_4 () {
+   # Create N groups of 4
+
+   echo -n "${1:0:4}"
+   for (( i = 4; i < ${#1} ; i+=4 )) ; do
+     echo -n " ${1:i:4}"
+   done
+   echo
+}
 
 function group_4_2 () {
    # Create four groups of 2
