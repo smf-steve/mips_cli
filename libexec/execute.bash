@@ -206,7 +206,7 @@ function execute_MoveTo ()  {
   LATCH_A=($_rs $(rval $_rs) )
   LATCH_B=()
 
-  assign "$_rd" "$(rval $_rs)"
+  alu_assign "$_rd" "$(rval $_rs)"      
   print_ALU_state "$_op" $_rd
 }
 

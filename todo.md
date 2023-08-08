@@ -3,17 +3,24 @@
 # Comments:
    - comments need to be stripped prior to looking for a macro
 
-
+## Status bits
+   - validate that the C and the V bits are ONLY based upon the final addition calc
+   - i.e., ignore the value in which eventually goes on LATCH_C
 
 #### Testing: Jul 14
+  1. arithmetic.s
+     --good
+
   1. data_segment.s
      - good, but need to revise print-memory for execution step
      - need to echo out the commands, under interactive "load"
 
   1. load_stores.s
-     * sb $t0, $s0, 0
-        -- output of MBR is off 
-        -- names of MBR and MAR needs to be fixed
+     * under step,
+       - the instructions on the end are added to the instruction stream but not executed
+       - but with other files, they are executed...
+
+     * individual instructions look good, but need further validation test
 
 
   1. loadi.s
@@ -25,23 +32,34 @@
      -- good
 
   1. shifts.s
-     -- status bits are wonky
+     -- status bits are based upon the add operation
+     -- under step; load examples/shifts.s
+        ```
+         $ li $at, 0       # value is to low -- but no error
+         Start of pseudo "li" ()
+        ```
+        the li does ont execute in total?
+        history shows it is there as a native instruction
 
   1. mult-div.s
      -- status bits are wonky
+        -- perhaps no status bits should be shown..  since the ALU is not used for MULT
+        -- but then the ALU is always used, and C and V should be based upon the add operation
+     -- need to deal with div 2
+        -- maybe native_div  ... 
+        -- because if there is a pseudo/macro it takes precedencs , hence use native_ to overide
 
-  1. loops.s
-     - deferred until cli being flushed out
 
-  1. arithmetic.s
-       assign $t1 0x80000000  # carry
-       addi $t2, $t1, -1
-       sign bit is wrong
 
   1. macros.s
      -- good
      -- note, no warning on redefining macro
+     -- but under step ; load
+        * the entire file is not executed.
+        
 
+  1. loops.s
+     - deferred until cli being flushed out
 
 
 # bug
@@ -165,9 +183,7 @@
    1. macros that have quoted args
       ```
       (mips) li $t2, "2#101 1111 1111"
-      bash: FALSE_li_4: command not found
-      --> end_FALSE FALSE li 4 0
-      bash: end_FALSE: command not found
+      $t2 is assign 2#101 
       ```
       might need a special step to normalize an instruction first
       is this done before the "eval" step in cycle
