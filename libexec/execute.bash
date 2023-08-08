@@ -1,6 +1,5 @@
 #! /bin/bash
 
-
 ## "execute.bash"
 ## Purpose:
 ##   - to contain all of the various functions related to "execution" of an instruction.
@@ -345,7 +344,7 @@ function execute_Branch () {
          fi
          ;;
   esac
-  print_NPCWB_stage "${STATUS_BITS[$_z_bit]}" "$_next" "$_addr" "$_label"
+  print_NPC_WB_stage "${STATUS_BITS[$_z_bit]}" "$_next" "$_addr" "$_label"
 
 }
 
@@ -394,7 +393,7 @@ function execute_BranchZ () {
           ;;
   esac
 
-  print_NPCWB_stage "${STATUS_BITS[$_z_bit]}" "$_next"  "$_addr" "$_label"
+  print_NPC_WB_stage "${STATUS_BITS[$_z_bit]}" "$_next"  "$_addr" "$_label"
 
 }
 
@@ -452,16 +451,16 @@ function execute_LoadStore () {
                 ;;
           esac     
 
-          alu_assign "$_rt" "$_rt_value" "0"  # Operation is being run through the ALU  ValIDATE
+          assign "$_rt" "$_rt_value" #  validate "0" # not via the ALU any more  Operation is being run through the ALU  ValIDATE
           ;;
       s*)
           _rt_value=$(rval $_rt)
 
-          alu_assign "$_mbr" "$_rt_value" "0" # Operation is being run through the ALU  ValIDATE
+          assign "$_mbr" "$_rt_value" #  validate "0" # not via the ALU any more  Operation is being run through the ALU  ValIDATE
           data_memory_write $_size
           ;;
    esac
-   print_WB_stage "$_name" "$_rt" "$_size"
+   print_MEM_WB_stage "$_name" "$_rt" "$_size"
 
 }
 
@@ -486,12 +485,12 @@ function execute_Jump () {
     jal) 
          LATCH_A=( $_npc )
          LATCH_B=( $zero )
-         alu_assign "$ra" "$(( $(rval $_npc) ))" "0"   ## Validate
+         alu_assign "$ra" "$(( $(rval $_npc) ))" ##   "0"   ## Validate
          print_ALU_state "|" "$ra"
          ;;
   esac
   assign $_npc $_resolved
-  print_NPCWB_stage "1" "$_next" "$_addr" "$_label"
+  print_NPC_WB_stage "1" "$_next" "$_addr" "$_label"
 
 }
 
@@ -524,6 +523,6 @@ function execute_JumpR () {
   esac
 
   assign $_npc $_resolved
-  print_NPCWB_stage "1" "$_next" "$_addr" "$_label"
+  print_NPC_WB_stage "1" "$_next" "$_addr" "$_label"
 
 }

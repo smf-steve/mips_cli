@@ -224,12 +224,12 @@ function data_memory_write () {
 
 
 
-       big_title="| address    | char | byte | half   | word        |\n"
-   big_separator="|------------|------|------|--------|-------------|\n"
-     big_pattern="| 0x%08x | %4s | 0x%02x | %6s | %10s |\n"
-    little_title="| address    | word        | half   | byte | char |\n"
-little_separator="|------------|-------------|--------|------|------|\n"
-  little_pattern="| 0x%08x |  %10s | %6s | 0x%02x | %4s |\n"
+       big_title="\t| address    | char | byte | half   | word        |\n"
+   big_separator="\t|------------|------|------|--------|-------------|\n"
+     big_pattern="\t| 0x%08x | %4s | 0x%02x | %6s | %10s |\n"
+    little_title="\t| address    | word        | half   | byte | char |\n"
+little_separator="\t|------------|-------------|--------|------|------|\n"
+  little_pattern="\t| 0x%08x |  %10s | %6s | 0x%02x | %4s |\n"
 
 function print_data_memory () {
   local address="$1"
@@ -246,7 +246,7 @@ function print_data_memory () {
   local offset=$(( start % 4 ))            # Adjust to ensure a complete word is provided
   start=$(( start +  (3 - offset ) ))
 
-  printf "Memory: $ENDIANNESS Endian\n"
+  printf "\tMemory: $ENDIANNESS Endian\n"
   if [[ "$ENDIANNESS" == "LITTLE" ]] ; then 
     printf "$little_title"
     printf "$little_separator"
