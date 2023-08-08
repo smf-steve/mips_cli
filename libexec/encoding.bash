@@ -285,11 +285,11 @@ function print_memory_encoding_multiple () {
 
   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
 
-  local _indent="                "
+  local _indent="  s              "
 
-  printf "   | address    | value                               |\n" 
-  printf "   |------------|-------------------------------------|\n"
-  printf "   | 0x%8x " $_address
+  printf "\t| address    | value                               |\n" 
+  printf "\t|------------|-------------------------------------|\n"
+  printf "\t| 0x%8x " $_address
 
   print_word_row "|" 4 $_value "/" ""
   (( _size -= 4 ))
@@ -305,7 +305,7 @@ function print_memory_encoding_multiple () {
   done
   print_word_row "${_indent}/" $(( _size )) ${_values[$#-1]} "$end" ""   #< row size is what is left over
 
-  printf "   | 0x%8x |\n" ${DATA_NEXT}
+  printf "\t| 0x%8x |\n" ${DATA_NEXT}
   echo
 }
 
@@ -339,11 +339,11 @@ function print_memory_encoding () {
   done
   local _title="$( sed -e 's/./ /g' -e 's/^...../value/' <<< "$_dashes" )"
 
-  printf "   | address    | %s |\n" "$_title"
-  printf "   |------------|-%s-|\n" "$_dashes"
-  printf "   | 0x%8x " "${_address}"
+  printf "\t| address    | %s |\n" "$_title"
+  printf "\t|------------|-%s-|\n" "$_dashes"
+  printf "\t| 0x%8x " "${_address}"
 
   print_word_row "|" $_size $_value "|" "$_text"
-  printf "   | 0x%8x |\n" $(( _address + _size ))
+  printf "\t| 0x%8x |\n" $(( _address + _size ))
   echo
 }
