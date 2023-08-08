@@ -264,6 +264,7 @@ function print_data_memory () {
       printf "$big_separator"
     done
   fi
+  echo
 }
 
 function print_data_word_little () {

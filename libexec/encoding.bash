@@ -285,8 +285,6 @@ function print_memory_encoding_multiple () {
 
   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
 
-  local _indent="  s              "
-
   printf "\t| address    | value                               |\n" 
   printf "\t|------------|-------------------------------------|\n"
   printf "\t| 0x%8x " $_address
@@ -296,14 +294,14 @@ function print_memory_encoding_multiple () {
 
   local _values=( "${@}" )
   for (( i=0; i < $# - 1 ; i++ )) ; do 
-     print_word_row "${_indent}/" 4 ${_values[$i]} "/" ""
+     print_word_row "\t/" 4 ${_values[$i]} "/" ""
      (( _size -= 4 ))
   done
   local end="|"
   for (( i = _size; i < 4 ; i++ )) ; do
     end="         "$end
   done
-  print_word_row "${_indent}/" $(( _size )) ${_values[$#-1]} "$end" ""   #< row size is what is left over
+  print_word_row "\t/" $(( _size )) ${_values[$#-1]} "$end" ""   #< row size is what is left over
 
   printf "\t| 0x%8x |\n" ${DATA_NEXT}
   echo
