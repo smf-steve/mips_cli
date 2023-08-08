@@ -12,5 +12,3 @@ andi $s0, $s1, -4
  ori $s3, $s4, -6
 xori $s6, $s7, -8
 
-nori $t5, $t2, $zero   # invalid
-

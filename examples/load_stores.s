@@ -13,7 +13,7 @@ AAAA: .word 48
 BBBB: .word 48
 CCCC: .word 48
 DDDD: .word 48
-list_labels
+#list_labels
 
 li $t0, 4
 li $t1, 8

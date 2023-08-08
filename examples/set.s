@@ -16,6 +16,6 @@ slti   $t1, $t2, 5    # t1 := 0
 slti   $t1, $t2, 7    # t1 := 1
 
 li $t2, -6
-sltiu  $t1, $t2, -5   # t1 := 0
-sltiu  $t1, $t2, -7   # t1 := 1
+sltiu  $t1, $t2, -5   # t1 := 1    # This is based upon the results of MARS
+sltiu  $t1, $t2, -7   # t1 := 0
 

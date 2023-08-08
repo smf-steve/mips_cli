@@ -9,7 +9,7 @@ li $t1 25
 li $t2 5
 
 mult $t1, $t2
-div  $t1, $t2
+div  $t1, $t2    ## now in error because of count...
 
 assign $t1 0xFFFFFFFF
 assign $t2 0xFFFFFFFF
