@@ -16,6 +16,7 @@ source ${MIPS_CLI_HOME}/libexec/machine/memory.bash
 #      - reset_status_bits             
 #      - print_status_bits 
 #   1. ALU update
+#      - alu_update:  based upon the values of LATCH A and B, updates the state of the ALU
 #      - alu_assign            
 #      - print_ALU_state  
 #      -   print_cin 
@@ -29,9 +30,9 @@ source ${MIPS_CLI_HOME}/libexec/machine/memory.bash
 #      - print_Z                                 # Most likely defunct  
 
 
-# print_NPCWB_stage               
-# print_MEMWB_stage             
-# print_mem_value               
+# print_NPC_WB_stage               
+# print_MEM_WB_stage             
+# print_WB_value               
 
 
 
@@ -257,47 +258,50 @@ function print_Z() {
 
 
 
+function alu_update () {
+  # In the future the input should be a function that applies extra values with 
+  # the value LATCH_A and LATCH_B to obtain the final value
+  # local func="$1" ; shift
+  # local args="$@"
+  # $fun $LATCH_A $LATCH_C $args
+
+  # Compute the status bits, based upon the original input values...
+  # Force the input parameters to be only 32-bit numbers.
+  # Negative numbers would have 1 values in bits 32-63
+  local _src1="$(( ${LATCH_A[1]:-0} & 0xFFFFFFFF ))"
+  local _src2="$(( ${LATCH_B[1]:-0} & 0xFFFFFFFF ))"
+
+  # Make adjustments to _value to represent a 32-bit quantity using 64 bits.  
+  local _value_32=$(( _value & 0xFFFFFFFF ))   # This final 32-bit number
+  local _carry_row=$(( _value_32 ^ _src1 ^ _src2))
+
+  local _carry_out=$(( ( (_src1 + _src2 ) & 0x1FFFFFFFF ) >> 32 ))
+  local _carry_in=$(( _carry_row >> 31))
+
+  local _sign_bit=$(( _value_32 >> 31 ))
+  local _zero_bit=$(( _value_32 == 0 ))
+  local _overflow_bit=$((  _carry_out ^ _carry_in ))
+
+  #assign_status_bits "$_value_32" "$_src1" "$_src2"
+  STATUS_BITS[$_s_bit]=$_sign_bit
+  STATUS_BITS[$_c_bit]=$_carry_out
+  STATUS_BITS[$_v_bit]=$_overflow_bit
+  STATUS_BITS[$_z_bit]=$_zero_bit
+}
 
 # Perhaps alu_assign, should be rename ALU_WB, etc.
 function alu_assign() {
   local _index="$1"
   local _value="$2"
 
-  { # Compute the status bits, based upon the original input values...
-    # Force the input parameters to be only 32-bit numbers.
-    # Negative numbers would have 1 values in bits 32-63
-    local _src1="$(( ${LATCH_A[1]:-0} & 0xFFFFFFFF ))"
-    local _src2="$(( ${LATCH_B[1]:-0} & 0xFFFFFFFF ))"
-
-    # Make adjustments to _value to represent a 32-bit quantity using 64 bits.  
-    local _value_32=$(( _value & 0xFFFFFFFF ))   # This final 32-bit number
-    local _carry_row=$(( _value_32 ^ _src1 ^ _src2))
-
-    local _carry_out=$(( ( (_src1 + _src2 ) & 0x1FFFFFFFF ) >> 32 ))
-    local _carry_in=$(( _carry_row >> 31))
-
-    local _sign_bit=$(( _value_32 >> 31 ))
-    local _zero_bit=$(( _value_32 == 0 ))
-    local _overflow_bit=$((  _carry_out ^ _carry_in ))
-
-    #assign_status_bits "$_value_32" "$_src1" "$_src2"
-    STATUS_BITS[$_s_bit]=$_sign_bit
-    STATUS_BITS[$_c_bit]=$_carry_out
-    STATUS_BITS[$_v_bit]=$_overflow_bit
-    STATUS_BITS[$_z_bit]=$_zero_bit
-  }
-
+  alu_update
   trap_on_status_bits
-  REGISTER[$_index]="$(sign_extension_word $_value)"
+  assign $_index $_value
 }
 
 
-#Maybe rename to:
-# print_mem_WB_stage
-# print_pc_WB_stage  
 
-
-function print_NPCWB_stage () {
+function print_NPC_WB_stage () {
   local z_bit="$1"
   local _current="$2"
   local _addr="$3"
@@ -328,8 +332,7 @@ function print_NPCWB_stage () {
 
 
 
-alias print_WB_stage="print_MEMWB_stage"
-function print_MEMWB_stage() {
+function print_MEM_WB_stage() {
   # The WB stage is responsible for 
   #   1. summarizing the operation that was perfromed via a load store
   #      -- print the values in the last two latches
@@ -341,45 +344,46 @@ function print_MEMWB_stage() {
 
   local _name="$1"
   local _register="$2"
-  local _size="$3"
+  local _size="$3"      # number of bytes
 
 
   [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
   case "$_name" in
     l*)
-       print_mem_value "$(name $_mbr)" $(rval $_mbr) $_size
+       print_WB_value "$(name $_mbr)" $(rval $_mbr) $_size
        print_op "$_name"
-       print_mem_value "$(name $_register)" $(rval $_register)
+       print_WB_value "$(name $_register)" $(rval $_register)  4
        ;;
     s*)
-       print_mem_value "$(name $_register)" $(rval $_register)
+       print_WB_value "$(name $_register)" $(rval $_register)  4
        print_op "$_name"
-       print_mem_value "$(name $_mbr)" $(rval $_mbr) $_size
+       print_WB_value "$(name $_mbr)" $(rval $_mbr) $_size
        ;;
   esac
   echo 
 }
 
-
-# how does print_mem_value differ from print_value_i
-#  size versus text for one...
-
-# rename: print_wb_value
-function print_mem_value () {
+function print_WB_value () {
   local _name="$1"
   local _rval="$2"
-  local _size="$3"   # The number of raw bits trnansfered
-
-  [[ $_size == "" ]] && _size=4
+  local _size="$3"   ;  [[ $_size == "" ]] && _size=4    # Number of bytes transferred
 
   local _dec=${_rval}
   local _unsigned=$(( _rval & 0xFFFFFFFF ))
-  local _hex=$(base16_digits $(( _size * 2 )) $_unsigned )
+      # If this is a negative number, then we need to trancate the digits so that the size works out
 
-  local _bin=$(base2_digits "${_hex}")
+  local _truncated
+  case $_size in 
+    1) _truncated=$(( _unsized & 0xFF )) ;;
+    2) _truncated=$(( _unsized & 0xFFFF )) ;;
+    4) _truncated=$(( _unsized & 0xFFFFFF )) ;;
+  esac
+
+  local _hex=$(base16_digits $(( _size * 2 )) ${_truncated} )
+  local _bin=$(base2_digits $(( _size * 8 )) "${_truncated}" )   
 
   printf "   %6s:  %11d %11d; 0x%11s; 0b%39s;"  \
-        "${_name}" "${_dec}" "${_unsigned}" "$(group_4_2 ${_hex})" "$(group_8_4 ${_bin})"
+        "${_name}" "${_dec}" "${_unsigned}" "$(group_2 ${_hex})" "$(group_4 ${_bin})"
   printf "\n"
 }
 

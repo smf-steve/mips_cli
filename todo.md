@@ -1,3 +1,12 @@
+# History
+  - macros should not have the individual instructions placed in history..
+# Comments:
+   - comments need to be stripped prior to looking for a macro
+
+# Review ALU_assign
+   -- shoudl this be renamed.
+   -- test all basic functions
+
 
 #### Testing: Jul 14
   1. data_segment.s
@@ -31,11 +40,7 @@
 
 
   1. loadi.s
-     (mips) li $t1, 0xAAAA    # Should be 0xFFFFAAAA
-     bash: FALSE_li_6: command not found
-
-     -- comments with macros/psuedo
-
+     -- good
   1. set.s
      -- good
 
@@ -191,7 +196,12 @@
 
       reexame the output of these..
 
-
+### ALU_update: future
+  1. consider making the ALU work via just the latches
+  1. hence had a Latch C for the ALU
+  1. each instruction that uses the alu should pass in a function to be applied
+  1.   - this is nessarey because some instructions require more than two values
+  
 ### Modes
 1. For forward labels,
    - need to put in a message..
