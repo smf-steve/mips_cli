@@ -186,9 +186,12 @@ function expand_macro () {
 function apply_macro () {
   local name=$1
   shift;
+  local args="$@"    # note that the label and comments have been stripped out of the parameters passed
+  #local count=$#     # Is this count off?
+
 
   local instruction="$(remove_label $(rval $_ir) )"
-  local type="$(type_of_macro ${instruction} )"
+  local type="$(type_of_macro ${name} "$@" )"
 
   local current_pc=$(rval $_pc)
 
@@ -201,12 +204,12 @@ function apply_macro () {
      MACRO_EXECUTION=TRUE
      while cycle ; do
        :
-     done < <(expand_macro ${type} $instruction)
+     done < <(expand_macro ${type} $name "$@" )
    
    else
      # The macro has already been expanded.
      # Set up the environment for proper execution
-     start_macro "${type}"  "${name}" "${count}"
+     start_macro "${type}" "${name}" "${count}"      ## where does count come from
    fi
 }
 

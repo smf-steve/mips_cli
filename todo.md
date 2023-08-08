@@ -3,40 +3,17 @@
 # Comments:
    - comments need to be stripped prior to looking for a macro
 
-# Review ALU_assign
-   -- shoudl this be renamed.
-   -- test all basic functions
 
 
 #### Testing: Jul 14
   1. data_segment.s
-     good, but need to revise print-memory for execution step
+     - good, but need to revise print-memory for execution step
+     - need to echo out the commands, under interactive "load"
 
   1. load_stores.s
      * sb $t0, $s0, 0
         -- output of MBR is off 
         -- names of MBR and MAR needs to be fixed
-
-    ```
-    sb $t0, $s0, 0
-       t0:            4           4; 0x00 00 00 04; 0b                            0100       ;
-          sb   --------  ----------- -------------- ------------------------------------------
-     _mbr:            4           4; 0x      04   ; 0b                            0100       ;
-
-    sh $t0, $s0, 0
-      t0:            4           4; 0x00 00 00 04; 0b                            0100       ;
-          sh   --------  ----------- -------------- ------------------------------------------
-     _mbr:            4           4; 0x    00 04  ; 0b                            0100       ;
-
-
-     sw $t0, $s0, 0
-       t0:            4           4; 0x00 00 00 04; 0b                            0100       ;
-          sw   --------  ----------- -------------- ------------------------------------------
-     _mbr:            4           4; 0x00 00 00 04; 0b                            0100       ;
-
-
-    ```
-
 
 
   1. loadi.s
@@ -64,6 +41,8 @@
   1. macros.s
      -- good
      -- note, no warning on redefining macro
+
+
 
 # bug
 (top) base2_digits 16 6
@@ -201,7 +180,7 @@
   1. hence had a Latch C for the ALU
   1. each instruction that uses the alu should pass in a function to be applied
   1.   - this is nessarey because some instructions require more than two values
-  
+
 ### Modes
 1. For forward labels,
    - need to put in a message..
