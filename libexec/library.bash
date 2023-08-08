@@ -223,12 +223,20 @@ function sign_extension_byte () {
 
 function base2_digits () {
   local digits=0
+  local hex_digits=0
 
-  [[ $# == 1 ]] || { digits="$(( $1 >> 2))"; shift; }
+  [[ $# == 1 ]] || { digits="$1" ; hex_digits="$(( digits >> 2))"; shift; }
   local value="$1"
-  local hex=$(printf "%0${digits}x" $(( $value )) )
+
+  local hex=$(printf "%0${hex_digits}x" $(( $value )) )
 
   local bin=
+  if (( $value >= 0 )) ; then
+    bin=0000
+  else
+    bin=1111
+  fi
+
   for (( i = 0 ; i < ${#hex} ; i++ )) ; do
     case ${hex:$i:1} in 
         0)   bin="${bin}0000" ;;
@@ -249,7 +257,16 @@ function base2_digits () {
         f|F) bin="${bin}1111" ;;
     esac
   done
-  echo ${bin}
+  if (( $digits == 0 )) ; then   #get ride of the extra padding up front
+    bin=${bin:4}
+  fi
+
+  # If digits < size of bin, then we need to truncate the number
+  if (( $digits < ${#bin} )) ; then 
+    echo ${bin: -$digits}
+  else
+    echo ${bin}
+  fi
 }
 
 function base2 () {
