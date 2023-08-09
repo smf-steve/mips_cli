@@ -1,9 +1,10 @@
 #! /bin/bash
 
 #################################################################################
-# This file contains the declarations of all supported MIPS directives.
+# This file contains the declarations of all supported MIPS directives, and some
+# additional directives
 #
-# The directives supported are:
+# The data directives supported are:
 #
 #   .align
 #   .dword
@@ -20,6 +21,30 @@
 #   .word 42, 0, 42   # invalid
 #################################################################################
 
+
+
+#################################################################################
+# Additional directives
+#
+#    .lab   label [address]
+#    .label label [address]
+#
+#    .macro_define   : equivalent to .macro
+#    .macro_begin    : equivalent to a nop, indicates the start of an applied macro instruction
+#    .pseudo         : akin to .macro, but a pseudo instruction is being created
+#    .pseudo_define  : equivalen to .pseudo
+#    .pseudo_begin   : equivalent to a nop, indicates the start of an applied pseudo instruction
+#    .end_pseudo     : akin to .end_macro
+#
+alias .lab=".label"
+function .label () {
+  local name="$1"
+  local address="$2"
+
+  [[ -n "$address" ]] || address=$(( $(rval $_pc) - 4 ))
+
+  eval ${SEGMENT}_label_${name}="${address}"
+}
 
 alias .text="SEGMENT=TEXT"
 alias .ktext="echo Not Implemented."
@@ -39,9 +64,13 @@ alias .set="echo Not Implemented."
 alias .include="include"
 
 alias .macro="read_macro macro"
+alias .macro_define="read_macro macro"
+alias .macro_begin="apply_macro nop"
 alias .end_macro="instruction_error \".end_macro improperly encountered.\""
 
 alias .pseudo="read_macro pseudo"
+alias .pseudo_begin="apply_macro nop"
+alias .pseudo_define="read_macro pseudo"
 alias .end_pseudo="instruction_error \".end_pseudo improperly encountered.\""
 
 function .asciiz () {

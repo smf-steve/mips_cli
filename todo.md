@@ -9,15 +9,7 @@
      1. step    : step execution via interactive mode
      1. encode  : encode each instruction provided
 
-
-1. dumping of dump_symbol_table is broken 
-   1. ehn you try to load_core the attribute of "declare" makes the varibles local
-   1. hence you need to remove the declare in front of them.
-
-
-1. output of special registers need to be updated
-   - "$(name $\_mar)""
-
+1. noop macro... i.e., macros with zero arguments
 
 # ToDo
 
@@ -26,24 +18,36 @@
 
 1. Review and revise macros
 
-1. Review labes
+1. Review labels
 
 1. Review INSTRUCTIONS.. 
    1. determine which instructions get put into the insturction loop
    1. such instructions allow PC + 4 is applied
 
+    -- only MIPS instructions should be placed into the INSTRUCTION data structure
+       - such instructions should also include the directives
+       - hence "macro_begin" -- is executed as a noop and updates the pc
+       - blank lines don't get added to the Instructions, 
+       - blank lines with comments are implicit nops.
+
+
 1. Review "Command History", determine what should go into the command history
-   1. the user-level instructions
+   * only commands that are typed added to the Command history
+   * all directives are added to the command history
+   * Hence, individual instructions part of the macro are not added to the history
+
+
+1. Macro Update
    1. the expanded user-level instructions
       -   add two directives that mark the start and end of a macro
       ```
-      .macro_apply <-- possible equiv to start_macro
-      .macro_end   <-- equivalent to end_macro macro average 3 0
+      .macro_begin <-- possible equiv to start_macro
+      .end_macro   <-- overloaded
       ```
       - Hence ".macro" is psynomous with .macro_defin
       ```
       .macro       < equivalent to .macro_define
-      .macro_end 
+      .end_macro 
       ```
 
 # History
@@ -109,56 +113,6 @@
 
   1. loops.s
      - deferred until cli being flushed out
-
-
-## Labels
-1. reset_labels, list_labels
-
-1. labels still use old memory model
-
-1. labels should be implemented via arrays and not via the alias method
-  - to keep it consistent with the other stuff put into the CORE file
-
-1. macros dont work at the top level...
-   why?
-
-
-1. bug exist if you just call X, without a valid label
-   - debug
-   - run 
-
-
-1.  These define a macro
-    ```
-    .macro 
-    .end_macro
-    ```
-    add two directives that mark the start and end of a macro
-    ```
-    .macro_begin  <-- possible equiv to start_macro
-    .macro_end   <-- equivalent to end_macro macro average 3 0
-    ```
-    -- update the code to apply these this way.
-
-
-## Installation
-1. proper call anywhere where files are staged in ~/class/comp122/bin
-
-
-
-
-----
-
-
----
-
-1. output of special registers need to be updated
-   - "$(name $\_mar)""
-
-1. dumping of dump_symbol_table is broken 
-   1. ehn you try to load_core the attribute of "declare" makes the varibles local
-   1. hence you need to remove the declare in front of them.
-
 
 
 ## Implementetion of .macro
@@ -256,6 +210,17 @@
 
 
 ## Documenations
+   1. New directives
+      1. Labels: .lab, .label
+         - usage .label label [address]
+      1. Macros
+         - .macro_apply
+         - .macro_define  (synmous with .macro )
+      1. Pseudo
+         - .pseudo .pseudo_define
+         - .pseudo_appy
+         - .end_pseudo
+
    1. create a list of functions exposed to the user
 
    1. Presume that a syntax checker is placed in front of mini-mips
@@ -290,7 +255,7 @@
       - immediates can be use 2# notation
       - labels are within two name space, i.e., the label A can be used both for data and for text
         - can't have self modifing code
-      - At most one lable can be depicted per line.
+      - At most one label can be depicted per line.
         - Labels: blank lines with labels, are ignored, but labels are stored anyways.
 
 
@@ -413,6 +378,12 @@
    instead of $(( offset = DATA_NEXT % size ))
    let "offset = DATA_NEXT % size"
    ```
+
+   1. output of special registers could be changed from
+      - \_mar --> MAR 
+      - see print_value_i
+      - as straight change to \$(name \$reg)  may not work
+
 
 ## ALU update for the future
   1. consider making the ALU work via just the latches

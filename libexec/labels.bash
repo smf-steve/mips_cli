@@ -9,19 +9,6 @@ declare -a TEXT_LABELS
 #    a label with the current address in the program text.  In our
 #    implementation, an address can be provided as part of the directive
 #    
-# .label name address
-
-alias .lab=".label"
-function .label () {
-  local name="$1"
-  local address="$2"
-
-  [[ -n "$address" ]] || address=$(( $(rval $_pc) - 4 ))
-
-  eval ${SEGMENT}_label_${name}="${address}"
-}
-
-
 # is_label name:
 
 # remove_label : remove label from an instruction
@@ -165,6 +152,14 @@ function use_text_label() {
   fi
 }
 
+function reset_labels() {
+  while read name ; do
+    unset $name
+  done < <( compgen -v | grep ^data_label_)
+  while read name ; do
+    unset $name
+  done < <(compgen -v  | grep ^text_label_)
+}
 
 function list_labels() {
   local name
@@ -173,10 +168,10 @@ function list_labels() {
   # Does not take into account the size of the instruction nor the data type
   declare -p | grep ^data_label_ | while IFS='=' read name address ; do
     name=$(sed -e 's/data_label_//' -e 's/=/ /' <<< "$name" )
-    printf "%s (0x%08x) : 0x%02x\n" "$name" "$address" "${DATA[$address]}"
+    printf "%s\t(0x%08x) : 0x%02x\n" "$name" "$address" "${DATA[$address]}"
   done
   declare -p | grep ^text_label_ | while IFS='=' read name address ; do
     name=$(sed -e 's/text_label_//' -e 's/=/ /' <<< "$name" )
-    printf "%s (0x%08x) : 0x%08x %s\n" $name $address "${TEXT[$address]}"  "\"${INSTRUCTION[$address]}\""
+    printf "%s\t(0x%08x) : 0x%08x \t%s\n" $name $address "$(( 2#${TEXT[$address]} ))"  "\"${INSTRUCTION[$address]}\""
   done
 }
