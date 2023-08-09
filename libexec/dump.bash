@@ -41,10 +41,10 @@ function dump_symbol_table () {
 
 	cat <<- EOF
 	## Data Labels
-	$(declare -p | grep ^data_label)
+	$(compgen -v | grep ^data_label)
 
 	## Text Labels
-	$(declare -p | grep ^label_label)
+	$(compgen -v | grep ^text_label)
 
 EOF
 }
