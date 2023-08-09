@@ -14,7 +14,7 @@
 #  At this point, this subshell can execute the various MIPS cli
 #  commands.
 
-trap "break 1" SIGUSR1  # when an error occurs, go to the next line
+trap "PS1=(trap) '" SIGUSR1  # when an error occurs, go to the next line
 
 # The trap should go different places depending on which mode I am in.
 # 
