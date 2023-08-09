@@ -227,7 +227,8 @@ function print_J_encoding () {
 
 
 function print_string_encoding () {
-  local str="$1"
+  local addr="$1"
+  local str="$2"
 
   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
 
@@ -252,9 +253,9 @@ function print_string_encoding () {
   fi
 
   if  (( _size <= 4  )) ; then 
-    print_memory_encoding ${DATA_LAST} $_size "${hex_values[@]}"
+    print_memory_encoding ${addr} $_size "${hex_values[@]}"
   else
-    print_memory_encoding_multiple ${DATA_LAST} $_size "${hex_values[@]}"
+    print_memory_encoding_multiple ${addr} $_size "${hex_values[@]}"
   fi
 }
 

@@ -60,7 +60,7 @@ function .ascii () {
      allocate_data_memory 1 "$i"
      (( count ++ ))
   done
-  print_string_encoding "$str"
+  print_string_encoding $address "$str"
   print_data_memory $address ${count} 
 }
 
