@@ -195,7 +195,7 @@ function apply_macro () {
 
   local current_pc=$(rval $_pc)
 
-   if (( (current_pc + 4) ==  ${TEXT_NEXT}  )) ; then 
+   if (( (current_pc + 4) == ${TEXT_NEXT}  )) ; then 
      # The macro was the last instruction in the instruction stream
      # Hence we need to insert its definition into the stream.
      TEXT[${current_pc}]=nil

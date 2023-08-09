@@ -136,24 +136,28 @@ function run () {
 
   case $mode in 
     DEBUG )
-       [[ -n "$label" ]] || instruction_warning "Usage: must provide a label"
+       local start="$(lookup_text_label $label)"
+       [[ -n "$start" ]] || { instruction_warning "Invalid Label: \"$label\"" ; return 1 ; }
+
        PS1="(debug) "
        DEBUG_MODE=TRUE
        INTERACTIVE=TRUE
        EXECUTE_INSTRUCTIONS=TRUE
        EMIT_ENCODINGS=TRUE
        EMIT_EXECUTION_SUMMARY=TRUE
-       assign $_pc "$(lookup_text_label $label)"
+       assign $_pc "$start"
              ;;
     BATCH )
-       [[ -n "$label" ]] || instruction_warning "Usage: must provide a label"
+       local start="$(lookup_text_label $label)"
+       [[ -n "$start" ]] || { instruction_warning "Invalid Label: \"$label\"" ; return 1 ; }
+
        PS1="(batch) "
        DEBUG_MODE=FALSE
        INTERACTIVE=FALSE
        EXECUTE_INSTRUCTIONS=TRUE
        EMIT_ENCODINGS=TRUE
        EMIT_EXECUTION_SUMMARY=TRUE
-       assign $_pc "$(lookup_text_label $label)"
+       assign $_pc "$start"
        ;;
 
     ENCODE )
@@ -174,6 +178,10 @@ function run () {
        EXECUTE_INSTRUCTIONS=TRUE
        EMIT_EXECUTION_SUMMARY=TRUE
        assign $_pc "${TEXT_NEXT}"
+       ;;
+    * )
+      instruction_warning "Usage: run { DEBUG | BATCH | ENCODE | INTERACTIVE }"
+      return
   esac
 
   # boot

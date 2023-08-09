@@ -259,11 +259,21 @@ function print_Z() {
 
 
 function alu_update () {
+  local _value="$1"
+
+
+  # This function updates the status bits of the ALU.
+  # It computes the values of 
+  #    C and V based upon an addition to LATCH_A and LATCH_B
+  #    S and Z based upon the input paramenter  (the value of "hypthotical" LATCH_C)
+  #
   # In the future the input should be a function that applies extra values with 
-  # the value LATCH_A and LATCH_B to obtain the final value
+  # the value LATCH_A and LATCH_B to obtain the final value, 
+  #   which should be placed on LATCH_C
+  #
   # local func="$1" ; shift
   # local args="$@"
-  # $fun $LATCH_A $LATCH_C $args
+  # $fun $LATCH_A $LATCH_B $args
 
   # Compute the status bits, based upon the original input values...
   # Force the input parameters to be only 32-bit numbers.
@@ -294,7 +304,7 @@ function alu_assign() {
   local _index="$1"
   local _value="$2"
 
-  alu_update
+  alu_update $_value
   trap_on_status_bits
   assign $_index $_value
 }
