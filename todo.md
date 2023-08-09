@@ -1,13 +1,62 @@
+
+# Bugs
+1. macros don't work at the top level...
+   - the value of PC is not set to a valid value hence it does not work
+   - in addition the value of current_pc should be >= TEXT_NEXT and not ==
+   - the list of commands that work at the top-level are
+     1. execute label:  batch execute starting at label
+     1. debug   label:  debug execute starting at label
+     1. step    : step execution via interactive mode
+     1. encode  : encode each instruction provided
+
+
+1. dumping of dump_symbol_table is broken 
+   1. ehn you try to load_core the attribute of "declare" makes the varibles local
+   1. hence you need to remove the declare in front of them.
+
+
+1. output of special registers need to be updated
+   - "$(name $\_mar)""
+
+
+# ToDo
+
+1. Installation Proceducers
+   1. proper call anywhere where files are staged in ~/class/comp122/bin
+
+1. Review and revise macros
+
+1. Review labes
+
+1. Review INSTRUCTIONS.. 
+   1. determine which instructions get put into the insturction loop
+   1. such instructions allow PC + 4 is applied
+
+1. Review "Command History", determine what should go into the command history
+   1. the user-level instructions
+   1. the expanded user-level instructions
+      -   add two directives that mark the start and end of a macro
+      ```
+      .macro_apply <-- possible equiv to start_macro
+      .macro_end   <-- equivalent to end_macro macro average 3 0
+      ```
+      - Hence ".macro" is psynomous with .macro_defin
+      ```
+      .macro       < equivalent to .macro_define
+      .macro_end 
+      ```
+
 # History
   - macros should not have the individual instructions placed in history..
-# Comments:
-   - comments need to be stripped prior to looking for a macro
 
-## Status bits
-   - validate that the C and the V bits are ONLY based upon the final addition calc
-   - i.e., ignore the value in which eventually goes on LATCH_C
+1. reimplement offset to be provided with constants...
+     -  bne $zero, $zero, 4
 
-#### Testing: Jul 14
+1. data_memory_write  little endian to write
+   - validate that we are always in little endian mode...
+
+
+#### Testing: Aug 8
   1. arithmetic.s
      --good
 
@@ -56,19 +105,10 @@
      -- note, no warning on redefining macro
      -- but under step ; load
         * the entire file is not executed.
-        
+
 
   1. loops.s
      - deferred until cli being flushed out
-
-
-# bug
-(top) base2_digits 16 6
-0000000000000110
-(top) wc <<< 0000000000000110
-       1       1      17
-(top) base2_digits 16 -6
-1111111111111111111111111111111111111111111111111111111111111010
 
 
 ## Labels
@@ -109,11 +149,6 @@
 
 ----
 
-## Status Bits Review
- 1. Validate the following syntax don't or do make use of the ALU
-      * DivMult, LoadI, Move {From, To}, Trap, Syscall
-    - If the use the ALU (to pass values through), then make an appropriate call to the ALU
-    - Ensure the status bits are set
 
 ---
 
@@ -123,50 +158,6 @@
 1. dumping of dump_symbol_table is broken 
    1. ehn you try to load_core the attribute of "declare" makes the varibles local
    1. hence you need to remove the declare in front of them.
-
-
-## Load Store:
-   - Should we have a memory module that shows how
-     - values are placed into the MAR / MBR
-
-
-
-## Big Versus Little Endian
-   1. Revised the routine to $(print_memory addresss bytes) to print out in either
-      - little endian or bit endian format
-      ```
-      Memory: BIG ENDIAN
-        | address    | ASCII | byte      |  half         |   word          |         
-        |------------|-------|-----------|---------------|-----------------|
-        | 0x10010007 | 'H'   | 0x48 (72) |               |                 |
-        | 0x10010006 | \0    | 0x00 (0)  |  0x0048 (72)  |                 |
-        | 0x10010005 | \0    | 0x00 (0)  |               |                 |
-        | 0x10010004 | \0    | 0x00 (0)  |  0x0000 (0)   | 0x00000048 (72) |
-        |------------|-------|-----------|---------------|-----------------|
-        | 0x10010003 | \0    | 0x24 (36) |               |                 |
-        | 0x10010002 | \0    | 0x00 (0)  |  0x0024 (36)  |                 |
-        | 0x10010001 | \0    | 0x00 (0)  |               |                 |
-        | 0x10010000 | '$'   | 0x00 (0)  |  0x0000 (0)   | 0x00000024 (36) |
-
-
-      Memory: Little ENDIAN
-        | address    |   word          |  half           byte      | ASCII |
-        |------------|-----------------|---------------|-----------|-------|
-        | 0x10010007 |                 |               | 0x00 (0)  | \0    |
-        | 0x10010006 |                 |  0x0000 (0)   | 0x00 (0)  | \0    |
-        | 0x10010005 |                 |               | 0x00 (0)  | \0    |
-        | 0x10010004 | 0x00000048 (72) |  0x0048 (72)  | 0x48 (72) | 'H'   |
-        |------------|-----------------|---------------|-----------|-------|
-        | 0x10010003 |                 |               | 0x00 (0)  | \0    |
-        | 0x10010002 |                 |  0x0000 (0)   | 0x00 (0)  | \0    |
-        | 0x10010001 |                 |               | 0x00 (0)  | \0    |
-        | 0x10010000 | 0x00000024 (36) |  0x0024 (36)  | 0x24 (36) | '$'   |
-
-     ```
-     
-     - C escape of interest:  \t \n \r \f \a \b \e
-     - Special characters \0
-
 
 
 
@@ -191,12 +182,6 @@
 
       reexame the output of these..
 
-### ALU_update: future
-  1. consider making the ALU work via just the latches
-  1. hence had a Latch C for the ALU
-  1. each instruction that uses the alu should pass in a function to be applied
-  1.   - this is nessarey because some instructions require more than two values
-
 ### Modes
 1. For forward labels,
    - need to put in a message..
@@ -218,13 +203,6 @@
 1. when in the current top mode, what should be valid instrtions
   - why: applications of macros don't work  (PC value is off)
   - we also can't have labels
-
-### ALU Extension or Forward Unit
-
-1. should the LoadI be use the ALU for the operation
-   -- or should there be a separate forward unit
-      - forward might be cleaner, but the ALU can do the work
-      - the wiring is similar to the extended sign
 
 
 ### Command History
@@ -277,71 +255,9 @@
     - I.e., need a list of supported instructions
 
 
-
-
-
-
-## Traps Error Handling
-
-1. Error Handling
-   - Modify errors to call:  instruction_error "message"
-   - Consider the error output
-     1. bash: slr: command not found
-     1. --> mips: slr: statement undefined
-
-1. Implement Traps
-
-
-## Kernel
-   1. rewind needs to have a lable install called is the instruction
-     - "\_exit: \_exit "
-     - the label should be placed into kernel space...
-   1. .ktext
-     - allows us to put things into the kernel space.
-     - need a flag so that 
-       ```
-       if [[ ${IN_KERNEL} == TRUE ]] ; then 
-         text_next ==
-       ```
-       * text_next  <-->  ktext_next
-       * data_next  <-->  kdata_next
-
-## Syscalls
-  1. Syscall and trap, break?
-     - output would be the input and then the output variables
-
-
-
-
-# Notes:
-# Perhaps alu_assign, should be rename ALU_WB, etc.
-function alu_assign() {
-
-or maybe trigger_alu,  alu_execute, execute_alu
-
-# Bugs
-
-  1. create a list of functions exposed to the user
-
-# todo 
-  implemente the set pseudo instructions
-  implemente the special2 instructions
-  implemente value list to data directives
-  reimplement offset to be provided with constants...
-     -  bne $zero, $zero, 4
-
-  1. need to double check .ascii  in presence of big/little endian
-     - do we allocate one char at a time or a group at a time.
-
-1. data_memory_write  little endian to write
-
-for readability consider
-   instead of $(( offset = DATA_NEXT % size ))
-
-   let "offset = DATA_NEXT % size"
-
-
 ## Documenations
+   1. create a list of functions exposed to the user
+
    1. Presume that a syntax checker is placed in front of mini-mips
 
    1. mini-mips:  a language based upon the MIPS ISA, with the following restrictions
@@ -486,32 +402,60 @@ for readability consider
 
 
 
-## Improvements
-
-1. Consider using digital gates for output symbols
-   - & --> U+2227  ? 
-   - nor --> U+22BD  (V with a bar)  or down arrow 
-   - U+2213      MINUS-OR-PLUS SIGN      ∓
+# Improvements
 
 
-1. For the ALU operations, should the A and B latch be denoted
+## Documentation
+  1. create a list of functions exposed to the user
+
+## Readability
    ```
-    (cin)                0   
-    (A)   t2:            0   
-    (B)  imm:            4   
-              + ----------  
-          t1:            4   
+   instead of $(( offset = DATA_NEXT % size ))
+   let "offset = DATA_NEXT % size"
    ```
 
-1. add some kernel code that..
-   1. prints out the banners
-   1. ra should be set to the code that perfroms "exit"
+## ALU update for the future
+  1. consider making the ALU work via just the latches
+  1. hence had a Latch C for the ALU
+  1. each instruction that uses the alu should pass in a function to be applied
+  1.   - this is nessarey because some instructions require more than two values
 
-(mips) ascii.index 'hello world!' | base16
+
+## Symbols:
+   1. Consider using digital gates for output symbols
+      - & --> U+2227  ? 
+      - nor --> U+22BD  (V with a bar)  or down arrow 
+      - U+2213      MINUS-OR-PLUS SIGN      ∓
+
+## Data directives
+   1.   implemente value list to data directives
 
 
-1. Should .ascii print out a list of codes before the major emcoding
-   ```
-   (top) .ascii "hello world!"
-         0x68 0x65 0x6c 0x6c 0x6f 0x20 0x77 0x6f 0x72 0x6c 0x64 0x21
-   ```
+## Error handling
+   - determine error messages and how to restart
+
+## Syscalls
+   1. Implement syscalls, trap, and break
+      - don't go through the kernel in V0.1 -- just perform the operations
+
+## Special2 instructions
+   1. consider implementation
+
+## Kernel
+   1. .ktext
+      - allows us to put things into the kernel space.
+      - need a flag so that 
+        ```
+        if [[ ${IN_KERNEL} == TRUE ]] ; then 
+          text_next ==
+        ```
+        * text_next  <-->  ktext_next
+        * data_next  <-->  kdata_next
+   1. add some kernel code that..
+      - prints out the banners
+      - sets ra code that perfroms "exit"
+
+   1. make rewind install a label
+      - "\_exit: \_exit "
+      - the label should be placed into kernel space...
+ 
