@@ -282,6 +282,7 @@ function print_memory_encoding_multiple () {
   local _address="$1"
   local _size="$2"  
   local _value="$3" ; shift; shift ; shift
+  local indent="             "   # size of "| 0x%8x "
 
   [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
 
@@ -294,14 +295,16 @@ function print_memory_encoding_multiple () {
 
   local _values=( "${@}" )
   for (( i=0; i < $# - 1 ; i++ )) ; do 
-     print_word_row "\t/" 4 ${_values[$i]} "/" ""
+     printf "\t"
+     print_word_row "${indent}/" 4 ${_values[$i]} "/" ""
      (( _size -= 4 ))
   done
   local end="|"
   for (( i = _size; i < 4 ; i++ )) ; do
     end="         "$end
   done
-  print_word_row "\t/" $(( _size )) ${_values[$#-1]} "$end" ""   #< row size is what is left over
+  printf "\t"
+  print_word_row "${indent}/" $(( _size )) ${_values[$#-1]} "$end" ""   #< row size is what is left over
 
   printf "\t| 0x%8x |\n" ${DATA_NEXT}
   echo
