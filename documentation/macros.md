@@ -36,11 +36,11 @@ used within the assembly process to inline the correct code into the INSTRUCTION
    ```
 Points:
   1. the name of the macro becomes an alias that calles a helper function `apply_macro`
-  1. the name of the function is defined to the concatenation of
+  1. the name of the function is defined as the concatenation of
      - the prefix "macro_": to differentiate it from other programming elements
      - the "name" of the macro: to be able to lookup the appropriate function at runtime
      - the number of actual parameters passed to the macro
-       * the macro name can be overloaded and different versions are differentiated by the number of actual paramaters
+       * Note macros can be overload, and are differentied by the parameter count.
   1. The macro code needs to be updated to protect "$" to allow proper shell transation
   1. Internal labels are updated with a line number corresponding to the use of the macro
      - this ensures that labels are uniq within the instruction stream
@@ -56,11 +56,11 @@ The `apply_macro` is a bash function that
 The code that is inserted into the input stream is as follows
 
   ```bash
-  INSTRUCTION[PC+0]="average $s0, $t2, $fp"    TEXT[PC+0]=nil
-  INSTRUCTION[PC+1]="b_n: add $s0, $t2, $fp"   TEXT[PC+1]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  INSTRUCTION[PC+2]="     srl $s0, $s0, $s0"   TEXT[PC+2]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  INSTRUCTION[PC+2]="     beq $s0, $t1, b_n"   TEXT[PC+2]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  INSTRUCTION[PC+4]="macro_end average_3 PC"   TEXT[PC+4]= nil
+  INSTRUCTION[PC+0]=".macro_start average $s0, $t2, $fp"  TEXT[PC+0]="0{32}"
+  INSTRUCTION[PC+1]="b_n: add $s0, $t2, $fp"              TEXT[PC+1]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  INSTRUCTION[PC+2]="     srl $s0, $s0, $s0"              TEXT[PC+2]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  INSTRUCTION[PC+2]="     beq $s0, $t1, b_n"              TEXT[PC+3]="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  INSTRUCTION[PC+4]=".macro_end average_3 PC"             TEXT[PC+4]="0{32}"
   ```
 
 
