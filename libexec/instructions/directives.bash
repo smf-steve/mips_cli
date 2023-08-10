@@ -6,36 +6,34 @@
 #
 # The data directives supported are:
 #
-#   .align
-#   .dword
-#   .word
-#   .half
-#   .byte
-#   .asciiz
-#   .ascii
-#   .space
+#   .align  { 1 | 2 | 3 | 4 }  # 1=byte, 2=half, 3=word, 4=dword
+#   .dword  [ value ]
+#   .word   [ value ]
+#   .half   [ value ]
+#   .byte   [ value ]
+#   .asciiz "a string"
+#   .ascii  "a string"
+#   .space  number
 #
-# Note that data directives may only provide a single optional data. E.g.,
-#   .word             # valid
-#   .word 42          # valid
-#   .word 42, 0, 42   # invalid
 #################################################################################
-
-
 
 #################################################################################
 # Additional directives
 #
 #    .lab   label [address]
-#    .label label [address]
+#    .label label [address]  : an extension of the .lab directive where an address
+#                              can be provided
 #
 #    .macro_define   : equivalent to .macro
-#    .macro_begin    : equivalent to a nop, indicates the start of an applied macro instruction
+#    .macro_start    : equivalent to a nop, indicates the start of an applied macro instruction
+#    .macro_stop     : akin to .end_macro
 #    .pseudo         : akin to .macro, but a pseudo instruction is being created
 #    .pseudo_define  : equivalen to .pseudo
-#    .pseudo_begin   : equivalent to a nop, indicates the start of an applied pseudo instruction
-#    .end_pseudo     : akin to .end_macro
+#    .pseudo_start   : equivalent to a nop, indicates the start of an applied pseudo instruction
+#    .pseudo_stop    : akin to .end_macro
 #
+#################################################################################
+ 
 alias .lab=".label"
 function .label () {
   local name="$1"
@@ -65,13 +63,16 @@ alias .include="include"
 
 alias .macro="read_macro macro"
 alias .macro_define="read_macro macro"
-alias .macro_begin="apply_macro nop"
 alias .end_macro="instruction_error \".end_macro improperly encountered.\""
 
 alias .pseudo="read_macro pseudo"
-alias .pseudo_begin="apply_macro nop"
 alias .pseudo_define="read_macro pseudo"
 alias .end_pseudo="instruction_error \".end_pseudo improperly encountered.\""
+
+alias .macro_start="start_macro macro"
+alias .macro_stop="stop_macro macro"
+alias .pseudo_start="start_macro pseudo"
+alias .pseudo_stop="stop_macro pseudo"
 
 function .asciiz () {
    local str="$1"
