@@ -15,9 +15,11 @@
 # encode_address label 
 # decode_address address
 #
-# print_R_encoding fun rs rt rd shamt
+# print_SPEC_encoding func code
+# print_R_encoding func rs rt rd shamt
 # print_I_encoding op rs rt imm [ label ]   
 # print_J_encoding op addr
+#
 #
 # print_memory_encoding addr value 
 #      - encodings for .byte, .half, .word
@@ -114,6 +116,32 @@ function decode_address () {
   echo "$(( addr << 2 ))"
 }
 
+function print_SPEC_encoding () {
+    local _name="$1"
+    local _code="$2"
+
+    [[ $_name == "nop" ]] && _code="0"     # NOP cannot have a non-zero code
+    [[ -n $_code ]] || _code="0"
+
+
+    local _op_code="${op_code_REG}"
+    local _code_code="$(base2_digits 20 $_code)"
+    local _func_code="$(lookup_func $_name)" 
+
+    local encoding="${_op_code}${_code_code}${_func_code}"
+    TEXT[$(rval $_pc)]="$encoding"
+
+    [[ ${EMIT_ENCODINGS} == "TRUE" ]] || return
+
+    printf "\t|%-6s|%-20s|%-6s|\n" " op" " code" " func"
+    printf "\t|------|--------------------|------|\n"
+    printf "\t|%-6s|%20s|%-6s|\n" \
+           " SPEC" " $_code"  " ${_name:0:5}"
+
+    printf "\t|%s|%s|%s|\n" \
+           $_op_code $_code_code $_func_code
+    printf "\n"
+}
 
 function print_R_encoding () {
     local _name="$1"

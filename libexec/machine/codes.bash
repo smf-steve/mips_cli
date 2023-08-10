@@ -103,6 +103,7 @@ declare -r        op_code_sw='101011'  # 0x2B
 # declare -r      op_code_xx='101111'
 
 # 000 Row
+declare -r     func_code_nop='000000'  # To support Special encoding
 declare -r     func_code_sll='000000'  # 0x00
 # declare -r    func_code_xx='000001'  
 declare -r     func_code_srl='000010'  # 0x02
