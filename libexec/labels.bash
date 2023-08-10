@@ -1,32 +1,30 @@
 #! /bin/bash
 
-declare -a DATA_LABELS
-declare -a TEXT_LABELS
+# Ideally, labels should be placed into an associate arrays
+# But unfortantely, the default bash for MacOS does not support associate arrays
+
+#declare -A DATA_LABELS
+#declare -a TEXT_LABELS
+
+# A label, in textual form, is "name:"
 
 
-# .label directive:  
-#    This is is an extension of the .lab directive.  It associates
-#    a label with the current address in the program text.  In our
-#    implementation, an address can be provided as part of the directive
-#    
-# is_label name:
-
-# remove_label : remove label from an instruction
-# label_name 
-
-# lookup_text_label  : returns the address of a lable
-# lookup_data_label
-
-# apply_data_labels 
+# is_label "name:"      :
+# label_name  "label:"  : removes the last symbole
+# remove_label          : remove label from an instruction
+#
+# lookup_text_label     : returns the address of a lable
+# lookup_data_label     : returns the address of a lable
+#
+# apply_data_labels     : assigns an address to a list of data labels
 #   assign_data_label
-# apply_text_labels 
+# apply_text_labels     : assigns an address to a list of data labels
 #   assign_text_label
+#
+# use_text_label        : creates an unresolved label
 
-# use_text_label  :  create an unresolved label
-
-# list_labels
-
-
+# list_labels           : lists all labels
+# reset_labels          : remove all labels
 
 
 
