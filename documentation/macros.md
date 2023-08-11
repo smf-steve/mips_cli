@@ -17,7 +17,7 @@ Via the prepocessing step, an alias and a function is defined.  These two compon
 used within the assembly process to inline the correct code into the INSTRUCTION and TEXT data-structures
 
    ```bash
-   alias average="apply_macro average"
+   alias average="prefetch_macro average"
 
    function macro_average_3 () { 
       local num=$(( LINE_NUM ))
@@ -35,7 +35,7 @@ used within the assembly process to inline the correct code into the INSTRUCTION
    }
    ```
 Points:
-  1. the name of the macro becomes an alias that calles a helper function `apply_macro`
+  1. the name of the macro becomes an alias that calles a helper function `prefetch_macro`
   1. the name of the function is defined as the concatenation of
      - the prefix "macro_": to differentiate it from other programming elements
      - the "name" of the macro: to be able to lookup the appropriate function at runtime
@@ -49,7 +49,7 @@ Points:
 Issues:
   1. call of a macro inside of a macro -- which is valid within MARS
 
-The `apply_macro` is a bash function that
+The `prefetch_macro` is a bash function that
   1. inserts the appropriate code into the input stream, during the prefetch stage
   1. sets global variables to allow proper execution, during the execution
 

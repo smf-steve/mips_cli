@@ -23,7 +23,10 @@
 #           > The approach to use:  text_label_{name}={address}
 #           > was done due to not having hashed arrays
 #       - handles all assembler directives
-
+#
+#   prefetch_macro name [ args ... ]
+#     - replaces a call to a macro via inlining it
+#
 
 # We presume we have a MIPS front-end that updates various instructions to use
 #    the  secondary syntax
@@ -155,7 +158,6 @@ function cycle () {
   [[ ${INTERACTIVE} == "TRUE" ]] || echo "\$ $(rval $_ir)"
 
 
-  history -s "$(rval $_ir)"   
 
   ## IF INTERACTIVE MODE, SHOULD I SLEEP SOME AMOUNT OF TIME.
 
@@ -163,11 +165,16 @@ function cycle () {
   #   2. performs the Decode step:
   #   3. performs the Execute step:
   #   4. performs the WB step 
+
   eval $instruction 
+  history -s "$(rval $_ir)"     # make the history of the command that was executed
+    # Under a revised implementation
+    # Decode is the execute_* instrctions, where values are placed on latches
+    # Execute is really the ALU / MD unit activiation
+    # WB is the WB stuff and the ALU_assign
 
   assign $_pc $(rval $_npc)
   # Issue arises here if the value of pc is unsolved
-
 
   return 0;
 }
@@ -220,10 +227,14 @@ function prefetch () {
 
     ## We know have a line is either a directive or is executable
     case "$instruction" in 
-       .* )
 
-            # For allocation directives, we have a bug since DATA_NEXT might move if
-            # we have to align 
+       .macro_start | .macro_stop )
+            # currently no labels can be associated with these directives
+            # any labels whould have been processed prior to the
+            # macro_start
+            ;;
+
+       .* ) # These are for the data directives
             eval ${instruction}
             if [[ -z "${labels}" ]] ; then 
                history -s "$instruction"
@@ -270,9 +281,13 @@ function prefetch () {
     TEXT_NEXT=${next_pc}
 
     ## Test to see if the Instruction is a MACRO
+    ############
+    ##  This code should not be active, due to the new work on macro insertion
+    ##  It is left here just to determine if it is ever called as part of testing
     if [[ $INTERACTIVE == "FALSE" ]] ; then 
       local type=$(type_of_macro $instruction)
       if [[ ${type} != "FALSE" ]] ; then
+         instruction_error "dead code encountered"
          prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro ${type} $instruction)
       fi
     fi
@@ -297,5 +312,53 @@ function fetch () {
   # Because text is going into the regisrter, we can't use the function "assign"
 
   REGISTER[$_ir]="${INSTRUCTION[ $(rval $_pc) ]}"
+}
+
+
+function prefetch_macro () {
+  local name=$1
+  shift;
+  local args="$@"    # note that the label and comments have been stripped out of the parameters passed
+  #local count=$#     # Is this count off?
+
+  # Goal: Example  'li *'
+  #  1. replace the ' li *' with  '.macro_start li *' in the instruction stream
+  #     - eval the new instruction
+  #     - increment the pc
+  #     - note that any labels have already been associated with the instruction
+  #  1. expand/execute the macro definition
+  #  1. add into the instruction stream '.macro_stop li *'
+  #     - perform all steps up to the execution phase
+
+  local original_instruction="$(remove_label $(rval $_ir) )"
+     ## Bug somewhere after this point in execution instruction is updated and should not be
+     ## Hence the rename to original_instruction
+
+  local new_instruction
+  local type="$(type_of_macro ${name} "$@" )"
+  
+  {
+    # Replace the current macro instruction
+    new_instruction=".${type}_start $original_instruction"
+    INSTRUCTION[$(rval $_pc)]="$new_instruction"    ## note that the label missing
+    fetch                                           #  This is a re-fetch, no need to update NPC
+    eval $new_instruction
+    history -s "$(rval $_ir)"  
+    assign $_pc $(rval $_npc)
+  }
+
+  # Expand the macro
+  while cycle ; do
+     :
+  done < <(expand_macro ${type} $name "$@" )
+
+  {
+    # refetch the 
+    new_instruction=".${type}_stop $original_instruction"
+    INSTRUCTION[$(rval $_pc)]="$new_instruction"    ## note that the label missing
+    TEXT_LAST=$(rval $_pc) ; TEXT_NEXT=$(( TEXT_NEXT + 4 ))
+    fetch ; assign $_npc $(( $(rval $_pc) + 4 )) 
+    eval $new_instruction
+  }
 }
 

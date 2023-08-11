@@ -9,14 +9,17 @@
      1. step    : step execution via interactive mode
      1. encode  : encode each instruction provided
 
-1. noop macro... i.e., macros with zero arguments
+
+1. load causes the history to be corrupted.
+   - under step, the last instruction is added to history
+   - what should be placed in TEXt and INSTRUCTIONS for a load..
+     * shouldn't be load?
+
 
 # ToDo
 
 1. Installation Proceducers
    1. proper call anywhere where files are staged in ~/class/comp122/bin
-
-1. Review and revise macros
 
 1. Review labels
 
@@ -35,7 +38,15 @@
    * only commands that are typed added to the Command history
    * all directives are added to the command history
    * Hence, individual instructions part of the macro are not added to the history
-
+     -- need to determine how to handle load
+     -- it excutes a lot of instructions under the covers
+     -- if the last instruction is a comment, it places it in history/etc
+     -- Should it be:
+        * "load blah"  
+          - gets put into the history
+          - TEXT and INSTRUCTIONS are added the interal stuff...
+        * as such, we need to differentate between MIPS instruction and debugger insturctions
+      
 
 1. Macro Update
    1. the expanded user-level instructions
@@ -114,6 +125,11 @@
   1. loops.s
      - deferred until cli being flushed out
 
+## Implementation of labels
+   1. if a set of lines with labels all for the same instruction
+      - only the last one, is associated with the instruction in the INSTRUCTION struct
+   1. if a label is associated with a macro or pseudo instruciton
+      - no label is associated with the expande instruction in the INSTRUCTION struct
 
 ## Implementetion of .macro
    1. address labels

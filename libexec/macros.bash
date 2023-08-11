@@ -146,24 +146,27 @@ function reset_macros () {
 
 function start_macro () {
   local type="$1"
-  local name="$2"
-  local argc="$3"
-  local use="$4"
+  local name="$2"  ; shift ; shift
+  local argc="$@"
 
-  [[ "${EMIT_SYNOPSIS}" == "FALSE" ]] | { echo "Start of ${type} \"${name}\" (${argc})" ; echo ; }
+  [[ "${EMIT_SYNOPSIS}" == "FALSE" ]] | { echo "Start of ${type} \"${name}\" (${argv})" ; echo ; }
   MACRO="${type}_${name}_${use}"
   MACRO_EXECUTION=TRUE
 
-}
-alias end_pseudo="end_macro"
-function end_macro () {
-  local type="$1"
-  local name="$2"
-  local argc="$3"
-  local use="$4"
+  print_SPEC_encoding nop
 
-  [[ "${EMIT_SYNOPSIS}" == "FALSE" ]] | { echo "End of ${type} \"${name}\" (${argc})"; echo ; }
+}
+
+function stop_macro () {
+  local type="$1"
+  local name="$2" ; shift ; shift 
+  local argv="$@"
+
+  [[ "${EMIT_SYNOPSIS}" == "FALSE" ]] | { echo "Stop of ${type} \"${name}\" (${argv})"; echo ; }
   MACRO_EXECUTION=FALSE
+
+  print_SPEC_encoding nop
+
 }
 
 function expand_macro () {
@@ -172,46 +175,13 @@ function expand_macro () {
   local args="$@"
 
   local count=$#
-  local macro="${type}_${name}_${count}"
+  local macro_function="${type}_${name}_${count}"
 
   # Protect the $ signs from being interpolated at this time
   args=$(sed -e 's/\$/\\$/g' <<< "$args" )
-  echo "# .macro_begin $name($count)"
-  eval ${macro} ${args}
-  echo "end_${type} ${type} ${name} ${count} ${MACRO_COUNT}"
-  echo "# .macro_end ${name}($count)"
-  (( MACRO_COUNT ++ ))
+  eval ${macro_function} ${args}
 }
 
-function apply_macro () {
-  local name=$1
-  shift;
-  local args="$@"    # note that the label and comments have been stripped out of the parameters passed
-  #local count=$#     # Is this count off?
-
-
-  local instruction="$(remove_label $(rval $_ir) )"
-  local type="$(type_of_macro ${name} "$@" )"
-
-  local current_pc=$(rval $_pc)
-
-   if (( (current_pc + 4) == ${TEXT_NEXT}  )) ; then 
-     # The macro was the last instruction in the instruction stream
-     # Hence we need to insert its definition into the stream.
-     TEXT[${current_pc}]=nil
-     assign $_pc $(( current_pc + 4 ))
-
-     MACRO_EXECUTION=TRUE
-     while cycle ; do
-       :
-     done < <(expand_macro ${type} $name "$@" )
-   
-   else
-     # The macro has already been expanded.
-     # Set up the environment for proper execution
-     start_macro "${type}" "${name}" "${count}"      ## where does count come from
-   fi
-}
 
 
 function read_macro () {
@@ -219,27 +189,27 @@ function read_macro () {
   # function reads all lines until the final ".end_macro"
   type="$1" ; shift
 
-  count=$(( $# ))
+  count=$(( $# - 1 ))
   name=$1
   patterns=( "$@" )
 
-  local func_name="${type}_${name}_$((count-1))"
+  local func_name="${type}_${name}_${count}"
   { 
     cat <<-EOF
-alias $name="apply_macro $name"
+alias $name="prefetch_macro $name"
 
 function ${func_name}  () {
     
   # remove optional commas
   # quote arg that contains a space
 EOF
-    for (( i=1 ; i < ${count} ; i++ )) ; do 
+    for (( i=1 ; i <= ${count} ; i++ )) ; do 
        echo  "  local arg$i=\"\$(sed -e 's/,$//' -e 's/\(.* .*\)/"\1"/' <<< \$$i)\""
     done
 
     cat <<-EOF
 
-  # apply the parameter subsitution longest to shortest
+  # apply the subsitution from longest to shortest
   # for now, just first to last
 EOF
   echo -n "  cat <<-EOF"
@@ -254,7 +224,7 @@ EOF
       pattern="$(sed -e 's/,$//' <<< ${patterns[$i]} )"
       echo "    sed -e \"s/${pattern}/\$arg$i/g\" \\"
 
-      for (( i=2 ; i < ${count} ; i++ )) ; do 
+      for (( i=2 ; i <= ${count} ; i++ )) ; do 
         pattern="$(sed -e 's/,$//' <<< ${patterns[$i]} )"
         echo "        -e \"s/${pattern}/\$arg$i/g\" \\"
       done
