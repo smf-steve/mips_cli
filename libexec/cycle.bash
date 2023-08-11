@@ -183,6 +183,7 @@ function prefetch () {
     local next_pc="$1"
     local target_label="$2"
 
+    local instruction
     local first
     local rest
     local labels=()
@@ -226,6 +227,8 @@ function prefetch () {
     done 
 
     ## We know have a line is either a directive or is executable
+    # not providing a set of labels and then NOT invoking a non-mips instruction
+    # will result in the labels being lost. -- because you are in the middle of an instruction
     case "$instruction" in 
 
        .macro_start | .macro_stop |\
@@ -249,19 +252,21 @@ function prefetch () {
             prefetch "${next_pc}" "${target_label}"
             ;;
 
-       "shell "* )
+       "shell "* | "@"*)
+            :  # we can also add in a list of all mips_cli commands
             :  # this is a shell command
                # to be consistent with gdb
                # goal here is NOT to record this instruction in the final code
             (( LINE_NUM -- ))
-            #CURRENT=$(LVAL $_PC)
-            eval $instruction
-            #ASSIGN $_PC $_current
-            
+            if [[ ${instruction:0:1} == "@" ]] ; then 
+              eval ${instruction:1}
+            else
+              eval $instruction
+            fi            
             prefetch "${next_pc}"  "${target_label}"
             ;;
         * ) 
-            #
+            #  this arm is expected to execute any known MIPS command
             assert_TEXT_segment
             for i in ${labels[@]} ; do
               assign_text_label "$i" "${next_pc}"
@@ -288,8 +293,10 @@ function prefetch () {
     if [[ $INTERACTIVE == "FALSE" ]] ; then 
       local type=$(type_of_macro $instruction)
       if [[ ${type} != "FALSE" ]] ; then
-         instruction_error "dead code encountered"
-         prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro ${type} $instruction)
+         prefetch_macro $instruction
+
+         #instruction_error "dead code encountered"
+         #prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro ${type} $instruction)
       fi
     fi
 
