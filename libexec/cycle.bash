@@ -339,6 +339,8 @@ function prefetch_macro () {
   #     - perform all steps up to the execution phase
 
   local original_instruction="$(remove_label $(rval $_ir) )"
+  echo $original_instruction
+  echo $instruction
      ## Bug somewhere after this point in execution instruction is updated and should not be
      ## Hence the rename to original_instruction
 
