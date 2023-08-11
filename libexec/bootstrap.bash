@@ -79,6 +79,8 @@ instruction_warning () {
 # Inclue the support files:
 source ${MIPS_CLI_HOME}/libexec/settings.bash
 source ${MIPS_CLI_HOME}/libexec/library.bash
+source ${MIPS_CLI_HOME}/libexec/dump.bash
+
 source ${MIPS_CLI_HOME}/libexec/parse_literal.bash
 source ${MIPS_CLI_HOME}/libexec/machine/machine.bash
 
@@ -86,7 +88,6 @@ source ${MIPS_CLI_HOME}/libexec/cycle.bash
 source ${MIPS_CLI_HOME}/libexec/execute.bash
 
 source ${MIPS_CLI_HOME}/libexec/labels.bash
-source ${MIPS_CLI_HOME}/libexec/dump.bash
 source ${MIPS_CLI_HOME}/libexec/encoding.bash
 
 source ${MIPS_CLI_HOME}/libexec/instructions/native_instructions.bash
@@ -264,10 +265,11 @@ function crt0 () {
   if (( columns <  95 )) ; then
     echo "Width of window is to small -- resize to a minimum width of 95"
   fi
-  
+
   echo "Entering the MIPS Command-Line-Interface"
   echo
   rewind
+  history -c    # Clear the history  does not seem to work?
 }
 
 
