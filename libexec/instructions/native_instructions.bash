@@ -14,7 +14,7 @@
 
 
 ## Idiom
-alias      nop="execute_Shift nop '>>' $zero, $zero, $zero"
+alias      nop="execute_Shift nop '>>' \$zero, \$zero, \$zero"
 
 ## ARITHMETIC
 alias      add="trap_on_V; execute_ArithLog  add   +"
