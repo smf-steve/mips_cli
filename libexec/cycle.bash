@@ -166,7 +166,7 @@ function cycle () {
   #   3. performs the Execute step:
   #   4. performs the WB step 
 
-  eval $instruction 
+  eval ${instruction} 
   history -s "$(rval $_ir)"     # make the history of the command that was executed
     # Under a revised implementation
     # Decode is the execute_* instrctions, where values are placed on latches
@@ -183,7 +183,7 @@ function prefetch () {
     local next_pc="$1"
     local target_label="$2"
 
-    local instruction
+    #local instruction --- is it global
     local first
     local rest
     local labels=()
@@ -229,7 +229,7 @@ function prefetch () {
     ## We know have a line is either a directive or is executable
     # not providing a set of labels and then NOT invoking a non-mips instruction
     # will result in the labels being lost. -- because you are in the middle of an instruction
-    case "$instruction" in 
+    case "${instruction}" in 
 
        .macro_start | .macro_stop |\
        .data        | .text )
@@ -240,9 +240,9 @@ function prefetch () {
        .* ) # These are for the data directives
             eval ${instruction}
             if [[ -z "${labels}" ]] ; then 
-               history -s "$instruction"
+               history -s "${instruction}"
             else
-               history -s "${labels[0]}: $instruction"
+               history -s "${labels[0]}: ${instruction}"
             fi
             for i in ${labels[@]} ; do
               # labels only make sense on data allocation 
@@ -252,7 +252,7 @@ function prefetch () {
             prefetch "${next_pc}" "${target_label}"
             ;;
 
-       "shell "* | "@"*)
+       "shell "* | "@"* )
             :  # we can also add in a list of all mips_cli commands
             :  # this is a shell command
                # to be consistent with gdb
@@ -261,7 +261,7 @@ function prefetch () {
             if [[ ${instruction:0:1} == "@" ]] ; then 
               eval ${instruction:1}
             else
-              eval $instruction
+              eval ${instruction}
             fi            
             prefetch "${next_pc}"  "${target_label}"
             ;;
@@ -277,7 +277,7 @@ function prefetch () {
     ## At this point, we should have a legal MIPS instruction
     ## Record the instruction
     if [[ $(is_label "$label" ) == TRUE ]] ; then 
-      instruction="$label $instruction"
+      instruction="$label ${instruction}"
     fi
 
     # Record the instruction, and advance the location of TEXT_NEXT
@@ -291,12 +291,14 @@ function prefetch () {
     ##  This code should not be active, due to the new work on macro insertion
     ##  It is left here just to determine if it is ever called as part of testing
     if [[ $INTERACTIVE == "FALSE" ]] ; then 
-      local type=$(type_of_macro $instruction)
+      local type=$(type_of_macro ${instruction})
       if [[ ${type} != "FALSE" ]] ; then
-         prefetch_macro $instruction
+         # this is causing the problem...
+         # the value of instruction appears to be a global variable
+         prefetch_macro ${instruction}
 
          #instruction_error "dead code encountered"
-         #prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro ${type} $instruction)
+         #prefetch ${TEXT_NEXT} '!macro_end' < <(expand_macro ${type} ${instruction})
       fi
     fi
 
@@ -340,7 +342,7 @@ function prefetch_macro () {
 
   local original_instruction="$(remove_label $(rval $_ir) )"
   echo $original_instruction
-  echo $instruction
+  echo ${instruction}
      ## Bug somewhere after this point in execution instruction is updated and should not be
      ## Hence the rename to original_instruction
 
