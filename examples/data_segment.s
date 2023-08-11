@@ -12,17 +12,18 @@ H3:     .half  0x0303
 SPACE:  .space 1
 DEFACE: .word  0xDEFACE00 
 
-AA: .half 24
-BB: .half 24
-CC: .half 24
-DD: .half 24
+AA:     .half 24
+BB:     .half 24
+CC:     .half 24
+DD:     .half 24
 
 
-AAAA: .word 48
-BBBB: .word 48
-CCCC: .word 48
-DDDD: .word 48
+AAAA:   .word 48
+BBBB:   .word 48
+CCCC:   .word 48
+DDDD:   .word 48
+
+
+        .text
 #list_labels
-
-
 print_memory
