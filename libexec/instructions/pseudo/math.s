@@ -66,7 +66,7 @@
 
 
 .pseudo neg %dst, %src             # Negate value (with overflow)
-    subu %dst, $zero, %src         # Note the MARS implements this as a sub, but a V trap will occur
+    subu %dst, $zero, %src         
 .end_pseudo
 
 
