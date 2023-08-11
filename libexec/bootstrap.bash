@@ -32,12 +32,12 @@ trap "PS1='(trap) '" SIGUSR1  # when an error occurs, go to the next line
 #   0. sets debug mode:  execution is true
 #   1. honors summary flags: encoding and execution
 #   1. prompt = "(debug) "
-#   1. requires a subroutine to execute
+#   1. requires a subroutine to be executed
 #   2. execute an instruction one step at a time
 #   3. returns to the manual mode upon completion
 #      1. return value is set based upon the last instruction being jr $ra, where ra=$(rval pc)
 #      1. if debug mode entered based upon a call, then return must be success
-#      1. if debug mode entered due to a backward reference, then return doe snot have to be success
+#      1. if debug mode entered due to a backward reference, then return does not have to be success
 #   3. does not record any extra instructions, i.e., must use @for known mips instructions
 #
 # interactive
@@ -231,6 +231,7 @@ function initialize () {
   STACK=()
   INSTRUCTION=()
   LABELS=()
+  history -c
   reset_macros
   source ${MIPS_CLI_HOME}/libexec/settings.bash
   rewind
