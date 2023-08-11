@@ -1,20 +1,29 @@
 
 # Bugs
-1. macros don't work at the top level...
-   - the value of PC is not set to a valid value hence it does not work
-   - in addition the value of current_pc should be >= TEXT_NEXT and not ==
-   - the list of commands that work at the top-level are
-     1. execute label:  batch execute starting at label
-     1. debug   label:  debug execute starting at label
-     1. step    : step execution via interactive mode
-     1. encode  : encode each instruction provided
 
+
+1. `libexec/cycle.bash:  local original_instruction="$(remove_label $(rval $_ir) )"`
+   - this but has been found and fixed
+   - valid and commit
 
 1. load causes the history to be corrupted.
    - under step, the last instruction is added to history
    - what should be placed in TEXt and INSTRUCTIONS for a load..
      * shouldn't be load?
 
+1. step ; load examples/macro.s
+   -- works fine if typed in verbatum
+   -- the prefetch section is executed
+   -- the history is off
+      - each .macro_stop references the load instruction 
+      - this makes some sense, but wrong
+   -- text and instructions look fine
+
+1. reimplement offset to be provided with constants...
+     -  bne $zero, $zero, 4
+
+1. output prompts are different under
+   - load and interactive
 
 # ToDo
 
@@ -49,12 +58,11 @@
 
 
 
-1. reimplement offset to be provided with constants...
-     -  bne $zero, $zero, 4
-
 1. data_memory_write  little endian to write
    - validate that we are always in little endian mode...
 
+1. review the sourceing of files.
+   -- alias must be define in the right order.
 
 #### Testing: Aug 8
   1. arithmetic.s
@@ -105,6 +113,7 @@
      -- note, no warning on redefining macro
      -- but under step ; load
         * the entire file is not executed.
+     -- spaces in input 
 
 
   1. loops.s
@@ -126,6 +135,11 @@
    1. macros can be redefined
       - pseduo instructions take precedence
       - the last define takes precence
+      - example, the div_3 macro overrides the div native instruction
+        - perhaps  prefetch_macro div -- if returns false
+          -- than calls native_div
+        - requires an alias for all native instructions
+
    1. macros that have quoted args
       ```
       (mips) li $t2, "2#101 1111 1111"
@@ -136,6 +150,25 @@
       but how do I know that it is 
 
       reexame the output of these..
+
+   1. Macros need to be executed within the cycle component of the machine
+      - the list of commands that work at the top-level are
+        1. execute label:  batch execute starting at label
+        1. debug   label:  debug execute starting at label
+        1. step    : step execution via interactive mode
+        1. encode  : encode each instruction provided
+
+
+### load
+    ```
+    step
+    load
+    ```
+    - you drop out of step mode
+    - In INSTURCTION: 
+      - the load instruction does not appear  
+      - the none mips instructios take up space appears in INSTRUCTIONS, but not TEXT
+        - this might be okay... since it is effectively a NOP -- should it be encoded as anop?
 
 ### Modes
 1. For forward labels,
