@@ -15,7 +15,7 @@
         .end_pseudo
         
         .data
-        a: .word 45
+a:      .word 45
         
         .text
         nop

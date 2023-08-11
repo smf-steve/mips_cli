@@ -25,5 +25,5 @@ DDDD:   .word 48
 
 
         .text
-#list_labels
-print_memory
+#@list_labels
+@print_memory

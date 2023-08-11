@@ -16,7 +16,7 @@ CCCC:   .word 48
 DDDD:   .word 48
 
         .text
- #list_labels
+ #@list_labels
        
         li $t0, 4
         li $t1, 8
@@ -55,4 +55,4 @@ DDDD:   .word 48
         add $t4, $t2, $t3
         sw $t4, $s2, 0    #C = 12
 
-dump_segment DATA
+@dump_segment DATA

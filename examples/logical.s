@@ -1,5 +1,5 @@
         .text
-assign_registers_random
+@assign_registers_random
 
         and $t7, $t8, $t9
         or  $s0, $s1, $s2

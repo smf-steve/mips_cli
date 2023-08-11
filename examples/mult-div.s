@@ -1,5 +1,5 @@
         .text
-assign_registers_random
+@assign_registers_random
 
         mthi  $t1
         mtlo  $t2

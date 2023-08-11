@@ -1,6 +1,6 @@
         .text
 
-assign $t1 0xFFFFFFFF  # largest number
+@assign $t1 0xFFFFFFFF  # largest number
         srl $t2, $t1, 1     #0x7FFFFFF 
         sra $t2, $t1, 1     #0xFFFFFFF, -1
         
