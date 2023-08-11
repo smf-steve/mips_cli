@@ -46,23 +46,8 @@
           - gets put into the history
           - TEXT and INSTRUCTIONS are added the interal stuff...
         * as such, we need to differentate between MIPS instruction and debugger insturctions
-      
 
-1. Macro Update
-   1. the expanded user-level instructions
-      -   add two directives that mark the start and end of a macro
-      ```
-      .macro_begin <-- possible equiv to start_macro
-      .end_macro   <-- overloaded
-      ```
-      - Hence ".macro" is psynomous with .macro_defin
-      ```
-      .macro       < equivalent to .macro_define
-      .end_macro 
-      ```
 
-# History
-  - macros should not have the individual instructions placed in history..
 
 1. reimplement offset to be provided with constants...
      -  bne $zero, $zero, 4

@@ -4,6 +4,11 @@
 # This file contains the declarations of all supported MIPS directives, and some
 # additional directives
 #
+# The segment directives that are supported are:
+#
+#    .text  -- as with MARS, .text is the default segment
+#    .data
+#
 # The data directives supported are:
 #
 #   .align  { 1 | 2 | 3 | 4 }  # 1=byte, 2=half, 3=word, 4=dword
@@ -33,7 +38,11 @@
 #    .pseudo_stop    : akin to .end_macro
 #
 #################################################################################
- 
+
+declare SEGMENT="TEXT"
+alias assert_DATA_segment='[[ ${SEGMENT} == "DATA" ]]  || { instruction_error "Must use the .data directive first" ; }'
+alias assert_TEXT_segment='[[ ${SEGMENT} == "TEXT" ]]  || { instruction_error "Must use the .text directive first" ; }'
+
 alias .lab=".label"
 function .label () {
   local name="$1"
@@ -45,10 +54,10 @@ function .label () {
 }
 
 alias .text="SEGMENT=TEXT"
-alias .ktext="echo Not Implemented."
+alias .ktext="SEGMENT=KTEXT"
 
 alias .data="SEGMENT=DATA"
-alias .kdata="echo Not Implemented."
+alias .kdata="SEGMENT=KDATA"
 
 alias .float="echo Not Implemented."
 alias .double="echo Not Implemented."
@@ -86,6 +95,7 @@ function .ascii () {
   local address=${DATA_NEXT}
   local count=0
 
+  assert_DATA_segment
   for i in $(ascii.index "$str") ; do
      allocate_data_memory 1 "$i"
      (( count ++ ))
@@ -97,6 +107,7 @@ function .ascii () {
 function .space () {
    local bytes=$(parse_literal "$1")
 
+   assert_DATA_segment
    allocate_data_memory $bytes
    print_zero_encoding $bytes
 }
@@ -110,6 +121,7 @@ function .align () {
   local offset=0
   local bytes
 
+  assert_DATA_segment
   case ${align} in 
     0) # No adjustment is needed
        size=1

@@ -82,17 +82,21 @@ source ${MIPS_CLI_HOME}/libexec/library.bash
 source ${MIPS_CLI_HOME}/libexec/dump.bash
 
 source ${MIPS_CLI_HOME}/libexec/parse_literal.bash
+
+source ${MIPS_CLI_HOME}/libexec/instructions/native_instructions.bash
+source ${MIPS_CLI_HOME}/libexec/instructions/directives.bash
+source ${MIPS_CLI_HOME}/libexec/macros.bash
+source ${MIPS_CLI_HOME}/libexec/labels.bash
+source ${MIPS_CLI_HOME}/libexec/encoding.bash
+
 source ${MIPS_CLI_HOME}/libexec/machine/machine.bash
 
 source ${MIPS_CLI_HOME}/libexec/cycle.bash
 source ${MIPS_CLI_HOME}/libexec/execute.bash
 
-source ${MIPS_CLI_HOME}/libexec/labels.bash
-source ${MIPS_CLI_HOME}/libexec/encoding.bash
 
-source ${MIPS_CLI_HOME}/libexec/instructions/native_instructions.bash
-source ${MIPS_CLI_HOME}/libexec/instructions/directives.bash
-source ${MIPS_CLI_HOME}/libexec/macros.bash
+
+
 
 
 mkdir -p ${MIPS_CLI_HOME}/tmp

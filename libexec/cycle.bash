@@ -228,10 +228,10 @@ function prefetch () {
     ## We know have a line is either a directive or is executable
     case "$instruction" in 
 
-       .macro_start | .macro_stop )
+       .macro_start | .macro_stop |\
+       .data        | .text )
             # currently no labels can be associated with these directives
             # any labels whould have been processed prior to the
-            # macro_start
             ;;
 
        .* ) # These are for the data directives
@@ -261,7 +261,8 @@ function prefetch () {
             prefetch "${next_pc}"  "${target_label}"
             ;;
         * ) 
-            # 
+            #
+            assert_TEXT_segment
             for i in ${labels[@]} ; do
               assign_text_label "$i" "${next_pc}"
             done
