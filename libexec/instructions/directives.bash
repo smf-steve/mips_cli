@@ -47,10 +47,12 @@ alias .lab=".label"
 function .label () {
   local name="$1"
   local address="$2"
+  local _segment="$(tr [A-Z] [a-z] <<< "${SEGMENT}")"
 
   [[ -n "$address" ]] || address=$(( $(rval $_pc) - 4 ))
 
-  eval ${SEGMENT}_label_${name}="${address}"
+  # note that it overwrites the label
+  eval ${_segment}_label_${name}="${address}"
 }
 
 alias .text="SEGMENT=TEXT"
