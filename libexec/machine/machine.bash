@@ -206,7 +206,9 @@ function print_value_i () {
     local _bin=$(base2_digits 32 $_unsigned )
   fi
   printf "   %6s:  %11s %11s; 0x%s; 0b%s;"  \
-        "${_name}" "${_dec}" "${_unsigned}" "$(group_4_2 ${_hex})" "$(group_8_4 ${_bin})"
+        "${_name}" "${_dec}" "${_unsigned}" \
+        "$(group_4_2 "${_hex}" )" \
+        "$(group_8_4 "${_bin}" )"
 
   if [[ "$_text" != "" ]] ; then
     printf " \"%s\"" "${_text}"
@@ -314,7 +316,7 @@ function alu_assign() {
 function print_NPC_WB_stage () {
   local z_bit="$1"
   local _current="$2"
-  local _addr="$3"
+  local _addr="$3"    # address is blank if it is not resolved
   local _label="$4"
 
   [[ "${EMIT_EXECUTION_SUMMARY}" == "TRUE" ]] || return
@@ -334,7 +336,7 @@ function print_NPC_WB_stage () {
 }
 
 
-#      #0:           0           0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000; "pc"
+#      #0:           0           0; 0x00 00 00 00; 0b0000 0000 0000 0000 0000 0000 0000 0000; "npc"
 #      #1:           5           5; 0x00 00 00 05; 0b0000 0000 0000 0000 0000 0000 0000 0101; "_address"
 #      Z:            0           0;             0;                                         0;
 #       mux ----------  ----------- -------------- ------------------------------------------
