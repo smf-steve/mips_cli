@@ -9,7 +9,8 @@
 #
 # encode_immediate imm
 #
-# encode_offset label [ PC ]
+# calculate_offset label [ PC ]
+# encode_offset label
 # decode_offset imm
 #
 # encode_address label 
@@ -58,31 +59,28 @@ function encode_immediate () {
   echo $(base2_digits 16 $_value)
 }
 
-function encode_offset () {
+function calculate_offset () {
   local label="$1"
-  local offset="$1"
-  local pc="$2"
+  local pc="${2:-$(rval $_pc)}"
   
-  [[ -n ${pc} ]] || pc=$(rval $_pc)
+  ## [[ -n ${pc} ]] || pc=$(rval $_pc)
 
-  local address
-  if [[ ${label:0:1} =~ [[:alpha:]] ]] ; then
-    address=$(lookup_text_label ${label})
-
-    [[ -n "${address}" ]] || { 
-            echo "_unresolved_ ${address} - \$_pc" 
-            return 
-          }
-    offset=$(( address - pc ))
+  local address=$(lookup_text_label ${label})
+  [[ -n "${address}" ]] || { 
+      echo "_unresolved_" 
+      return 
+  }
+ 
+  local offset=$(( address - pc ))
               
-    if (( offset > MAX_IMMEDIATE || MIN_IMMEDIATE > offset  )) ; then 
-      instruction_error "Branch out of reach."
-    fi
-  
-    offset=$(( (offset >> 2 ) & 0xFFFF ))
+  if (( offset > MAX_IMMEDIATE || MIN_IMMEDIATE > offset  )) ; then 
+    instruction_error "Branch out of reach."
   fi
-  echo $(base2_digits 16 $offset)
+  
+  echo $(( (offset >> 2 ) & 0xFFFF ))
+
 }
+
 
 function decode_offset () {
   local imm="$1"
@@ -181,7 +179,8 @@ function print_I_encoding () {
     local _rs="$2" 
     local _rt="$3"
     local _imm="$4"
-    local _label="$5"
+    local _label="$5" # optional used for unresolved immediates
+    local _text="$6"  # optional used for unresolved immediates
 
     local _rs_name="$(name $_rs)" 
     local _rt_name="$(name $_rt)"
@@ -189,15 +188,12 @@ function print_I_encoding () {
     local _rs_code=$(encode_register "$_rs")
     local _rt_code=$(encode_register "$_rt")
 
-    local _imm_code
-    if [[ -n "$_label" ]] ; then
-       # the immediate is base upon a label
-       _imm=$_label
-       _imm_code=$(encode_offset $_label)
-    else
-       _imm_code=$(encode_immediate "$_imm")
+    # Special cause for the BranchX instruction, 
+    #   where the label might not be resolveable
+    local _imm_code="_${label:0:14}_"
+    if [[ ${imm} != "_unresolved_" ]] ; then
+      _imm_code=$(encode_immediate "$_imm")  
     fi
-
 
     local encoding="${_op_code}${_rs_code}${_rt_code}${_imm_code}"
     TEXT[$(rval $_pc)]="$encoding"
@@ -210,15 +206,15 @@ function print_I_encoding () {
             " op" " rs" " rt" " imm"
     printf "\t|------|-----|-----|----------------|\n"
 
-    if [[ -n "$_label" ]] ; then
+    if [[ -n "${_text}" ]] ; then
       printf "\t|%-6s|%-5s|%-5s| %-15s|\n" \
-              " ${_op:0:5}" " \$$_rs_name" " \$$_rt_name" "${_label:0:14}"
+              " ${_op:0:5}" " \$$_rs_name" " \$$_rt_name" "${_text:0:14}"
     else        
       printf "\t|%-6s|%-5s|%-5s|%16s|\n" \
               " ${_op:0:5}" " \$$_rs_name" " \$$_rt_name" "$_imm"
     fi
-    if [[ $_imm_code == "_unresolved_" ]] ; then 
-        _imm_code="????????????????"   # To center it
+    if [[ $_imm == "_unresolved_" ]] ; then 
+        _imm_code="  _unresolved_  "   # To center it
     fi
 
     printf "\t|%s|%s|%s|%16s|\n" \

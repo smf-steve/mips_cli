@@ -301,102 +301,88 @@ function execute_LoadI () {
   print_ALU_state "$_op" $_rt
 }
 
+function execute_BranchZ () {
+  local name="$1"
+  local op="$2"
+  local rs="${3%,}"
+  local label="$4"
+
+  execute_Branch ${name} ${op} ${rs} ${zero} ${label}
+}
+
+# Note that the execute_Branch is effective for both syntaxs:  Branch and BranchZ
 function execute_Branch () {
-  local _name="$1"
-  local _op="$2"
-  local _rs="${3%,}"
-  local _rt="${4%,}"
-  local _label="$5"
-  
-  local _imm=$(encode_offset $_label)
+  local name="$1"
+  local op="$2"
+  local rs="${3%,}"
+  local rt="${4%,}"
+  local label="$5"
+  local offset="$5"
+
+  local addr=$(lookup_text_label ${label})
+  local text
+  local imm
+
+  if [[ ${label:0:1} =~ [[:alpha:]] ]] ; then   
+    #  A label has been provided
+    text="(${label} - pc) >> 2"
+    imm=$(calculate_offset ${label})
+  else                                          #
+    # An offset has been provided
+    text=""
+    if (( offset > MAX_IMMEDIATE || MIN_IMMEDIATE > offset  )) ; then 
+      instruction_error "Branch out of reach."
+    fi
+    imm=${offset}
+    addr=$(( $(rval $_pc) + (offset << 2) ))
+    label="pc + (${offset} << 2)"
+  fi
 
   ## Print the Encoding
   {
-    print_I_encoding $_name $_rs $_rt $_imm $_label
+    print_I_encoding ${name} ${rs} ${rt} ${imm} "${label}" "${text}"
 
     emit_p=${EMIT_ENCODINGS}
     EMIT_ENCODINGS=FALSE
 
-    execute_ArithLog "sub" "-" $zero $_rs $_rt
+    execute_ArithLog "sub" "-" $zero ${rs} ${rt}
     EMIT_ENCODINGS=$emit_p
 
   }
   [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
 
-  local _next=$(rval $_npc)
-  local _addr=$(lookup_text_label $_label)
-  local _resolved=$_addr
-  if [[ -z "$_addr" ]] ; then
-    _resolved=$_label   # the label is unresolved
-  fi
-
-  case "$_name" in 
+  local next=$(rval $_npc)
+  case "$name" in 
     beq) if [[ ${STATUS_BITS[$_z_bit]} == "1" ]] ; then
-           assign $_npc $_resolved
+           assign $_npc ${addr}
          else
            :
          fi
          ;;
     bne) if [[ ${STATUS_BITS[$_z_bit]} == "0" ]] ; then
-           assign $_npc $_resolved
+           assign $_npc ${addr}
          else
            :
          fi
          ;;
-  esac
-  print_NPC_WB_stage "${STATUS_BITS[$_z_bit]}" "$_next" "$_addr" "$_label"
-
-}
-
-
-function execute_BranchZ () {
-  local _name="$1"
-  local _op="$2"
-  local _rs="${3%,}"
-  local _label="$4"
-
-  ## Print the Encoding
-  {
-    print_I_encoding $_name $_rs $_rt $_imm $_label
-
-    emit_p=${EMIT_ENCODINGS}
-    EMIT_ENCODINGS=FALSE
-
-    # I could also also execute an any instruction that results in the ALU output
-    # beign the same as $_rs
-    execute_ArithLog "sub" "-" $_zero $_rs $_zero 
-    EMIT_ENCODINGS=$emit_p
-  }
-  [[ ${EXECUTE_INSTRUCTIONS} == "TRUE" ]] || return
-
-  local _next=$(rval $_npc)
-  local _addr=$(lookup_text_label $_label)
-  local _resolved=$_addr
-  if [[ -z "$_addr" ]] ; then
-    _resolved=$_label   # the label is unresolved
-  fi
-
-  case "$_name" in 
     bgtz) if [[ ${STATUS_BITS[$_s_bit]} == 0 && ${STATUS_BITS[$_z_bit]} == 0 ]] ; then 
              # result is positive, hence '$_rs > 0'
-             assign $_npc $_resolved
+             assign $_npc ${addr}
           else
             :
           fi
           ;;
     blez) if [[ ${STATUS_BITS[$_s_bit]} == 1 || ${STATUS_BITS[$_z_bit]} == 1 ]] ; then 
              # result is positive, hence '$_rs <= 0'
-             assign $_npc $_resolved
+             assign $_npc ${addr}
           else
             :
           fi
           ;;
   esac
-
-  print_NPC_WB_stage "${STATUS_BITS[$_z_bit]}" "$_next"  "$_addr" "$_label"
+  print_NPC_WB_stage "${STATUS_BITS[$_z_bit]}" "${next}" "${addr}" "${label}"
 
 }
-
 
 
 

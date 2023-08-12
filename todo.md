@@ -1,6 +1,24 @@
 
 # Bugs
 
+1. Branch instructions -- need to validate the calculation of the address
+  - is it off of npc or pc
+  - 
+
+1. beq instructions 
+   1. the seem to be working but going into an infinite loop
+      - it should be going into debug mode
+      ```
+      a: nop
+         beq $zero, $zero, a
+      ```
+      - forward loop also goes into a problem
+      ```
+      b:      beq $t1, $t2, c
+      c:      nop
+      ```
+      - It might have something to do with TEXT_NEXT and/or instruction
+
 
 1. `libexec/cycle.bash:  local original_instruction="$(remove_label $(rval $_ir) )"`
    - this but has been found and fixed
@@ -10,6 +28,21 @@
    - under step, the last instruction is added to history
    - what should be placed in TEXt and INSTRUCTIONS for a load..
      * shouldn't be load?
+   - strange behavior
+   - this is due to possible use of a global variable instruction
+     1. ```
+        bin/mips_cli
+        step
+        li 
+        load examples/macros.s
+        ```
+      1. ```
+         bin/mips_cli
+         step
+         load examples/macros.s
+         ```
+      -  the second one goes into an infinite loop
+      -- note the value of original and instruction are different... -- key to the bug
 
 1. step ; load examples/macro.s
    -- works fine if typed in verbatum
@@ -25,12 +58,14 @@
 1. output prompts are different under
    - load and interactive
 
+1. label  a  garbage
+   - perform a check to ensure the value of garbage is in the proper range
+   
 # ToDo
 
 1. Installation Proceducers
    1. proper call anywhere where files are staged in ~/class/comp122/bin
 
-1. Review labels
 
 1. Review INSTRUCTIONS.. 
    1. determine which instructions get put into the insturction loop
@@ -119,11 +154,6 @@
   1. loops.s
      - deferred until cli being flushed out
 
-## Implementation of labels
-   1. if a set of lines with labels all for the same instruction
-      - only the last one, is associated with the instruction in the INSTRUCTION struct
-   1. if a label is associated with a macro or pseudo instruciton
-      - no label is associated with the expande instruction in the INSTRUCTION struct
 
 ## Implementetion of .macro
    1. address labels
@@ -188,34 +218,26 @@
 1. reveiw all of the promps.
    - e.g., the execute prompt should not be $
 
-1. when in the current top mode, what should be valid instrtions
-  - why: applications of macros don't work  (PC value is off)
-  - we also can't have labels
 
 
-### Command History
+### Command History / TEXT / INSTRUCTIONS
+
+| name                 | HISTORY | TEXT     | INSTRUCTIONS |
+|----------------------|---------|----------| -------------|
+| instruction          |  Yes    | Yes      | expanded     |
+| macro                |  yes    | expanded | expanded     |
+| directive            |  yes    | no       | no           |
+| mult-line directive  |  yes    | no       | no           |
+| shell * / @*         |  yes    | no       | no           |
 
 1. history is being updated when we enter instructions
-   - validate that @instruction are inserted correctly in history
-     - the @ sign is removed
-     - they are not recorded
-     - which ???  (leaning towards the @ sign removed)
-1. The ! might be a good thing to execute
-   * alias !='fc -s'
-   * 
+   - mips instructions are added to the command history
+   - mips macros: the prologue, the individual instructions, and the epilogue are added
+   - mips directives are added to the history
+   - mulit-line mips directories are not added to the history
+   - shell * or @* are not added to the history
 
-### Top level errors
 
-1. might be nice to add in a post ech to determine if a command was not executed correct
-   ```
-
-   $ trap 'echo hello' ERR
-   bash-3.2$ !f
-   bash: !f: command not found
-   hello
-   bash-3.2$ !f 2>/dev/null
-   hello
-   ```
 
 
 ### Debugging mode
@@ -285,12 +307,19 @@
       - Memory Interface utilizes a MAR & MBR
         - maybe implement a memory module to illustrate allignment 
 
+   1. Implementation of labels
+      1. if a set of lines with labels all for the same instruction
+         - only the last one, is associated with the instruction in the INSTRUCTION struct
+      1. if a label is associated with a macro or pseudo instruciton
+         - no label is associated with the expande instruction in the INSTRUCTION struct
+
+
    1. with the following  extensions
       - immediates can be use 2# notation
       - labels are within two name space, i.e., the label A can be used both for data and for text
         - can't have self modifing code
       - At most one label can be depicted per line.
-        - Labels: blank lines with labels, are ignored, but labels are stored anyways.
+        - Labels: blank lines with labels, are stored anyways.
 
 
    1. mini-mips: purpose
@@ -400,6 +429,7 @@
 
 
 
+--
 
 # Improvements
 
@@ -464,3 +494,20 @@
       - "\_exit: \_exit "
       - the label should be placed into kernel space...
  
+
+### Top level errors
+
+1. might be nice to add in a post ech to determine if a command was not executed correct
+   ```
+
+   $ trap 'echo hello' ERR
+   bash-3.2$ !f
+   bash: !f: command not found
+   hello
+   bash-3.2$ !f 2>/dev/null
+   hello
+   ```
+
+   This might be nice
+   * alias !='fc -s'
+   * 
