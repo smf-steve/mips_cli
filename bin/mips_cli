@@ -4,4 +4,5 @@ if [[ -z ${MIPS_CLI_HOME} ]] ; then
   echo "Please define MIPS_CLI_HOME"
   echo "Defaulting to: MIPS_CLI_HOME=$(pwd)"
 fi
-bash --init-file ${MIPS_CLI_HOME}/libexec/bootstrap.bash -i
+bash --init-file ${MIPS_CLI_HOME}/libexec/bootstrap.bash -i  "$@"
+
