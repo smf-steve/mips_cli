@@ -1,0 +1,51 @@
+prefetch loop
+  .*)  directives
+  @*)  unrecorded instructions
+  *)   recorded instructions
+
+       Hence, always include shell instructions in the history
+         1. they can be pulled out via a tool
+         2. they will not be part of a file loaded, (but could be)
+
+       Should there be a strict mode in which only mips instructions
+       are provided in the payload -- No, just use a tool to pull out the none mips commands
+
+Commands in debug mode:
+
+s:step
+l:list [n]  ; lists 15 instructions, 5 before the current linenumber ... 10 forward
+
+The following will need to implement the notion of a break.
+
+c:continue [n]  ; continues till the end of the program or until linenumber n
+r:return  ; continues till the end of the current subroutine (i.e., until the next jr command)
+            - but this is not acurate since it might not be a true return
+            - put a break on the line number assocated with the value in $ra
+
+CLI commans:
+
+rewind:  assign $_pc 0x0100 0000 and resets all pertanent registers (fp, ra, ga)
+         leaves registers in a funky state
+
+init|ialize:  clears the core and rewins
+reset: alias for init
+
+load:   reset, and includes in the file
+include: includes the file
+
+execute subroutine [args] ;  executes the subroutines in batch mode after loading the registers
+execute : executes in interactive mode 
+   -- DOESN't drops to debugger when a backwards reference is used
+   
+debug subroutine [args] ;    starts the debug process using the subroutine as the sarting point
+   * A wrapper for 
+     --  no more than 4 arguements, assume all to be ints
+     --  for i in "$@" ;  assign $a0 $i
+     --  jal subroutine
+debug
+  -- drops into deugger mode immedately -- which is equivaliant to execute
+
+print   [reg]    : equiva to print_register 
+print_i [immedate] 
+print_s [reg] [address]  : presumes the input is an address, that points to a string
+print_c [reg]    : prints each byte in the register as an ascii character
