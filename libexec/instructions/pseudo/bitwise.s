@@ -17,7 +17,7 @@
     or  %dst, %dst, $at 
 .end_pseudo
 
-.pseudo ror %dst, %src1, %src2         # Rotate right with a register
+.pseudo rorv %dst, %src1, %src2         # Rotate right with a register
     subu $at, $zero, %src2
     sllv $at, %src1, $at    
     srlv %dst, %src1, %src2  
